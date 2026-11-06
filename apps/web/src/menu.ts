@@ -17,6 +17,7 @@ export const BUILT = new Set([
   'admin/skills',
   'admin/notifications-and-confirmations',
   'admin/scorecards',
+  'quality/qa-entry',
   'admin/categories',
   'admin/root-causes',
   'admin/system-settings',

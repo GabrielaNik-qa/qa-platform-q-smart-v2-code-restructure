@@ -64,10 +64,13 @@ export function Bell({ company }: { company: Company }) {
   }, [open]);
 
   const unread = notes.filter((n) => !n.read).length;
+  const kindOf = (n: Note) =>
+    (n.kind === 'reviewNew' || n.kind === 'reviewUpdated') && !n.details['score'] ? `${n.kind}NotScored` : n.kind;
   const text = (n: Note) =>
-    t(`bell.kinds.${n.kind}`, {
+    t(`bell.kinds.${kindOf(n)}`, {
       ...n.details,
       role: ROLES.includes(n.details['role'] as Role) ? ROLE_LABELS[lang][n.details['role'] as Role] : '',
+      channel: n.details['channel'] ? t(`reviews.channelNouns.${n.details['channel']}`) : '',
       defaultValue: n.kind,
     });
 

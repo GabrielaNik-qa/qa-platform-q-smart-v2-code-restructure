@@ -19,6 +19,16 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - **Workspaces** now also hold their scorecards.
   - The demo company starts with today's two demo scorecards, seven library categories and six root causes.
   - Every change goes into the activity log.
+- **QA Entry and reviews:**
+  - **What QA Entry asks for:** the review type (call, chat, e-mail, other), team, agent, lead ID, date, campaign and scorecard.
+  - **The answers:** Yes/No/N/A for every item (Yes to start with, as today), with a comment and the root cause of a No.
+  - **The rest:** the links, the transcript of chats and e-mails, the general comments, and the flag.
+  - The score shows live while you answer: Passed or Failed against the team's or company's pass rate, a critical failure, or "not scored".
+  - **Who may do what:** admins and reviewers enter reviews (reviewers for the agents of their workspaces, with the scorecards they can use). Agents see their own reviews, staff those of their workspaces, admins all.
+  - **The agent:** gets a notification for a new review and for a changed score; opening it marks it as seen. Staff can remind them to open it.
+  - **Each review has its own page:** the score, every answer with its comments, the links and the transcript, with Edit (asks "Change this score?" before changing a score) and Delete.
+  - **Call recordings are never stored:** a review keeps only the link to where the recording is.
+  - **What a review keeps:** its own copy of the scorecard and the names as they were. Deleting the scorecard, the team or the agent's account leaves the review readable.
 
 ## 6 November 2026: Phase 1 (foundation), finished (tag `v2-phase-1`)
 

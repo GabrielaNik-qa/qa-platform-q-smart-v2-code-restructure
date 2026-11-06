@@ -4,6 +4,7 @@ import { createRootRoute, createRoute, createRouter, Navigate } from '@tanstack/
 import { firstPage, menuOf } from './menu';
 import { PageView, NotFound } from './PageView';
 import { Platform } from './Platform';
+import { ReviewView } from './ReviewView';
 import { useSession } from './session';
 import { Shell } from './Shell';
 
@@ -25,8 +26,10 @@ const root = createRootRoute({ component: Shell, notFoundComponent: NotFound });
 const start = createRoute({ getParentRoute: () => root, path: '/', component: Start });
 const owner = createRoute({ getParentRoute: () => root, path: '/owner', component: Owner });
 const page = createRoute({ getParentRoute: () => root, path: '/$app/$page', component: PageView });
+/** one review: from the bell, the list of reviews and QA Entry */
+const review = createRoute({ getParentRoute: () => root, path: '/review/$id', component: ReviewView });
 
-export const router = createRouter({ routeTree: root.addChildren([start, owner, page]) });
+export const router = createRouter({ routeTree: root.addChildren([start, owner, review, page]) });
 
 declare module '@tanstack/react-router' {
   interface Register {

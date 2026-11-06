@@ -49,6 +49,12 @@ export const ERROR_MESSAGES = {
   rootCauseExists: 'That root cause already exists.',
   rootCauseNotFound: 'This root cause is not in the company.',
   passRateInvalid: 'A pass rate is a whole number from 1 to 100.',
+  reviewInvalid: 'Choose the scorecard, the agent, the lead ID (up to 60 characters) and the date.',
+  reviewUnanswered: 'Answer every question before you save the review.',
+  reviewAnswers: 'The answers do not match the scorecard.',
+  reviewScorecard: 'Choose a scorecard.',
+  reviewAgent: 'Choose an active agent of your workspaces.',
+  reviewNotFound: 'This review is not there, or you cannot open it.',
   notificationNotFound: 'This notification is no longer there.',
   profileInvalid: 'Enter a name of 2 to 120 characters, or choose English, Bulgarian or French.',
 } as const;

@@ -2,13 +2,15 @@
 // Every company table has company_id and sits behind the company wall (migrations/0001_company_wall.sql).
 // People are the one exception: a person can belong to several companies, so `users` is shared and
 // reaches companies through `memberships`; its wall rule shows a person only to the companies they belong to.
-import { ROLES, type ScorecardCategory, type ScorecardQuestion } from '@qsmart/shared';
+import { ROLES, type ScoredCategory, type ScorecardCategory, type ScorecardQuestion } from '@qsmart/shared';
 import {
   boolean,
   foreignKey,
+  date,
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   text,
@@ -352,3 +354,79 @@ export const rootCauses = pgTable('root_causes', {
   active: boolean('active').notNull().default(true),
   createdAt: createdAt(),
 });
+
+export const channel = pgEnum('review_channel', ['call', 'chat', 'email', 'other']);
+export const reviewFlag = pgEnum('review_flag', ['', 'green', 'red']);
+
+/**
+ * A review (QA Entry): one conversation of one agent, scored with a scorecard. It keeps its own copy of the scored
+ * scorecard, and the names as they were, so it stays readable when the scorecard, the agent or the reviewer change or
+ * leave. Call recordings are never stored, only a link to them.
+ */
+export const reviews = pgTable(
+  'reviews',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    leadId: text('lead_id').notNull(),
+    agentId: uuid('agent_membership_id'),
+    agentName: text('agent_name').notNull(),
+    teamId: uuid('team_id'),
+    teamName: text('team_name').notNull().default(''),
+    reviewedOn: date('reviewed_on').notNull(),
+    channel: channel('channel').notNull().default('call'),
+    /** the "other" channel's name (e.g. WhatsApp) */
+    channelName: text('channel_name').notNull().default(''),
+    scorecardId: uuid('scorecard_id'),
+    scorecardName: text('scorecard_name').notNull(),
+    categories: jsonb('categories').$type<ScoredCategory[]>().notNull(),
+    /** the percentage with one decimal; empty when not scored */
+    score: numeric('score', { precision: 4, scale: 1, mode: 'number' }),
+    zero: boolean('zero').notNull().default(false),
+    notScored: boolean('not_scored').notNull().default(false),
+    status: text('status').notNull().default('ok'),
+    flag: reviewFlag('flag').notNull().default(''),
+    campaign: text('campaign').notNull().default(''),
+    comment: text('comment').notNull().default(''),
+    leadLink: text('lead_link').notNull().default(''),
+    recordingLink: text('recording_link').notNull().default(''),
+    conversationLink: text('conversation_link').notNull().default(''),
+    transcript: text('transcript').notNull().default(''),
+    emailSubject: text('email_subject').notNull().default(''),
+    reviewerId: uuid('reviewer_membership_id'),
+    reviewerName: text('reviewer_name').notNull(),
+    /** when the agent first opened it */
+    seenAt: timestamp('seen_at', { withTimezone: true }),
+    /** how long QA Entry took, in seconds (at most 4 hours) */
+    reviewSeconds: integer('review_seconds'),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('reviews_id_company').on(t.id, t.companyId),
+    index('reviews_company_date').on(t.companyId, t.reviewedOn),
+    index('reviews_agent').on(t.agentId),
+    foreignKey({
+      name: 'reviews_agent_same_company',
+      columns: [t.agentId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'reviews_reviewer_same_company',
+      columns: [t.reviewerId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'reviews_team_same_company',
+      columns: [t.teamId, t.companyId],
+      foreignColumns: [teams.id, teams.companyId],
+    }),
+    foreignKey({
+      name: 'reviews_scorecard_same_company',
+      columns: [t.scorecardId, t.companyId],
+      foreignColumns: [scorecards.id, scorecards.companyId],
+    }),
+  ],
+);
