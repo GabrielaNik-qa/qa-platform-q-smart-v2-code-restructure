@@ -1,12 +1,14 @@
 import { ROLE_LABELS, type Role } from '@qsmart/shared';
 import { signOut, type User } from 'firebase/auth';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from './api';
 import { Logo, Settings } from './chrome';
 import { auth } from './firebase';
 import { currentLanguage } from './i18n';
+import { People } from './People';
 import { Platform } from './Platform';
+import { VerifyEmail } from './VerifyEmail';
 
 interface Company {
   id: string;
@@ -34,9 +36,10 @@ export function Home({ user }: { user: User }) {
   const [teams, setTeams] = useState<Team[] | null>(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const loadMe = useCallback(() => {
     api<Me>('/me').then(setMe, (e: Error) => setError(e.message));
   }, []);
+  useEffect(loadMe, [loadMe]);
 
   useEffect(() => {
     if (!company) return;
@@ -71,6 +74,9 @@ export function Home({ user }: { user: User }) {
           </p>
         )}
 
+        {me && !user.emailVerified && me.companies.length === 0 && !me.platformAdmin && (
+          <VerifyEmail user={user} onConfirmed={loadMe} />
+        )}
         {me?.platformAdmin && <Platform />}
 
         <section className="bg-pn border border-bd rounded-m p-5" aria-labelledby="companies-title">
@@ -124,6 +130,8 @@ export function Home({ user }: { user: User }) {
             </>
           )}
         </section>
+
+        {company && teams && <People key={company.id} company={company} teams={teams} myEmail={me?.email ?? null} />}
       </main>
       <p className="text-center text-xs text-mu pb-4">{t('common.preview')}</p>
     </div>
