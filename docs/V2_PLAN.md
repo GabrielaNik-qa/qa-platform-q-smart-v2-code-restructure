@@ -438,7 +438,7 @@ Sign-in is set up the same way: one free Firebase project for the demo and one f
 
 1. ✓ Yes: Phase 0 starts (5 November).
 2. ✓ Done (5 November): this folder is the project, connected to the public GitHub repository of the same name, with a fresh history. Work happens on the branch `qa-platform-q-smart-v2-code-restructure`, and finished work goes into `main`.
-3. The Firebase project and site names: I'll try `qsmart` for the website, `qsmart-app` for the app and `qsmart-help` for the Help Center, or the closest free names if those are taken. You confirm when we create the project together in Phase 0 (6 Nov).
+3. ✓ Done (6 November): the Firebase projects are **Q-smart** (`qsmart-official`, for clients, the website and the Help Center; extra sites `qsmart`, `qsmart-app`, `qsmart-help` if they were free) and **Q-smart Demo** (`qsmart-demo`), with e-mail and Google sign-in. Signing in with Google on the real demo project works.
 4. ✓ **Yes (5 November, evening): the menu as apps.** Q-smart becomes a set of apps behind one sign-in and one address, with an app switcher like Google's or Atlassian's. (Jira and Confluence are on the same address, `…/jira` and `…/wiki`, with one sign-in.)
    - **Quality**, the main menu: Home, reviews, disputes, calibration, analytics, performance, coaching, tasks, planning and reports.
    - **Workforce**: Team today, attendance, time off, shifts & rota, capacity. It leaves Admin › People and becomes a product of its own.
