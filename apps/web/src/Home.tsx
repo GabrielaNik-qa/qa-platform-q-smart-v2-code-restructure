@@ -8,6 +8,7 @@ import { auth } from './firebase';
 import { currentLanguage } from './i18n';
 import { CompanyArea } from './CompanyArea';
 import { Platform } from './Platform';
+import { QLoader, useAtLeast } from './QLoader';
 import { VerifyEmail } from './VerifyEmail';
 
 interface Company {
@@ -29,6 +30,8 @@ export function Home({ user }: { user: User }) {
   const [me, setMe] = useState<Me | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [error, setError] = useState('');
+  // today's heartbeat until the first page is ready: a full beat at least, so it never flickers
+  const loading = useAtLeast(!me && !error, 1600);
 
   const loadMe = useCallback(() => {
     api<Me>('/me').then(setMe, (e: unknown) => setError(errorText(t, e)));
@@ -102,6 +105,7 @@ export function Home({ user }: { user: User }) {
         {company && <CompanyArea key={company.id} company={company} myEmail={me?.email ?? null} />}
       </main>
       <p className="text-center text-xs text-mu pb-4">{t('common.preview')}</p>
+      <QLoader on={loading} />
     </div>
   );
 }

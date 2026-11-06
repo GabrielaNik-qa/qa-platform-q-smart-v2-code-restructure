@@ -1,0 +1,358 @@
+/* The sign-in screen, copied from today's app (current-app/public/css/app.css, "the sign-in screen (4 November)"):
+   centred; "Dark stage" in dark mode, "Light" (a warm card) in light mode; the light/dark switch and the language
+   globe on top; the big Q logo with sound waves; the orange-to-pink button. Class names are today's. */
+.lg {
+  --lgbg: #fbf6f1;
+  --lgcard: #fff;
+  --lgbd: #f3e2d4;
+  --lgtx: #1c1917;
+  --lgmu: #78716c;
+  --lgin: #fff;
+  --lginbd: #e7e5e4;
+  --lgsh: 0 20px 50px rgba(154, 52, 18, 0.08);
+  --lgfont: 'Barlow', 'Fira Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --lgfont-d: 'Barlow Condensed', 'Fira Sans Extra Condensed', 'Barlow', 'Fira Sans', system-ui, sans-serif;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--lgbg);
+  color: var(--lgtx);
+  font-family: var(--lgfont);
+}
+:root[data-theme='dark'] .lg {
+  --lgbg: #171717;
+  --lgcard: transparent;
+  --lgbd: transparent;
+  --lgtx: #f5f5f5;
+  --lgmu: #a3a3a3;
+  --lgin: #202020;
+  --lginbd: #2f2f2f;
+  --lgsh: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .lg {
+    --lgbg: #171717;
+    --lgcard: transparent;
+    --lgbd: transparent;
+    --lgtx: #f5f5f5;
+    --lgmu: #a3a3a3;
+    --lgin: #202020;
+    --lginbd: #2f2f2f;
+    --lgsh: none;
+  }
+}
+.lgtop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 36px;
+}
+.lgb {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lgb b {
+  letter-spacing: 0.28em;
+  font: 700 22px var(--lgfont-d);
+  color: var(--lgtx);
+}
+.lgtools {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.lgic {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--lginbd);
+  background: var(--lgin);
+  color: var(--lgtx);
+  cursor: pointer;
+  position: relative;
+  list-style: none;
+}
+.lgic svg {
+  width: 19px;
+  height: 19px;
+}
+.lgic::-webkit-details-marker {
+  display: none;
+}
+.lgic span {
+  position: absolute;
+  right: -6px;
+  bottom: -5px;
+  font: 700 9px var(--lgfont);
+  padding: 1px 4px;
+  border-radius: 6px;
+  background: var(--brand);
+  color: #fff;
+}
+.lglang {
+  position: relative;
+}
+.lglangl {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 5;
+  min-width: 150px;
+  display: grid;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--lginbd);
+  background: var(--lgin);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+.lglangl button {
+  text-align: left;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--lgtx);
+  font: inherit;
+  cursor: pointer;
+}
+.lglangl button:hover,
+.lglangl button.on {
+  background: color-mix(in srgb, var(--brand) 14%, transparent);
+}
+.lgc {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px 24px;
+}
+.lgw {
+  width: min(420px, 90vw);
+  margin-bottom: 6px;
+}
+.lgf {
+  width: min(440px, 100%);
+  display: grid;
+  gap: 14px;
+  background: var(--lgcard);
+  border: 1px solid var(--lgbd);
+  border-radius: 22px;
+  padding: 28px 34px;
+  box-shadow: var(--lgsh);
+}
+.lgf h1 {
+  font: 700 32px var(--lgfont-d);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lgtx);
+  text-align: center;
+  margin: 0;
+}
+:lang(bg) .lgf h1,
+:lang(fr) .lgf h1 {
+  font-size: 28px;
+}
+.lgs {
+  margin: -6px 0 4px;
+  color: var(--lgmu);
+  text-align: center;
+  line-height: 1.5;
+}
+.lgf label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--lgtx);
+}
+.lgf label > input {
+  display: block;
+  margin-top: 6px;
+}
+.lgf input {
+  min-height: 46px;
+  width: 100%;
+  background: var(--lgin);
+  border: 1px solid var(--lginbd);
+  color: var(--lgtx);
+  border-radius: 12px;
+  padding: 0 14px;
+  font-size: 15px;
+  font-family: var(--lgfont);
+  outline: none;
+}
+.lgf input:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.28);
+}
+.lgf input::placeholder {
+  color: var(--lgmu);
+}
+.lgf :focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.lgf .rule {
+  display: block;
+  margin-top: 6px;
+  font-weight: 400;
+  color: var(--lgmu);
+}
+.pw {
+  position: relative;
+  margin-top: 6px;
+}
+.pw input {
+  padding-right: 44px;
+  width: 100%;
+  margin: 0;
+}
+.eye {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 36px;
+  width: 36px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--lgmu);
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+}
+.eye:hover {
+  color: var(--lgtx);
+}
+.sbtn {
+  height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #ff6b00, #ff5c8a);
+  color: #fff;
+  font: 700 16px/1 var(--lgfont-d);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.sbtn:hover {
+  filter: brightness(1.05);
+}
+.sbtn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+/* links, written as buttons */
+.lgk {
+  border: 0;
+  background: none;
+  padding: 0;
+  text-align: center;
+  color: var(--brand);
+  font: 600 14px/1.5 var(--lgfont);
+  text-decoration: none;
+  cursor: pointer;
+}
+.lgk:hover {
+  text-decoration: underline;
+}
+/* today's "Register" button: here, "Invited? Create your password" and "Sign in with Google" */
+.rgb {
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid var(--lginbd);
+  background: transparent;
+  color: var(--lgtx);
+  font: 600 15px var(--lgfont);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 14px;
+}
+.rgb:hover {
+  border-color: var(--brand);
+}
+.rgb:disabled {
+  opacity: 0.6;
+}
+.lgor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--lgmu);
+  font-size: 12.5px;
+}
+.lgor::before,
+.lgor::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--lginbd);
+}
+.lgok {
+  color: #15803d;
+  font-weight: 600;
+}
+.lgerr {
+  color: #c9251b;
+  font-weight: 600;
+}
+:root[data-theme='dark'] .lg .lgok {
+  color: #3dd68c;
+}
+:root[data-theme='dark'] .lg .lgerr {
+  color: #ff6b5e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .lg .lgok {
+    color: #3dd68c;
+  }
+  :root:not([data-theme='light']) .lg .lgerr {
+    color: #ff6b5e;
+  }
+}
+/* the note under the form (today: the privacy note; here also the test accounts on your PC) */
+.lgnote {
+  margin-top: 2px;
+  border: 1px solid var(--lginbd);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: var(--lgmu);
+  display: grid;
+  gap: 4px;
+}
+.lgnote p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.lgfoot {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  padding: 0 20px 22px;
+  font-size: 12.5px;
+  color: var(--lgmu);
+}
+.lgfoot a {
+  color: inherit;
+}
+@media (max-width: 640px) {
+  .lgtop {
+    padding: 16px;
+  }
+  .lgf {
+    padding: 20px 18px;
+  }
+  .lgw {
+    width: 300px;
+  }
+}

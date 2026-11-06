@@ -4,6 +4,15 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## 6 November 2026: Phase 1 (foundation), in progress
 
+- **The sign-in screen now looks like today's** (your design of 4 November). It has:
+  - the Q-SMART name, the round light/dark button and the language globe on top;
+  - the big Q logo with sound waves;
+  - the warm card in light mode and the dark stage in dark mode;
+  - the orange-to-pink button, the eye to show the password, and "© 2026 Q-smart" at the bottom;
+  - today's heartbeat animation from "Sign in" until the first page is ready.
+  - Checked against today's app, element by element (sizes, colours, fonts), in light and dark mode and in the three languages.
+  - v2's "Invited? Create your password" and "Sign in with Google" look like today's "Register" button.
+  - The Help Center link comes back when the new Help Center is online (Phase 11).
 - **Teams, workspaces, skills and languages**, with today's rules:
   - **Teams** have a description, a colour, a team lead (an active admin, reviewer, team lead or trainer), and their skills and languages. Administration is built in and can't be deleted; a team with people in it can't be deleted; a company keeps at least one working team. If a team lead becomes an agent or leaves, their teams wait for a new lead.
   - **Workspaces** group working teams with their reviewers, team leads and trainers. Except admins, people see only the people and teams of their own workspaces (agents: through their team). A new team goes into the workspace you choose (the first one if you don't), and so do invited reviewers, team leads and trainers. Once there is a workspace, there is always at least one.

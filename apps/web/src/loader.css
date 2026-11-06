@@ -1,0 +1,106 @@
+/* Today's loading animation "Heartbeat" (current-app/public/js/loader.js and css/app.css): from "Sign in" until the
+   first page is ready, the wavy lines become a heartbeat trace and the ( ) brackets beat around the Q.
+   With "reduce motion" switched on in the system, the logo stays still. */
+#qload {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #161616;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  transition:
+    opacity 0.28s ease,
+    visibility 0.28s;
+}
+#qload.off {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+#qload svg {
+  width: min(720px, 86vw);
+}
+.qlt {
+  font:
+    700 36px/1 'Barlow',
+    'Fira Sans',
+    system-ui,
+    sans-serif;
+  fill: #fff;
+}
+.qldots i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff6b00;
+  margin: 0 5px;
+  animation: qldt 1.2s infinite;
+}
+.qldots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.qldots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes qldt {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+}
+.qlecg {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 260;
+  stroke-dashoffset: 260;
+  animation: qlecg 1.6s linear infinite;
+}
+@keyframes qlecg {
+  to {
+    stroke-dashoffset: -260;
+  }
+}
+.qlbeat {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: qlbeat 1.6s infinite;
+}
+@keyframes qlbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  8% {
+    transform: scale(1.18);
+  }
+  16% {
+    transform: scale(1);
+  }
+  24% {
+    transform: scale(1.1);
+  }
+  32% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #qload * {
+    animation: none !important;
+    opacity: 1 !important;
+    stroke-dashoffset: 0 !important;
+  }
+  #qload {
+    transition: none;
+  }
+}
