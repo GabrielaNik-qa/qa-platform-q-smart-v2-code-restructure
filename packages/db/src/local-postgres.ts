@@ -92,7 +92,11 @@ export async function startLocalPostgres(
     appUrl: `postgres://qsmart_app:qsmart_app@${host}`,
     async stop() {
       await server.stop();
-      if (throwAway) await rm(dataDir, { recursive: true, force: true });
+      // Windows (an antivirus, or a PostgreSQL helper that is slow to quit) can hold the
+      // throw-away folder after PostgreSQL stops. It is only a temporary folder, so a
+      // folder that stays locked is left for Windows to clear, and is not an error.
+      if (throwAway)
+        await rm(dataDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }).catch(() => undefined);
     },
   };
 }

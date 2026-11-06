@@ -194,14 +194,24 @@ export function QAEntry({
   if (!form || !cards) return <p className="text-mu">{t('common.loading')}</p>;
   if (!editing && cards.length === 0) return <p className={card}>{t('reviews.noScorecard')}</p>;
 
+  // each change builds on the latest form, so quick changes one after another never undo each other
   const set = (change: Partial<Form>) => {
-    setForm({ ...form, ...change });
+    setForm((latest) => (latest ? { ...latest, ...change } : latest));
     setDirty(true);
   };
-  const answer = (ci: number, qi: number, change: Partial<GivenAnswer>) =>
-    set({
-      answers: form.answers.map((row, r) => (r === ci ? row.map((a, q) => (q === qi ? { ...a, ...change } : a)) : row)),
-    });
+  const answer = (ci: number, qi: number, change: Partial<GivenAnswer>) => {
+    setForm((latest) =>
+      latest
+        ? {
+            ...latest,
+            answers: latest.answers.map((row, r) =>
+              r === ci ? row.map((a, q) => (q === qi ? { ...a, ...change } : a)) : row,
+            ),
+          }
+        : latest,
+    );
+    setDirty(true);
+  };
   const agents = people.filter((p) => !form.teamId || p.teamId === form.teamId);
   const passRate = passRateFor(
     rates,
