@@ -9,10 +9,16 @@ on:
 permissions:
   contents: read
 
+# a newer change stops the checks of an older one that are still running
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   v2:
     name: v2 (types, code checks, format, tests)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -25,6 +31,7 @@ jobs:
   current-app:
     name: Today's app (its own tests)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       TZ: Europe/Sofia
     defaults:
@@ -38,4 +45,5 @@ jobs:
           cache: npm
           cache-dependency-path: current-app/package-lock.json
       - run: npm ci
-      - run: npm test
+      # the same tests as `npm test`, but a test that hangs stops after 2 minutes and shows its name
+      - run: node --test --test-timeout=120000 --test-reporter=spec "test/*.test.js"
