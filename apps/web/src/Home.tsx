@@ -100,7 +100,10 @@ export function Home({ user }: { user: User }) {
           </ul>
         </section>
 
-        <section className="bg-pn border border-bd rounded-m p-5" aria-live="polite">
+        <section
+          className={`bg-pn border border-bd rounded-m p-5 ${me && me.companies.length === 0 ? 'hidden' : ''}`}
+          aria-live="polite"
+        >
           {!company && <p className="text-mu">{t('home.choose')}</p>}
           {company && (
             <>

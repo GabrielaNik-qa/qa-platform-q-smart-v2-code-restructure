@@ -6,6 +6,8 @@ export interface VerifiedPerson {
   email: string | null;
   /** true only when Firebase has confirmed the person owns this e-mail (Google accounts always are) */
   emailVerified: boolean;
+  /** the name on the Firebase account (Google accounts have one), shown until the person has a company */
+  name?: string | null;
 }
 
 export interface TokenVerifier {
@@ -22,7 +24,8 @@ export function firebaseVerifier(projectId: string): TokenVerifier {
   return {
     async verify(idToken) {
       const token = await auth.verifyIdToken(idToken);
-      return { uid: token.uid, email: token.email ?? null, emailVerified: token.email_verified === true };
+      const name = typeof token['name'] === 'string' ? token['name'] : null;
+      return { uid: token.uid, email: token.email ?? null, emailVerified: token.email_verified === true, name };
     },
   };
 }

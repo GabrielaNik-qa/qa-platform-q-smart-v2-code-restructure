@@ -47,7 +47,7 @@ export class MeController {
     }
     return {
       email: person.email,
-      name: memberships[0]?.userName ?? null,
+      name: memberships[0]?.userName ?? person.name ?? null,
       platformAdmin,
       companies: memberships.map((m) => ({ id: m.companyId, name: m.companyName, role: m.role })),
     };
