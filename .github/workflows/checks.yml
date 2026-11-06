@@ -31,7 +31,7 @@ jobs:
   current-app:
     name: Today's app (its own tests)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     env:
       TZ: Europe/Sofia
     defaults:
@@ -45,5 +45,7 @@ jobs:
           cache: npm
           cache-dependency-path: current-app/package-lock.json
       - run: npm ci
-      # the same tests as `npm test`, but a test that hangs stops after 2 minutes and shows its name
-      - run: node --test --test-timeout=120000 --test-reporter=spec "test/*.test.js"
+      # the same tests as `npm test`, but a test that hangs stops after 2 minutes and shows its name, and once every
+      # result is in the run ends, even if a test forgot to stop a server it started (that used to keep the job waiting
+      # until GitHub cancelled it)
+      - run: node --test --test-force-exit --test-timeout=120000 --test-reporter=spec "test/*.test.js"
