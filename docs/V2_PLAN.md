@@ -490,7 +490,9 @@ qa-platform-q-smart-v2-code-restructure/     this folder = the public GitHub rep
 - Publishing (Phase 10): GitHub Actions on every merge into `main` runs the checks, then `firebase deploy` for the sites and a Cloud Run deploy for the server; pull requests get Firebase Hosting preview channels; Google access through Workload Identity Federation (no stored key).
 
 ### The company wall (multi-tenancy)
-- Every table has `company_id`. PostgreSQL Row-Level Security shows a row only when `company_id` matches the signed-in person's company, which is set per request with `SET LOCAL` inside a transaction.
+- Every company table has `company_id`. PostgreSQL Row-Level Security shows a row only when `company_id` matches the signed-in person's company, which is set per request with `SET LOCAL` (`set_config(…, true)`) inside a transaction. Without a company, nothing is visible.
+- People (`users`) are shared by the companies they belong to; their wall rule goes through `memberships`. At sign-in, one narrow function (`memberships_for`) returns the companies of the checked Firebase account and nothing else.
+- Links between company tables point at the same company (composite keys such as `(team_id, company_id)`), so a row can never point into another company. *(Built in Phase 0, 6 Nov: `packages/db`.)*
 - The server's database user does not own the tables and cannot bypass the wall.
 - Automatic tests sign in as company A and try every route against company B, including the MCP tools and the webhooks.
 - A connection router (company → database) supports the demo database, the production database, and later a dedicated database for a big client.

@@ -1,0 +1,28 @@
+{
+  "name": "@qsmart/db",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The PostgreSQL tables, the company wall (row-level security) and the migrations",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "generate": "drizzle-kit generate"
+  },
+  "devDependencies": {
+    "@types/pg": "8.23.1",
+    "drizzle-kit": "0.31.11",
+    "embedded-postgres": "18.6.0-beta.19"
+  },
+  "dependencies": {
+    "@qsmart/shared": "0.0.0",
+    "drizzle-orm": "0.45.4",
+    "pg": "8.23.1",
+    "zod": "4.6.7"
+  }
+}

@@ -10,7 +10,7 @@
 - **Stack (v2):** TypeScript everywhere · React + Vite pages · NestJS server · PostgreSQL on Neon (EU) · Firebase Authentication · Firebase Hosting + Cloud Run (europe-west1, when online).
 
 ## Rules that are never broken
-- **Company wall:** every table has `company_id`; PostgreSQL row-level security; every route is permission-checked on the server; tests try to reach another company's data.
+- **Company wall:** every company table has `company_id` (people are shared and reach companies through `memberships`); PostgreSQL row-level security, switched on for every table; the server connects as `qsmart_app` and never as the tables' owner (`qsmart_owner` only runs migrations); every route is permission-checked on the server; tests try to reach another company's data.
 - **One shared database for all client companies.** Separate databases only for separate purposes (demo, tests), or for a big client who pays for its own.
 - **Secrets:** by Gabriela's decision of 5 November, this public repository holds everything, including `current-app/data.json`, `current-app/audit.json`, `current-app/.qsmart-key`, `docs/patent/` and her notes in `notes/`. She will change those keys and passwords after moving to her own PC, so don't remove or rewrite those files. New v2 secrets in `.env` (database, Firebase, AI keys) stay out of Git, because they will protect clients' data. Clients' keys are stored encrypted.
 - **Call recordings are never stored.** Only transcripts, which are deleted after the number of days the company chose.
