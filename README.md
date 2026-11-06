@@ -5,9 +5,12 @@ Customer-service quality platform (SaaS) for contact centres: quality reviews an
 - The plan and the architecture: [docs/V2_PLAN.md](docs/V2_PLAN.md)
 - The rules for working on this project: [CLAUDE.md](CLAUDE.md)
 - Personal notes: `notes/`
+- Today's app: `current-app/` (start it with `cd current-app`, then `node server.js`)
 - Branches: work happens on `qa-platform-q-smart-v2-code-restructure`; finished, tested work goes into `main`.
 
 ## Today's app (the starting point)
+
+Since 6 November its files are in the `current-app/` folder. Run every command below from there (`cd current-app` first).
 
 Customer service analytics: quality, performance and improvement for support teams (phone, email, chat and SMS). It covers call reviews and scorecards, disputes, tasks and missions, coaching and calibration, a knowledge base with quizzes, teams and users. Plain Node.js + Express on the server, plain JavaScript in the browser, and one JSON file (`data.json`) as the database. Everything, including `data.json`, is kept in this repository (Gabriela's decision, 5 November).
 
