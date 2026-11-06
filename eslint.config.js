@@ -4,7 +4,18 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default [
-  { ignores: ['current-app/**', 'docs/**', 'notes/**', '**/dist/**', '**/coverage/**', '**/node_modules/**'] },
+  // .claude/: the working folders of other Claude sessions (each a separate copy of the project)
+  {
+    ignores: [
+      'current-app/**',
+      'docs/**',
+      'notes/**',
+      '.claude/**',
+      '**/dist/**',
+      '**/coverage/**',
+      '**/node_modules/**',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.strict,
   {

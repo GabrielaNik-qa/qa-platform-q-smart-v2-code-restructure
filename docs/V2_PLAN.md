@@ -118,7 +118,11 @@ Written on 5 November 2026 by Claude, from our talks of 3–5 November (includin
   - has automatic tests.
 - **Demo data comes over area by area.** When a phase is done, today's demo data for that area is in v2, so you always test with familiar data.
 - **Where you test:** on your PC, and shared with others through the Cloudflare link, as today, until Phase 10 puts the app online.
-- **Where the work happens:** this folder, `qa-platform-q-smart-v2-code-restructure` (in OneDrive, your choice of 5 November), on the branch of the same name. Finished, tested work goes into `main`. If OneDrive or the long folder path ever blocks a development tool, the folder can be moved: GitHub has everything.
+- **Where the work happens:** this folder, `qa-platform-q-smart-v2-code-restructure` (in OneDrive, your choice of 5 November). **One branch per phase (your decision of 6 November):**
+  - Phases 0 and 1 are on the branch of the same name as the folder.
+  - Each next phase has its own branch, `v2-phase-N`, cut from the end of the phase before. That way you can see how the app grows phase by phase, and find in which phase an error came in.
+  - When a phase is finished and tested, it goes into `main` and gets a tag, `v2-phase-N`, which never moves. Phase 1's is `v2-phase-1`.
+  - A finished phase's branch stays frozen: a mistake found later is fixed in the current phase, and the release notes say where it came from. If OneDrive or the long folder path ever blocks a development tool, the folder can be moved: GitHub has everything.
 - **Pages that were still "coming soon"** are built in the phase where they belong.
 
 ## 5. The phases

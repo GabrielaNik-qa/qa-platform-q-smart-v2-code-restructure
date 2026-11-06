@@ -6,3 +6,6 @@ notes/
 **/dist/
 **/coverage/
 package-lock.json
+
+# the working folders of other Claude sessions
+.claude/
