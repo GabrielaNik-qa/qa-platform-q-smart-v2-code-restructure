@@ -47,6 +47,10 @@ export const teams = pgTable(
     name: text('name').notNull(),
     /** Staff (admins, reviewers, team leads, trainers) are in the Administration team, as today. */
     isAdministration: boolean('is_administration').notNull().default(false),
+    description: text('description').notNull().default(''),
+    color: text('color').notNull().default('#2563eb'),
+    /** the team lead: a staff membership of the same company (foreign key in migrations/0009_teams_workspaces.sql) */
+    leadId: uuid('lead_membership_id'),
     createdAt: createdAt(),
   },
   (t) => [
@@ -74,6 +78,7 @@ export const memberships = pgTable(
   },
   (t) => [
     uniqueIndex('memberships_company_user').on(t.companyId, t.userId),
+    unique('memberships_id_company').on(t.id, t.companyId),
     index('memberships_user').on(t.userId),
     // the team must belong to the same company: a membership can never point into another company.
     // A team with people in it can't be deleted until they move (today's rule: everyone is in a team).
@@ -82,5 +87,117 @@ export const memberships = pgTable(
       columns: [t.teamId, t.companyId],
       foreignColumns: [teams.id, teams.companyId],
     }),
+  ],
+);
+
+/** Workspaces group teams and staff: outside admins, people see only the teams of their own workspaces (as today). */
+export const workspaces = pgTable(
+  'workspaces',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    description: text('description').notNull().default(''),
+    color: text('color').notNull().default('#2563eb'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('workspaces_company_name').on(t.companyId, t.name),
+    unique('workspaces_id_company').on(t.id, t.companyId),
+  ],
+);
+
+/** The working teams of a workspace (never Administration). */
+export const workspaceTeams = pgTable(
+  'workspace_teams',
+  {
+    companyId: uuid('company_id').notNull(),
+    workspaceId: uuid('workspace_id').notNull(),
+    teamId: uuid('team_id').notNull(),
+  },
+  (t) => [
+    uniqueIndex('workspace_teams_pair').on(t.workspaceId, t.teamId),
+    foreignKey({
+      columns: [t.workspaceId, t.companyId],
+      foreignColumns: [workspaces.id, workspaces.companyId],
+    }).onDelete('cascade'),
+    foreignKey({ columns: [t.teamId, t.companyId], foreignColumns: [teams.id, teams.companyId] }).onDelete('cascade'),
+  ],
+);
+
+/** The staff of a workspace (reviewers, team leads, trainers; admins see everything anyway, agents come with their team). */
+export const workspaceStaff = pgTable(
+  'workspace_staff',
+  {
+    companyId: uuid('company_id').notNull(),
+    workspaceId: uuid('workspace_id').notNull(),
+    membershipId: uuid('membership_id').notNull(),
+  },
+  (t) => [
+    uniqueIndex('workspace_staff_pair').on(t.workspaceId, t.membershipId),
+    foreignKey({
+      columns: [t.workspaceId, t.companyId],
+      foreignColumns: [workspaces.id, workspaces.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+export const skillKind = pgEnum('skill_kind', ['skill', 'language']);
+
+/** The company's lists of skills and languages: people and teams pick from them. */
+export const skills = pgTable(
+  'skills',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    kind: skillKind('kind').notNull(),
+    name: text('name').notNull(),
+  },
+  (t) => [
+    uniqueIndex('skills_company_kind_name').on(t.companyId, t.kind, t.name),
+    unique('skills_id_company').on(t.id, t.companyId),
+  ],
+);
+
+export const membershipSkills = pgTable(
+  'membership_skills',
+  {
+    companyId: uuid('company_id').notNull(),
+    membershipId: uuid('membership_id').notNull(),
+    skillId: uuid('skill_id').notNull(),
+  },
+  (t) => [
+    uniqueIndex('membership_skills_pair').on(t.membershipId, t.skillId),
+    foreignKey({
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+    foreignKey({ columns: [t.skillId, t.companyId], foreignColumns: [skills.id, skills.companyId] }).onDelete(
+      'cascade',
+    ),
+  ],
+);
+
+export const teamSkills = pgTable(
+  'team_skills',
+  {
+    companyId: uuid('company_id').notNull(),
+    teamId: uuid('team_id').notNull(),
+    skillId: uuid('skill_id').notNull(),
+  },
+  (t) => [
+    uniqueIndex('team_skills_pair').on(t.teamId, t.skillId),
+    foreignKey({ columns: [t.teamId, t.companyId], foreignColumns: [teams.id, teams.companyId] }).onDelete('cascade'),
+    foreignKey({ columns: [t.skillId, t.companyId], foreignColumns: [skills.id, skills.companyId] }).onDelete(
+      'cascade',
+    ),
   ],
 );

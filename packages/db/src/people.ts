@@ -2,7 +2,8 @@
 import type { Role } from '@qsmart/shared';
 import { and, eq, ne, sql } from 'drizzle-orm';
 import type { Tx } from './company.js';
-import { memberships, teams, users } from './schema.js';
+import { grouped } from './group.js';
+import { memberships, membershipSkills, teams, users, workspaceStaff, workspaceTeams } from './schema.js';
 
 export interface Person {
   membershipId: string;
@@ -15,6 +16,10 @@ export interface Person {
   active: boolean;
   /** false while the invitation waits for the person's first sign-in */
   accepted: boolean;
+  /** their skills and languages */
+  skillIds: string[];
+  /** staff: the workspaces they are in; agents: the workspaces of their team */
+  workspaceIds: string[];
 }
 
 export async function listPeople(tx: Tx): Promise<Person[]> {
@@ -34,11 +39,51 @@ export async function listPeople(tx: Tx): Promise<Person[]> {
     .innerJoin(users, eq(users.id, memberships.userId))
     .leftJoin(teams, eq(teams.id, memberships.teamId))
     .orderBy(users.name);
-  return rows;
+  const skills = grouped(
+    await tx.select({ owner: membershipSkills.membershipId, id: membershipSkills.skillId }).from(membershipSkills),
+  );
+  const staffIn = grouped(
+    await tx.select({ owner: workspaceStaff.membershipId, id: workspaceStaff.workspaceId }).from(workspaceStaff),
+  );
+  const teamIn = grouped(
+    await tx.select({ owner: workspaceTeams.teamId, id: workspaceTeams.workspaceId }).from(workspaceTeams),
+  );
+  return rows.map((p) => ({
+    ...p,
+    skillIds: skills.get(p.membershipId) ?? [],
+    workspaceIds: (p.role === 'agent' ? teamIn.get(p.teamId ?? '') : staffIn.get(p.membershipId)) ?? [],
+  }));
 }
 
 export async function getPerson(tx: Tx, membershipId: string): Promise<Person | undefined> {
   return (await listPeople(tx)).find((p) => p.membershipId === membershipId);
+}
+
+export interface MembershipRow {
+  id: string;
+  userId: string;
+  role: Role;
+  teamId: string | null;
+  active: boolean;
+}
+
+const membershipColumns = {
+  id: memberships.id,
+  userId: memberships.userId,
+  role: memberships.role,
+  teamId: memberships.teamId,
+  active: memberships.active,
+};
+
+export async function findMembership(tx: Tx, membershipId: string): Promise<MembershipRow | undefined> {
+  const [row] = await tx.select(membershipColumns).from(memberships).where(eq(memberships.id, membershipId));
+  return row;
+}
+
+/** A person's membership in the company of this transaction. */
+export async function membershipOfUser(tx: Tx, userId: string): Promise<MembershipRow | undefined> {
+  const [row] = await tx.select(membershipColumns).from(memberships).where(eq(memberships.userId, userId));
+  return row;
 }
 
 /** The company's Administration team (staff always sit there, as today). */

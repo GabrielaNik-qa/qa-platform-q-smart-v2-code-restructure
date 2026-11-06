@@ -57,6 +57,20 @@
       "when": 1793934669957,
       "tag": "0007_people_functions",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793953916527,
+      "tag": "0008_teams_workspaces_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793953918092,
+      "tag": "0009_teams_workspaces",
+      "breakpoints": true
     }
   ]
 }

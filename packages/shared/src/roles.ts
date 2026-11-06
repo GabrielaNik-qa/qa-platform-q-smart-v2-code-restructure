@@ -11,6 +11,8 @@ export const roleSchema = z.enum(ROLES);
 /** Staff roles: their people belong to the Administration team (today's rule). */
 export const STAFF_ROLES: readonly Role[] = ['admin', 'reviewer', 'lead', 'trainer'];
 export const isStaff = (role: Role): boolean => STAFF_ROLES.includes(role);
+/** Reviewers, team leads and trainers belong to workspaces by name; admins see everything, agents come with their team. */
+export const isWorkspaceStaff = (role: Role): boolean => role === 'reviewer' || role === 'lead' || role === 'trainer';
 
 /** Every text exists in English, Bulgarian and French. */
 export const LANGUAGES = ['en', 'bg', 'fr'] as const;
@@ -20,7 +22,7 @@ export type Language = (typeof LANGUAGES)[number];
 export const ROLE_LABELS: Record<Language, Record<Role, string>> = {
   en: { admin: 'Admin', reviewer: 'Reviewer', lead: 'Team Lead', trainer: 'Trainer', agent: 'Agent' },
   bg: { admin: 'Администратор', reviewer: 'Оценител', lead: 'Тийм лидер', trainer: 'Обучител', agent: 'Агент' },
-  fr: { admin: 'Administrateur', reviewer: 'Évaluateur', lead: "Chef d'équipe", trainer: 'Formateur', agent: 'Agent' },
+  fr: { admin: 'Administrateur', reviewer: 'Évaluateur', lead: 'Chef d’équipe', trainer: 'Formateur', agent: 'Agent' },
 };
 
 /** A role from today's app's data: "qa" becomes "reviewer", and anything unknown is refused. */

@@ -1,0 +1,47 @@
+/**
+ * Every message the server can answer with when it refuses something. The server sends the code and this English
+ * text; the pages show the text in the person's language (apps/web/src/messages.ts, "errors"; a test checks that
+ * every code has its three translations).
+ */
+export const ERROR_MESSAGES = {
+  signIn: 'Please sign in.',
+  signInExpired: 'Your sign-in has expired. Please sign in again.',
+  chooseCompany: 'Choose a company first.',
+  notMember: 'You are not a member of this company.',
+  notAllowed: 'Your role does not allow this.',
+  noRule: 'This page has no permission rule.',
+  ownerOnly: 'Only the owner of Q-smart.',
+  companyInvalid: 'Give the company a name, and its first admin a name and e-mail.',
+  nothingToChange: 'Nothing to change.',
+  nothingToDelete: 'Nothing to delete.',
+  noAdministration: 'The company has no Administration team.',
+  agentNeedsTeam: 'Choose a team. Every agent must belong to a team.',
+  invitationInvalid: 'Enter the name, a valid e-mail and the role.',
+  alreadyMember: 'This person is already in the company.',
+  adminInvitesOnly: 'Only an admin of this company can invite people.',
+  personNotFound: 'This person is not in the company.',
+  notYourOwnAccount: 'You cannot switch off your own account or change your own role.',
+  keepOneAdmin: 'The company must keep at least one active admin.',
+  notYourself: 'You cannot remove yourself.',
+  teamInvalid: 'Give the team a name (up to 60 characters).',
+  teamExists: 'A team with this name already exists.',
+  teamNeedsLead: 'Every team needs a team lead. Choose one.',
+  leadNotStaff: 'The team lead must be an active admin, reviewer, team lead or trainer.',
+  teamNotFound: 'This team is not in the company.',
+  administrationBuiltIn: 'The Administration team is built in and cannot be deleted.',
+  teamHasPeople: 'Move the people of this team to another team first.',
+  lastWorkingTeam: 'At least one working team is required.',
+  workspaceInvalid: 'Give the workspace a name (up to 60 characters).',
+  workspaceExists: 'A workspace with this name already exists.',
+  workspaceNotFound: 'This workspace is not in the company.',
+  lastWorkspace: 'At least one workspace is required.',
+  skillInvalid: 'Choose skill or language, and enter a name.',
+  nameMissing: 'Enter a name.',
+  skillExists: 'That one already exists.',
+  skillNotFound: 'This skill or language is not in the company.',
+} as const;
+
+export type ErrorCode = keyof typeof ERROR_MESSAGES;
+
+export const isErrorCode = (code: unknown): code is ErrorCode =>
+  typeof code === 'string' && Object.hasOwn(ERROR_MESSAGES, code);

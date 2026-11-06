@@ -1,6 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api } from './api';
+import { api, errorText } from './api';
 
 interface PlatformCompany {
   id: string;
@@ -21,10 +21,10 @@ export function Platform() {
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   const load = useCallback(() => {
-    api<PlatformCompany[]>('/platform/companies').then(setCompanies, (e: Error) =>
-      setMessage({ ok: false, text: e.message }),
+    api<PlatformCompany[]>('/platform/companies').then(setCompanies, (e: unknown) =>
+      setMessage({ ok: false, text: errorText(t, e) }),
     );
-  }, []);
+  }, [t]);
   useEffect(load, [load]);
 
   async function create(event: FormEvent) {
@@ -39,7 +39,7 @@ export function Platform() {
       setAdminEmail('');
       load();
     } catch (e) {
-      setMessage({ ok: false, text: (e as Error).message });
+      setMessage({ ok: false, text: errorText(t, e) });
     } finally {
       setBusy(false);
     }

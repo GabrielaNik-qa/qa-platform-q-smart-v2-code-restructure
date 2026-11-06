@@ -2,6 +2,19 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
+## 6 November 2026: Phase 1 (foundation), in progress
+
+- **Teams, workspaces, skills and languages**, with today's rules:
+  - **Teams** have a description, a colour, a team lead (an active admin, reviewer, team lead or trainer), and their skills and languages. Administration is built in and can't be deleted; a team with people in it can't be deleted; a company keeps at least one working team. If a team lead becomes an agent or leaves, their teams wait for a new lead.
+  - **Workspaces** group working teams with their reviewers, team leads and trainers. Except admins, people see only the people and teams of their own workspaces (agents: through their team). A new team goes into the workspace you choose (the first one if you don't), and so do invited reviewers, team leads and trainers. Once there is a workspace, there is always at least one.
+  - **Skills and languages** are company lists that people and teams pick from. A new name shows everywhere at once; deleting one takes it away from everybody.
+  - The demo company starts with a "Customer care" workspace, team leads, and made-up skills and languages.
+- **The server's refusals are in your language:** each one comes with a short code, and the pages show it in English, Bulgarian or French.
+- **An account that no longer works** (deleted or switched off in Firebase) goes back to the sign-in screen by itself, instead of a stuck page.
+- **The company wall** now covers the new tables too: four more tests try to reach another company's teams, workspaces and skills, or make a team Administration; all are refused.
+- **Earlier in Phase 1:** permissions on every route (today's matrix), the platform owner area (only you see it), the People page (invite, role, team, switch off, remove), and sign-in with your own password, with Firebase checking the e-mail first.
+- **Checked in the browser** as admin, reviewer, team lead, trainer and agent, in the three languages, in light and dark mode.
+
 ## 6 November 2026: Phase 0 (set-up)
 
 - **Your real Firebase projects:** "Q-smart" (`qsmart-official`, for clients, the website and the Help Center) and "Q-smart Demo" (`qsmart-demo`), with e-mail and Google sign-in switched on.

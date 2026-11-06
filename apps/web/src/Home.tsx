@@ -2,11 +2,11 @@ import { ROLE_LABELS, type Role } from '@qsmart/shared';
 import { signOut, type User } from 'firebase/auth';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api } from './api';
+import { api, errorText } from './api';
 import { Logo, Settings } from './chrome';
 import { auth } from './firebase';
 import { currentLanguage } from './i18n';
-import { People } from './People';
+import { CompanyArea } from './CompanyArea';
 import { Platform } from './Platform';
 import { VerifyEmail } from './VerifyEmail';
 
@@ -21,31 +21,19 @@ interface Me {
   platformAdmin: boolean;
   companies: Company[];
 }
-interface Team {
-  id: string;
-  name: string;
-  isAdministration: boolean;
-}
-
-/** The first page after sign-in: who you are, your companies, and a company's teams (read behind the company wall). */
+/** The first page after sign-in: who you are, your companies, and a company's people and teams (read behind the
+ *  company wall). */
 export function Home({ user }: { user: User }) {
   const { t } = useTranslation();
   const lang = currentLanguage();
   const [me, setMe] = useState<Me | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
-  const [teams, setTeams] = useState<Team[] | null>(null);
   const [error, setError] = useState('');
 
   const loadMe = useCallback(() => {
-    api<Me>('/me').then(setMe, (e: Error) => setError(e.message));
-  }, []);
+    api<Me>('/me').then(setMe, (e: unknown) => setError(errorText(t, e)));
+  }, [t]);
   useEffect(loadMe, [loadMe]);
-
-  useEffect(() => {
-    if (!company) return;
-    setTeams(null);
-    api<Team[]>('/teams', company.id).then(setTeams, (e: Error) => setError(e.message));
-  }, [company]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -106,32 +94,12 @@ export function Home({ user }: { user: User }) {
           </ul>
         </section>
 
-        <section
-          className={`bg-pn border border-bd rounded-m p-5 ${me && me.companies.length === 0 ? 'hidden' : ''}`}
-          aria-live="polite"
-        >
-          {!company && <p className="text-mu">{t('home.choose')}</p>}
-          {company && (
-            <>
-              <h2 className="font-display text-xl font-bold mb-3">{t('home.teams', { company: company.name })}</h2>
-              {!teams && <p className="text-mu">{t('common.loading')}</p>}
-              <ul className="grid gap-1">
-                {teams?.map((team) => (
-                  <li key={team.id} className="flex items-center gap-2 border-b border-bd py-2 last:border-0">
-                    {team.name}
-                    {team.isAdministration && (
-                      <span className="rounded-full bg-yellow px-2 text-xs font-semibold text-ink">
-                        {t('home.staffTeam')}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </section>
-
-        {company && teams && <People key={company.id} company={company} teams={teams} myEmail={me?.email ?? null} />}
+        {me && me.companies.length > 0 && !company && (
+          <p className="bg-pn border border-bd rounded-m p-5 text-mu" aria-live="polite">
+            {t('home.choose')}
+          </p>
+        )}
+        {company && <CompanyArea key={company.id} company={company} myEmail={me?.email ?? null} />}
       </main>
       <p className="text-center text-xs text-mu pb-4">{t('common.preview')}</p>
     </div>

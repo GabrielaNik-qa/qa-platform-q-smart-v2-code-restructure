@@ -1,15 +1,8 @@
-import {
-  type CanActivate,
-  type ExecutionContext,
-  ForbiddenException,
-  Inject,
-  Injectable,
-  SetMetadata,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { type CanActivate, type ExecutionContext, Inject, Injectable, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { type Permission, scopeOf } from '@qsmart/shared';
 import type { QsRequest } from '../request.js';
+import { forbidden, unauthorized } from '../errors.js';
 
 const PERMISSION = 'qsmart:permission';
 
@@ -29,11 +22,11 @@ export class PermissionGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    if (!permission) throw new ForbiddenException('This page has no permission rule.'); // never open by mistake
+    if (!permission) throw forbidden('noRule'); // never open by mistake
     const request = context.switchToHttp().getRequest<QsRequest>();
-    if (!request.membership) throw new UnauthorizedException('Choose a company first.');
+    if (!request.membership) throw unauthorized('chooseCompany');
     const scope = scopeOf(request.membership.role, permission);
-    if (!scope) throw new ForbiddenException('Your role does not allow this.');
+    if (!scope) throw forbidden('notAllowed');
     request.scope = scope;
     return true;
   }

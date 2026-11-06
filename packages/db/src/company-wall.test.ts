@@ -1,12 +1,22 @@
 // The company wall: these tests try to reach another company's data in every way the server could.
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './client.js';
 import { claimInvitation, membershipsFor, withCompany } from './company.js';
 import { isPlatformAdmin, platformCompanies, platformCreateCompany } from './platform.js';
 import { startLocalPostgres, type LocalPostgres } from './local-postgres.js';
 import { runMigrations } from './migrate.js';
-import { companies, memberships, teams, users } from './schema.js';
+import {
+  companies,
+  memberships,
+  membershipSkills,
+  skills,
+  teams,
+  users,
+  workspaces,
+  workspaceTeams,
+} from './schema.js';
+import { addSkill, addWorkspace, listSkills, listTeams, listWorkspaces } from './teams.js';
 
 let server: LocalPostgres;
 let owner: Db; // owns the tables: used here only to prepare the test data
@@ -206,5 +216,78 @@ describe('the platform owner area', () => {
     expect((await membershipsFor(app, 'uid-carla')).map((m) => [m.companyName, m.role])).toEqual([
       ['Company C', 'admin'],
     ]);
+  });
+});
+
+describe('teams, workspaces, skills and languages behind the wall', () => {
+  const bob = async () =>
+    found(
+      (
+        await owner
+          .select({ id: memberships.id })
+          .from(memberships)
+          .innerJoin(users, eq(users.id, memberships.userId))
+          .where(eq(users.name, 'Bob'))
+      )[0],
+    ).id;
+
+  it("never puts another company's team in a workspace", async () => {
+    const sneaky = withCompany(app, A, (tx) =>
+      addWorkspace(tx, { name: 'Sneaky', description: '', color: '#2563eb', teamIds: [salesOfB], staffIds: [] }),
+    );
+    expect(await refusal(sneaky)).toBe('23503');
+    const own = await withCompany(app, A, (tx) =>
+      addWorkspace(tx, { name: 'Main', description: '', color: '#2563eb', teamIds: [], staffIds: [] }),
+    );
+    expect((await withCompany(app, B, (tx) => listWorkspaces(tx))).map((w) => w.id)).not.toContain(own);
+    const intoB = withCompany(app, B, (tx) =>
+      tx.insert(workspaceTeams).values({ companyId: A, workspaceId: own, teamId: salesOfB }),
+    );
+    expect(await refusal(intoB)).toBe('42501');
+  });
+
+  it("keeps each company's skills and languages to itself", async () => {
+    const french = await withCompany(app, B, (tx) => addSkill(tx, 'language', 'French'));
+    expect((await withCompany(app, A, (tx) => listSkills(tx))).map((s) => s.name)).not.toContain('French');
+    const samInA = found(
+      (
+        await owner
+          .select({ id: memberships.id })
+          .from(memberships)
+          .where(and(eq(memberships.companyId, A), eq(memberships.userId, sam)))
+      )[0],
+    ).id;
+    const borrowed = withCompany(app, A, (tx) =>
+      tx.insert(membershipSkills).values({ companyId: A, membershipId: samInA, skillId: french }),
+    );
+    expect(await refusal(borrowed)).toBe('23503');
+    const renamedFromA = await withCompany(app, A, (tx) =>
+      tx.update(skills).set({ name: 'Hacked' }).where(eq(skills.id, french)).returning(),
+    );
+    expect(renamedFromA).toEqual([]);
+  });
+
+  it('never makes a team Administration, a second Administration, or a lead from another company', async () => {
+    const promote = withCompany(app, A, (tx) => tx.update(teams).set({ isAdministration: true }));
+    expect(await refusal(promote)).toBe('42501');
+    const second = withCompany(app, A, (tx) =>
+      tx.insert(teams).values({ companyId: A, name: 'Admin 2', isAdministration: true }),
+    );
+    expect(await refusal(second)).toBe('23505');
+    const bobInB = await bob();
+    const foreignLead = withCompany(app, A, (tx) =>
+      tx.update(teams).set({ leadId: bobInB }).where(eq(teams.name, 'B2C')),
+    );
+    expect(await refusal(foreignLead)).toBe('23503');
+  });
+
+  it('leaves a team without a lead when the lead leaves the company', async () => {
+    const bobId = await bob();
+    await withCompany(app, B, (tx) => tx.update(teams).set({ leadId: bobId }).where(eq(teams.id, salesOfB)));
+    expect((await withCompany(app, B, (tx) => listTeams(tx))).find((t) => t.id === salesOfB)?.leadName).toBe('Bob');
+    await owner.delete(memberships).where(eq(memberships.id, bobId));
+    const sales = (await withCompany(app, B, (tx) => listTeams(tx))).find((t) => t.id === salesOfB);
+    expect(sales?.leadId).toBeNull();
+    expect(await owner.select().from(workspaces).where(eq(workspaces.companyId, B))).toEqual([]);
   });
 });

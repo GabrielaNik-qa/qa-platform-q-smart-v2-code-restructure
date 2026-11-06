@@ -6,4 +6,5 @@ export * from './migrate.js';
 export * from './people.js';
 export * from './platform.js';
 export * from './seed.js';
+export * from './teams.js';
 export * as schema from './schema.js';
