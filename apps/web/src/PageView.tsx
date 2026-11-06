@@ -8,6 +8,7 @@ import { findPage, isBuilt, menuOf } from './menu';
 import { People } from './People';
 import { Prefs } from './Prefs';
 import { QAEntry } from './QAEntry';
+import { Reviews } from './Reviews';
 import { Library, RootCauses, SystemSettings } from './QualitySetup';
 import { Roles } from './Roles';
 import { Scorecards } from './Scorecards';
@@ -29,6 +30,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'admin/notifications-and-confirmations': () => <Prefs />,
   'admin/scorecards': (company) => <Scorecards company={company} />,
   'quality/qa-entry': (company) => <QAEntry company={company} />,
+  'quality/reviews': (company) => <Reviews company={company} />,
   'admin/categories': (company) => <Library company={company} />,
   'admin/root-causes': (company) => <RootCauses company={company} />,
   'admin/system-settings': (company) => <SystemSettings company={company} />,

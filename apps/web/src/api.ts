@@ -65,3 +65,22 @@ export async function api<T>(
   }
   return body as T;
 }
+
+/** Asks the server for a file (e.g. Export to Excel), sending `body` as JSON. */
+export async function apiFile(path: string, companyId: string, body: unknown): Promise<Blob> {
+  const token = await idToken();
+  const response = await fetch(`/api${path}`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${token}`, 'x-company-id': companyId, 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const answer = (await response.json().catch(() => null)) as { message?: unknown; code?: unknown } | null;
+    throw new ApiError(
+      response.status,
+      typeof answer?.message === 'string' ? answer.message : response.statusText,
+      isErrorCode(answer?.code) ? answer.code : undefined,
+    );
+  }
+  return response.blob();
+}

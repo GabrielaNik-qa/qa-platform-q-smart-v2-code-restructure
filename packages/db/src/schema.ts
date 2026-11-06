@@ -53,6 +53,8 @@ export interface Prefs {
   confirm?: boolean;
   /** "Don't show me this again": message id → when */
   dismissed?: Record<string, string>;
+  /** the columns each table shows (e.g. the Reviews list) */
+  columns?: Record<string, string[]>;
 }
 
 /** Admin › Roles & permissions: who sees which page in the menu (it only changes the menu; the server's rules stay). */

@@ -4,7 +4,20 @@
 //   use and an active agent they can see; every question needs Yes, No or N/A; the agent is told about a new review
 //   and about a changed score; the agent opening a review marks it as seen; staff can remind the agent to open it.
 // Call recordings are never stored: a review keeps only a link to the recording.
-import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Inject,
+  Param,
+  Post,
+  Put,
+  Res,
+  StreamableFile,
+  UseGuards,
+} from '@nestjs/common';
 import {
   addReview,
   type Db,
@@ -35,6 +48,7 @@ import {
   scopeOf,
   scoreReview,
 } from '@qsmart/shared';
+import type { FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { actorOf } from './activity.controller.js';
 import { Allow, PermissionGuard } from './auth/permission.guard.js';
@@ -42,6 +56,7 @@ import { SignedInGuard } from './auth/signed-in.guard.js';
 import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { CurrentMembership, CurrentScope } from './decorators.js';
 import { badRequest, notFound } from './errors.js';
+import { reviewsWorkbook } from './excel.js';
 import { DB } from './tokens.js';
 
 const idParam = z.uuid();
@@ -169,6 +184,41 @@ export class ReviewsController {
     );
     if (!review) throw notFound('reviewNotFound');
     return review;
+  }
+
+  /**
+   * Export to Excel (as today): the reviews of the list, in its order, but only those the person may see. Written in
+   * the activity log's "Exports & downloads".
+   */
+  @Post('export')
+  @Allow('reviews.read')
+  @HttpCode(200)
+  async export(
+    @CurrentMembership() membership: Membership,
+    @CurrentScope() scope: Scope,
+    @Body() body: unknown,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ) {
+    const input = z
+      .object({ ids: z.array(z.uuid()).min(1).max(20000), name: z.string().trim().min(1).max(30).default('Reviews') })
+      .safeParse(body);
+    if (!input.success) throw badRequest('nothingToExport');
+    const { ids, name } = input.data;
+    const picked = await withCompany(this.db, membership.companyId, async (tx) => {
+      const byId = new Map((await listReviews(tx, await reachOf(tx, membership, scope))).map((r) => [r.id, r]));
+      const rows = ids.map((id) => byId.get(id)).filter((r): r is Review => Boolean(r));
+      await logActivity(tx, actorOf(membership), {
+        action: 'exportReviews',
+        targetName: name,
+        details: { rows: String(rows.length) },
+      });
+      return rows;
+    });
+    const file = await reviewsWorkbook(picked, name);
+    const fileName = `${name.replace(/[^p{L}p{N}]+/gu, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    reply.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    reply.header('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
+    return new StreamableFile(file);
   }
 
   /** QA Entry: a new review. */

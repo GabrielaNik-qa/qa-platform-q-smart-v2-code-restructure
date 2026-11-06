@@ -127,6 +127,8 @@ const prefsInput = z.object({
   info: z.boolean().optional(),
   confirm: z.boolean().optional(),
   dismissed: z.record(z.string().max(80), z.string().max(40)).optional(),
+  /** the columns each table shows (e.g. the Reviews list) */
+  columns: z.record(z.string().max(40), z.array(z.string().max(40)).max(40)).optional(),
 });
 
 /** My account › Notifications & Confirmations, saved with the account (the same on every browser). */

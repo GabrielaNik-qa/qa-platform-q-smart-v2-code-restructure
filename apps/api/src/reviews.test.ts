@@ -13,6 +13,7 @@ import {
   startLocalPostgres,
 } from '@qsmart/db';
 import type { ScorecardCategory } from '@qsmart/shared';
+import ExcelJS from 'exceljs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from './app.js';
 import type { TokenVerifier } from './auth/token-verifier.js';
@@ -159,6 +160,48 @@ describe('QA Entry', () => {
     // the reviewer doesn't see it either
     expect((await call('GET', `/api/reviews/${hers.id}`, 'reviewer')).statusCode).toBe(404);
     expect((await call('GET', `/api/reviews/${hers.id}`, 'admin')).statusCode).toBe(200);
+  });
+});
+
+describe('Export to Excel', () => {
+  const sheetOf = async (body: Buffer) => {
+    const book = new ExcelJS.Workbook();
+    await book.xlsx.load(body as unknown as ArrayBuffer);
+    const sheet = book.worksheets[0];
+    if (!sheet) throw new Error('no sheet');
+    return sheet;
+  };
+
+  it('makes today’s file: English headers, real dates and real percentages', async () => {
+    const all = (await call('GET', '/api/reviews', 'admin')).json<Review[]>();
+    const exported = await call('POST', '/api/reviews/export', 'admin', { ids: all.map((r) => r.id), name: 'Reviews' });
+    expect(exported.statusCode).toBe(200);
+    expect(exported.headers['content-type']).toContain('spreadsheetml');
+    const sheet = await sheetOf(exported.rawPayload);
+    const head = (sheet.getRow(1).values as unknown[]).slice(1);
+    expect(head.slice(0, 6)).toEqual(['Lead ID', 'Date', 'Agent', 'Team', 'Campaign', 'Reviewer']);
+    expect(head).toContain('Total Score (%)');
+    expect(head).toContain(card.categories[0]?.name);
+    expect(sheet.rowCount).toBe(all.length + 1);
+    const total = head.indexOf('Total Score (%)') + 1;
+    const row = (sheet.getRow(2).values as unknown[]).slice(1);
+    expect(sheet.getRow(2).getCell(2).value).toBeInstanceOf(Date);
+    expect(sheet.getRow(2).getCell(total).numFmt).toBe('0.00%');
+    expect(typeof row[total - 1]).toBe('number');
+    const log = (await call('GET', '/api/activity?kind=exports', 'admin')).json<
+      { action: string; details: object }[]
+    >();
+    expect(log[0]).toMatchObject({ action: 'exportReviews', details: { rows: String(all.length) } });
+  });
+
+  it('never puts reviews in the file that the person may not see', async () => {
+    const all = (await call('GET', '/api/reviews', 'admin')).json<Review[]>();
+    const exported = await call('POST', '/api/reviews/export', 'agent', { ids: all.map((r) => r.id) });
+    const sheet = await sheetOf(exported.rawPayload);
+    const agents = new Set<string>();
+    for (let i = 2; i <= sheet.rowCount; i++) agents.add(String(sheet.getRow(i).getCell(3).value));
+    expect([...agents]).toEqual(['Alex Agent']);
+    expect((await call('POST', '/api/reviews/export', 'agent', { ids: [] })).statusCode).toBe(400);
   });
 });
 

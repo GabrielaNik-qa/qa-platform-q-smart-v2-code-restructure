@@ -22,6 +22,8 @@ export interface Prefs {
   info?: boolean;
   confirm?: boolean;
   dismissed?: Record<string, string>;
+  /** the columns each table shows (e.g. the Reviews list) */
+  columns?: Record<string, string[]>;
 }
 export interface Me {
   email: string | null;

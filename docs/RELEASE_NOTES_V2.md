@@ -29,6 +29,13 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - **Each review has its own page:** the score, every answer with its comments, the links and the transcript, with Edit (asks "Change this score?" before changing a score) and Delete.
   - **Call recordings are never stored:** a review keeps only the link to where the recording is.
   - **What a review keeps:** its own copy of the scorecard and the names as they were. Deleting the scorecard, the team or the agent's account leaves the review readable.
+- **The Reviews list** (Quality › Reviews), as today:
+  - Search, and filters for date (last 7 or 30 days, all time, custom), team, agent, result, status, flag, seen by the agent, reviewer and scorecard. Agents see only their own reviews, so they have no team, agent or reviewer filters.
+  - The review types as chips with their counts.
+  - Columns to choose: saved with your account, so they're the same on every computer.
+  - Sorting by any column, and pages of 10, 20, 50 or 100.
+  - View, remind the agent, and delete, for staff.
+  - **Export to Excel**, always in English as today: one column per scorecard category, real Excel dates and percentages. Only reviews the person may see ever go in the file (tested), and each export is listed in Activity Log › Exports & downloads.
 
 ## 6 November 2026: Phase 1 (foundation), finished (tag `v2-phase-1`)
 
