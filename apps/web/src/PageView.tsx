@@ -3,8 +3,11 @@ import { Link, useParams } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Account } from './Account';
-import { findPage, isBuilt, menuFor } from './menu';
+import { Activity } from './Activity';
+import { findPage, isBuilt, menuOf } from './menu';
 import { People } from './People';
+import { Prefs } from './Prefs';
+import { Roles } from './Roles';
 import { useSession } from './session';
 import { Skills } from './Skills';
 import { Teams } from './Teams';
@@ -20,6 +23,17 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'admin/password': (company) => <Account tab="password" company={company} />,
   'admin/appearance': (company) => <Account tab="appearance" company={company} />,
   'admin/language': (company) => <Account tab="language" company={company} />,
+  'admin/notifications-and-confirmations': () => <Prefs />,
+  'admin/all-roles': (company) => <Roles company={company} />,
+  'admin/agent': (company) => <Roles company={company} role="agent" />,
+  'admin/trainer': (company) => <Roles company={company} role="trainer" />,
+  'admin/team-lead': (company) => <Roles company={company} role="lead" />,
+  'admin/reviewer': (company) => <Roles company={company} role="reviewer" />,
+  'admin/admin': (company) => <Roles company={company} role="admin" />,
+  'quality/all-activity': (company) => <Activity kind="all" company={company} />,
+  'quality/my-activity': (company) => <Activity kind="mine" company={company} />,
+  'quality/sign-ins': (company) => <Activity kind="signins" company={company} />,
+  'quality/exports-and-downloads': (company) => <Activity kind="exports" company={company} />,
 };
 
 export function NotFound() {
@@ -39,7 +53,7 @@ export function PageView() {
   const { t } = useTranslation();
   const { app, page } = useParams({ from: '/$app/$page' });
   const { company, me } = useSession();
-  const found = company ? findPage(menuFor(company.role), app, page) : undefined;
+  const found = company ? findPage(menuOf(company), app, page) : undefined;
   if (!company || !found) return <NotFound />;
   const draw = PAGES[`${found.app.id}/${found.page.id}`];
   if (draw && isBuilt(found.app.id, found.page)) return <div key={company.id}>{draw(company, me.email)}</div>;

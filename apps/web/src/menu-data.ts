@@ -4,6 +4,8 @@ import type { Language, Role } from '@qsmart/shared';
 
 /** Today's line icons: the inside of a 24×24 <svg>. */
 export const ICONS = {
+  bell: '<path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/>',
+  bin: '<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>',
   back: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
   g_a11y: '<circle cx="12" cy="4.5" r="1.5"/><path d="M5 8l7 1.5L19 8M12 9.5V14l-3 7M12 14l3 7"/>',
   g_activity: '<path d="M4 6h9M4 12h6M4 18h6"/><circle cx="17" cy="15" r="4.5"/><path d="M17 13v2l1.3 1.2"/>',

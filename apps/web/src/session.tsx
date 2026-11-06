@@ -5,16 +5,30 @@ import { signOut, type User } from 'firebase/auth';
 import { createContext, useContext } from 'react';
 import { auth } from './firebase';
 
+/** Admin › Roles & permissions: page → roles, and page → membership → a person's own choice. */
+export interface PageRules {
+  roles?: Record<string, Role[]>;
+  people?: Record<string, Record<string, boolean>>;
+}
 export interface Company {
   id: string;
   name: string;
   role: Role;
+  membershipId: string | null;
+  pageRules: PageRules;
+}
+/** My account › Notifications & Confirmations, saved with the account. */
+export interface Prefs {
+  info?: boolean;
+  confirm?: boolean;
+  dismissed?: Record<string, string>;
 }
 export interface Me {
   email: string | null;
   name: string | null;
   /** the language saved with the account (null until chosen) */
   language: Language | null;
+  prefs: Prefs;
   platformAdmin: boolean;
   companies: Company[];
 }

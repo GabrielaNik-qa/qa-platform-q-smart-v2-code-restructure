@@ -85,6 +85,20 @@
       "when": 1793958029845,
       "tag": "0011_account_functions",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793958826232,
+      "tag": "0012_activity_notifications_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793958828150,
+      "tag": "0013_activity_notifications",
+      "breakpoints": true
     }
   ]
 }

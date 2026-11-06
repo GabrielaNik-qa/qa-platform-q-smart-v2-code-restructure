@@ -1,12 +1,14 @@
-import { Body, Controller, Get, HttpCode, Inject, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Patch, Post, Put, Req, UseGuards } from '@nestjs/common';
 import {
   claimInvitation,
   type Db,
   isPlatformAdmin,
+  logActivity,
   type Membership,
   membershipOfUser,
   membershipsFor,
   myProfile,
+  pageRules,
   platformCompanies,
   platformCreateCompany,
   setPersonSkills,
@@ -14,7 +16,9 @@ import {
   withCompany,
 } from '@qsmart/db';
 import { LANGUAGES } from '@qsmart/shared';
+import type { FastifyRequest } from 'fastify';
 import { z } from 'zod';
+import { actorOf } from './activity.controller.js';
 import { Allow, PermissionGuard } from './auth/permission.guard.js';
 import { PlatformGuard } from './auth/platform.guard.js';
 import { SignedInGuard } from './auth/signed-in.guard.js';
@@ -41,7 +45,7 @@ export class MeController {
   constructor(@Inject(DB) private readonly db: Db) {}
 
   @Get()
-  async me(@Person() person: VerifiedPerson) {
+  async me(@Person() person: VerifiedPerson, @Req() request: FastifyRequest) {
     let memberships = await membershipsFor(this.db, person.uid);
     let platformAdmin = await isPlatformAdmin(this.db, person.uid);
     // a first sign-in: accept the invitation waiting for this e-mail, but only if Firebase has verified it
@@ -52,13 +56,39 @@ export class MeController {
       }
     }
     const profile = await myProfile(this.db, person.uid);
+    const companies = [];
+    for (const m of memberships) {
+      companies.push(
+        await withCompany(this.db, m.companyId, async (tx) => {
+          // each sign-in goes into the company's activity log once, with the address it came from (as today)
+          if (person.signedInAt)
+            await logActivity(tx, actorOf(m), {
+              action: 'signIn',
+              ip: request.ip,
+              sessionKey: `${person.uid}:${person.signedInAt}`,
+              at: new Date(person.signedInAt * 1000),
+            });
+          const mine = await membershipOfUser(tx, m.userId);
+          return {
+            id: m.companyId,
+            name: m.companyName,
+            role: m.role,
+            membershipId: mine?.id ?? null,
+            /** Admin › Roles & permissions: who sees which page in the menu */
+            pageRules: await pageRules(tx),
+          };
+        }),
+      );
+    }
     return {
       email: person.email,
       name: profile?.name ?? memberships[0]?.userName ?? person.name ?? null,
       /** the language saved with the account (null until chosen) */
       language: profile?.language ?? null,
+      /** My account › Notifications & Confirmations */
+      prefs: profile?.prefs ?? {},
       platformAdmin,
-      companies: memberships.map((m) => ({ id: m.companyId, name: m.companyName, role: m.role })),
+      companies,
     };
   }
 
@@ -69,6 +99,9 @@ export class MeController {
     const input = myChange.safeParse(body);
     if (!input.success) throw badRequest('profileInvalid');
     await updateMyProfile(this.db, person.uid, input.data);
+    if (input.data.name)
+      for (const m of await membershipsFor(this.db, person.uid))
+        await withCompany(this.db, m.companyId, (tx) => logActivity(tx, actorOf(m), { action: 'profileEdited' }));
   }
 }
 
@@ -92,6 +125,7 @@ export class MySkillsController {
       if (!me) throw badRequest('personNotFound');
       const skillIds = await knownSkills(tx, input.data.skillIds);
       await setPersonSkills(tx, me.id, skillIds);
+      await logActivity(tx, actorOf(membership), { action: 'ownSkills' });
       return { skillIds };
     });
   }
@@ -118,6 +152,15 @@ export class PlatformController {
   async create(@Person() person: VerifiedPerson, @Body() body: unknown) {
     const parsed = newCompany.safeParse(body);
     if (!parsed.success) throw badRequest('companyInvalid');
-    return { id: await platformCreateCompany(this.db, person.uid, parsed.data) };
+    const id = await platformCreateCompany(this.db, person.uid, parsed.data);
+    const owner = await myProfile(this.db, person.uid);
+    await withCompany(this.db, id, (tx) =>
+      logActivity(
+        tx,
+        { userId: null, name: owner?.name ?? 'Q-smart', role: null },
+        { action: 'companyCreated', targetName: parsed.data.name, details: { email: parsed.data.adminEmail } },
+      ),
+    );
+    return { id };
   }
 }

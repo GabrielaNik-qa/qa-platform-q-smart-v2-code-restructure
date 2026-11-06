@@ -4,6 +4,24 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## 6 November 2026: Phase 1 (foundation), in progress
 
+- **The activity log** (Quality › Activity Log), as today:
+  - **All activity**, **Sign-ins** and **Exports & downloads** for admins; **My activity** for everyone (what you did, and what was done to your account).
+  - Every change to people, teams, workspaces, skills and languages is recorded with who, when and what, in the reader's language. So are name changes, Roles & permissions and new client companies.
+  - Each sign-in is recorded once, at the moment it happened, with the address it came from.
+  - Nobody can change or delete an entry, not even the server (tested). Passwords are never recorded.
+  - Wrong passwords are stopped by Firebase, which locks the account for a while after too many tries. So the failed attempts of today's log are no longer there.
+  - Excel exports arrive in phase 2.
+- **The notification bell** at the top of every page:
+  - The number of unread notifications is on it. Opening the list marks them read; each one opens its page, and you can delete your own.
+  - It tells you when your role, team, workspaces or team lead changes, and welcomes you to a new company. New ones show up by themselves.
+  - Each person sees only their own (tested).
+- **Roles & permissions** (Admin › People › Roles):
+  - **All roles:** every menu page against the five roles.
+  - A page per role, with a column per person, where a person can have their own choice (shown with a thick box).
+  - Admins always keep the Admin pages.
+  - **Back to the standard settings** removes every choice.
+  - It changes only the menu: what each role may read or change stays decided by the server's rules, as today.
+- **My account › Notifications & Confirmations:** welcome messages and tips, routine confirmations, messages you switched off, what is always shown, and restoring the defaults. It's saved with your account. Today's sounds come later, with the pages that make sounds.
 - **The menu as apps**, with today's sidebar:
   - **Quality** is the main menu: Operations and Manage.
   - **Workforce** is now its own app.

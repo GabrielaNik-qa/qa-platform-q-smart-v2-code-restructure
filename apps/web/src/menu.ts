@@ -15,21 +15,62 @@ export const BUILT = new Set([
   'admin/teams',
   'admin/workspaces',
   'admin/skills',
+  'admin/notifications-and-confirmations',
+  'admin/all-roles',
+  'admin/agent',
+  'admin/trainer',
+  'admin/team-lead',
+  'admin/reviewer',
+  'admin/admin',
+  'quality/all-activity',
+  'quality/my-activity',
+  'quality/sign-ins',
+  'quality/exports-and-downloads',
 ]);
 
 export const pathOf = (app: AppId, page: MenuPage) => `/${app}/${page.id}`;
 export const isBuilt = (app: AppId, page: MenuPage) => BUILT.has(`${app}/${page.id}`);
-const canSee = (page: MenuPage, role: Role) => !page.roles || page.roles.includes(role);
+/** Admin › Roles & permissions (the company's choices): page → roles, and page → membership → a person's own. */
+export interface PageRules {
+  roles?: Record<string, readonly Role[]>;
+  people?: Record<string, Record<string, boolean>>;
+}
 
-/** The apps and pages a role sees (today's rules); a group or an app with nothing left is hidden. */
-export function menuFor(role: Role): MenuApp[] {
+/** Admins always keep the Admin pages and the activity log, so nobody can lock the company out (as today). */
+export const lockedFor = (app: AppId, page: MenuPage, role: Role) =>
+  role === 'admin' && (app === 'admin' || page.key === 'audit');
+
+/** Today's rule for a page, before any choice of the company. */
+export const defaultSees = (page: MenuPage, role: Role) => !page.roles || page.roles.includes(role);
+
+/** Does a role see a page: the company's choice for the role if there is one, else today's rule. */
+export function roleSees(app: AppId, page: MenuPage, role: Role, rules: PageRules = {}): boolean {
+  if (lockedFor(app, page, role)) return true;
+  const chosen = rules.roles?.[page.key];
+  return chosen ? chosen.includes(role) : defaultSees(page, role);
+}
+
+/** Does a person see a page: their own choice comes before their role's (today's Roles & permissions). */
+export function personSees(app: AppId, page: MenuPage, role: Role, rules: PageRules, membershipId: string | null) {
+  if (lockedFor(app, page, role)) return true;
+  const own = membershipId ? rules.people?.[page.key]?.[membershipId] : undefined;
+  return own ?? roleSees(app, page, role, rules);
+}
+
+/** The apps and pages a person sees; a group or an app with nothing left is hidden. This only shapes the menu: what
+ *  a person may read or change is decided by the server's rules. */
+export function menuFor(role: Role, rules: PageRules = {}, membershipId: string | null = null): MenuApp[] {
   return MENU.map((app) => ({
     ...app,
     groups: app.groups
-      .map((g) => ({ ...g, pages: g.pages.filter((p) => canSee(p, role)) }))
+      .map((g) => ({ ...g, pages: g.pages.filter((p) => personSees(app.id, p, role, rules, membershipId)) }))
       .filter((g) => g.pages.length > 0),
   })).filter((app) => app.groups.length > 0);
 }
+
+/** The menu of the person in the company of the pages. */
+export const menuOf = (company: { role: Role; pageRules: PageRules; membershipId: string | null }) =>
+  menuFor(company.role, company.pageRules, company.membershipId);
 
 export interface Found {
   app: MenuApp;

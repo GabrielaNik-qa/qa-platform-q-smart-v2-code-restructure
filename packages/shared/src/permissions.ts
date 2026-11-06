@@ -40,6 +40,8 @@ export const PERMISSIONS = {
   'account.edit': { admin: 'all', reviewer: 'own', lead: 'own', trainer: 'own', agent: 'own' },
   'settings.readAll': ADMIN, // the others read settings without e-mail templates and notification rules
   'activity.readAll': ADMIN,
+  // My activity: what I did and what was done to my account
+  'activity.readOwn': { admin: 'all', reviewer: 'own', lead: 'own', trainer: 'own', agent: 'own' },
   'dashboards.shareViews': ADMIN_REVIEWER,
   'planner.write': ADMIN_REVIEWER,
   // Coaching and tasks

@@ -8,6 +8,8 @@ export interface VerifiedPerson {
   emailVerified: boolean;
   /** the name on the Firebase account (Google accounts have one), shown until the person has a company */
   name?: string | null;
+  /** when this sign-in happened (seconds): the activity log writes each sign-in once */
+  signedInAt?: number;
 }
 
 export interface TokenVerifier {
@@ -25,7 +27,13 @@ export function firebaseVerifier(projectId: string): TokenVerifier {
     async verify(idToken) {
       const token = await auth.verifyIdToken(idToken);
       const name = typeof token['name'] === 'string' ? token['name'] : null;
-      return { uid: token.uid, email: token.email ?? null, emailVerified: token.email_verified === true, name };
+      return {
+        uid: token.uid,
+        email: token.email ?? null,
+        emailVerified: token.email_verified === true,
+        name,
+        signedInAt: token.auth_time,
+      };
     },
   };
 }

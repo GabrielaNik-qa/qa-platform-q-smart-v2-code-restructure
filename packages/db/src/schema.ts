@@ -7,6 +7,7 @@ import {
   boolean,
   foreignKey,
   index,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -23,6 +24,7 @@ export const memberRole = pgEnum('member_role', ROLES);
 export const companies = pgTable('companies', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
+  pageRules: jsonb('page_rules').$type<PageRules>().notNull().default({}),
   createdAt: createdAt(),
 });
 
@@ -36,8 +38,25 @@ export const users = pgTable('users', {
   isPlatformAdmin: boolean('is_platform_admin').notNull().default(false),
   /** the language of the app, saved with the account: the same on every browser and device (empty until chosen) */
   language: text('language'),
+  /** My account › Notifications & Confirmations: welcome messages and tips, routine confirmations, dismissed messages */
+  prefs: jsonb('prefs').$type<Prefs>().notNull().default({}),
   createdAt: createdAt(),
 });
+
+export interface Prefs {
+  info?: boolean;
+  confirm?: boolean;
+  /** "Don't show me this again": message id → when */
+  dismissed?: Record<string, string>;
+}
+
+/** Admin › Roles & permissions: who sees which page in the menu (it only changes the menu; the server's rules stay). */
+export interface PageRules {
+  /** page → the roles that see it (instead of today's default) */
+  roles?: Record<string, string[]>;
+  /** page → membership → a person's own choice, which comes before their role's */
+  people?: Record<string, Record<string, boolean>>;
+}
 
 export const teams = pgTable(
   'teams',
@@ -201,5 +220,62 @@ export const teamSkills = pgTable(
     foreignKey({ columns: [t.skillId, t.companyId], foreignColumns: [skills.id, skills.companyId] }).onDelete(
       'cascade',
     ),
+  ],
+);
+
+/**
+ * The activity log (Admin › Activity Log): every change and sign-in, newest first. Nobody can change or delete an
+ * entry (migrations/0013_activity_notifications.sql). Passwords are never recorded.
+ */
+export const activity = pgTable(
+  'activity',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+    /** who did it (kept as name and role too, in case the person leaves the company later) */
+    actorId: uuid('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
+    actorName: text('actor_name').notNull().default(''),
+    actorRole: text('actor_role'),
+    /** what happened: a code the pages show in the person's language, e.g. "teamAdded" */
+    action: text('action').notNull(),
+    /** whom or what it was about */
+    targetId: uuid('target_user_id').references(() => users.id, { onDelete: 'set null' }),
+    targetName: text('target_name').notNull().default(''),
+    details: jsonb('details').$type<Record<string, string>>().notNull().default({}),
+    /** sign-ins: the address they came from, as today */
+    ip: text('ip'),
+    /** a sign-in is written once per sign-in session */
+    sessionKey: text('session_key'),
+  },
+  (t) => [
+    index('activity_company_at').on(t.companyId, t.at),
+    uniqueIndex('activity_one_sign_in').on(t.companyId, t.sessionKey),
+  ],
+);
+
+/** The notification bell: each person sees only their own. */
+export const notifications = pgTable(
+  'notifications',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id').notNull(),
+    membershipId: uuid('membership_id').notNull(),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+    /** what it is about: a code the pages show in the person's language, e.g. "roleChanged" */
+    kind: text('kind').notNull(),
+    details: jsonb('details').$type<Record<string, string>>().notNull().default({}),
+    /** the page it opens, e.g. /admin/profile */
+    link: text('link'),
+    readAt: timestamp('read_at', { withTimezone: true }),
+  },
+  (t) => [
+    index('notifications_for').on(t.membershipId, t.at),
+    foreignKey({
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
   ],
 );

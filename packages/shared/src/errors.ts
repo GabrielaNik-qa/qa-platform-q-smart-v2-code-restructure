@@ -39,6 +39,7 @@ export const ERROR_MESSAGES = {
   nameMissing: 'Enter a name.',
   skillExists: 'That one already exists.',
   skillNotFound: 'This skill or language is not in the company.',
+  notificationNotFound: 'This notification is no longer there.',
   profileInvalid: 'Enter a name of 2 to 120 characters, or choose English, Bulgarian or French.',
 } as const;
 

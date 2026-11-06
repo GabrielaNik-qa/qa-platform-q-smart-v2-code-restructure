@@ -15,32 +15,15 @@ import {
   isBuilt,
   type MenuApp,
   type MenuGroup,
-  menuFor,
+  menuOf,
   pathOf,
 } from './menu';
-import { ICONS, type IconName, MENU_TEXTS } from './menu-data';
+import { Bell } from './Bell';
+import { Icon } from './icon';
+import { type IconName, MENU_TEXTS } from './menu-data';
 
 import { signOutAndClear, useSession } from './session';
 import './shell.css';
-
-/** One of today's line icons. */
-export function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      // today's icon drawings, from our own code (menu-data.ts): never text typed by anyone
-      dangerouslySetInnerHTML={{ __html: ICONS[name] }}
-    />
-  );
-}
 
 const FOLD_KEY = 'qsmart.menu.folded'; // folded sections: a setting kept in the browser (plan, section 13)
 const readFolded = (): Record<string, boolean> => {
@@ -73,7 +56,7 @@ export function Shell() {
   const { pathname } = useLocation();
   const { company, me, setCompany } = useSession();
   const role = company?.role;
-  const apps = useMemo(() => (role ? menuFor(role) : []), [role]);
+  const apps = useMemo(() => (company ? menuOf(company) : []), [company]);
   const [, appPart, pagePart] = pathname.split('/');
   const onOwner = pathname === '/owner';
   const current = apps.find((a) => a.id === appPart) ?? (onOwner ? undefined : apps[0]);
@@ -367,6 +350,11 @@ export function Shell() {
         </div>
       </nav>
       <main>
+        {company && (
+          <div className="flex justify-end mb-2">
+            <Bell company={company} />
+          </div>
+        )}
         <Outlet />
       </main>
     </div>

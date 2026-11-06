@@ -21,8 +21,10 @@ import {
   listSkills,
   listTeams,
   listWorkspaces,
+  logActivity,
   type Membership,
   membershipOfUser,
+  notify,
   ownWorkspaces,
   renameSkill,
   type Tx,
@@ -37,6 +39,7 @@ import { Allow, PermissionGuard } from './auth/permission.guard.js';
 import { SignedInGuard } from './auth/signed-in.guard.js';
 import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { CurrentMembership, CurrentScope } from './decorators.js';
+import { actorOf } from './activity.controller.js';
 import { DB } from './tokens.js';
 import { badRequest, conflict, notFound } from './errors.js';
 
@@ -76,6 +79,11 @@ const unique = (list: string[]) => [...new Set(list)];
 export async function knownSkills(tx: Tx, skillIds: string[]): Promise<string[]> {
   const known = new Set((await listSkills(tx)).map((s) => s.id));
   return unique(skillIds).filter((id) => known.has(id));
+}
+
+/** A new team lead hears about it on the bell. */
+async function tellLead(tx: Tx, before: string | null, after: string | null, team: string): Promise<void> {
+  if (after && after !== before) await notify(tx, after, 'leadOf', { team });
 }
 
 /** A team lead is an active member of the staff (admin, reviewer, team lead or trainer), as today. */
@@ -120,6 +128,8 @@ export class TeamsController {
       const workspaces = await listWorkspaces(tx);
       const into = workspaces.find((w) => w.id === input.data.workspaceId) ?? workspaces[0];
       if (into) await addTeamToWorkspace(tx, id, into.id);
+      await logActivity(tx, actorOf(membership), { action: 'teamAdded', targetName: input.data.name });
+      await tellLead(tx, null, input.data.leadId, input.data.name);
       return (await listTeams(tx)).find((t) => t.id === id);
     });
   }
@@ -140,6 +150,8 @@ export class TeamsController {
         leadId: await checkLead(tx, input.data.leadId, !team.isAdministration),
         skillIds: await knownSkills(tx, input.data.skillIds),
       });
+      await logActivity(tx, actorOf(membership), { action: 'teamEdited', targetName: input.data.name });
+      await tellLead(tx, team.leadId, input.data.leadId, input.data.name);
       return (await listTeams(tx)).find((t) => t.id === team.id);
     });
   }
@@ -158,6 +170,7 @@ export class TeamsController {
       if (team.members > 0) throw badRequest('teamHasPeople');
       if (teams.filter((t) => !t.isAdministration).length <= 1) throw badRequest('lastWorkingTeam');
       await deleteTeam(tx, team.id);
+      await logActivity(tx, actorOf(membership), { action: 'teamDeleted', targetName: team.name });
     });
   }
 }
@@ -187,7 +200,10 @@ export class WorkspacesController {
     if (!input.success) throw badRequest('workspaceInvalid');
     return withCompany(this.db, membership.companyId, async (tx) => {
       if ((await listWorkspaces(tx)).some((w) => same(w.name, input.data.name))) throw conflict('workspaceExists');
-      const id = await addWorkspace(tx, await this.clean(tx, input.data));
+      const clean = await this.clean(tx, input.data);
+      const id = await addWorkspace(tx, clean);
+      await logActivity(tx, actorOf(membership), { action: 'workspaceAdded', targetName: clean.name });
+      for (const staff of clean.staffIds) await notify(tx, staff, 'workspaceAdded', { workspace: clean.name });
       return (await listWorkspaces(tx)).find((w) => w.id === id);
     });
   }
@@ -203,7 +219,12 @@ export class WorkspacesController {
       if (!workspaces.some((w) => w.id === target.data)) throw notFound('workspaceNotFound');
       if (workspaces.some((w) => w.id !== target.data && same(w.name, input.data.name)))
         throw conflict('workspaceExists');
-      await updateWorkspace(tx, target.data, await this.clean(tx, input.data));
+      const before = workspaces.find((w) => w.id === target.data)?.staffIds ?? [];
+      const clean = await this.clean(tx, input.data);
+      await updateWorkspace(tx, target.data, clean);
+      await logActivity(tx, actorOf(membership), { action: 'workspaceEdited', targetName: clean.name });
+      for (const staff of clean.staffIds.filter((s) => !before.includes(s)))
+        await notify(tx, staff, 'workspaceAdded', { workspace: clean.name });
       return (await listWorkspaces(tx)).find((w) => w.id === target.data);
     });
   }
@@ -219,6 +240,8 @@ export class WorkspacesController {
       if (!workspaces.some((w) => w.id === target.data)) throw notFound('workspaceNotFound');
       if (workspaces.length <= 1) throw badRequest('lastWorkspace');
       await deleteWorkspace(tx, target.data);
+      const name = workspaces.find((w) => w.id === target.data)?.name ?? '';
+      await logActivity(tx, actorOf(membership), { action: 'workspaceDeleted', targetName: name });
     });
   }
 
@@ -254,6 +277,11 @@ export class SkillsController {
       const list = await listSkills(tx);
       if (list.some((s) => s.kind === input.data.kind && same(s.name, input.data.name))) throw conflict('skillExists');
       const id = await addSkill(tx, input.data.kind, input.data.name);
+      await logActivity(tx, actorOf(membership), {
+        action: 'skillAdded',
+        targetName: input.data.name,
+        details: { kind: input.data.kind },
+      });
       return (await listSkills(tx)).find((s) => s.id === id);
     });
   }
@@ -271,6 +299,11 @@ export class SkillsController {
       if (list.some((s) => s.id !== skill.id && s.kind === skill.kind && same(s.name, input.data.name)))
         throw conflict('skillExists');
       await renameSkill(tx, skill.id, input.data.name);
+      await logActivity(tx, actorOf(membership), {
+        action: 'skillRenamed',
+        targetName: input.data.name,
+        details: { from: skill.name, kind: skill.kind },
+      });
       return (await listSkills(tx)).find((s) => s.id === skill.id);
     });
   }
@@ -282,8 +315,14 @@ export class SkillsController {
     const target = idParam.safeParse(id);
     if (!target.success) throw badRequest('nothingToDelete');
     await withCompany(this.db, membership.companyId, async (tx) => {
-      if (!(await listSkills(tx)).some((s) => s.id === target.data)) throw notFound('skillNotFound');
+      const skill = (await listSkills(tx)).find((s) => s.id === target.data);
+      if (!skill) throw notFound('skillNotFound');
       await deleteSkill(tx, target.data);
+      await logActivity(tx, actorOf(membership), {
+        action: 'skillDeleted',
+        targetName: skill.name,
+        details: { kind: skill.kind },
+      });
     });
   }
 }

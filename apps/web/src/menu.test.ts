@@ -36,6 +36,15 @@ describe('the menu as apps', () => {
     expect(findPage(menuFor('reviewer'), 'quality', 'qa-entry')).toBeDefined();
   });
 
+  it('follows Roles & permissions: the company’s choice for a role, and a person’s own choice first', () => {
+    const rules = { roles: { calls: ['admin' as const] }, people: { calls: { 'm-1': true } } };
+    expect(findPage(menuFor('agent', rules, 'm-2'), 'quality', 'reviews')).toBeUndefined();
+    expect(findPage(menuFor('agent', rules, 'm-1'), 'quality', 'reviews')).toBeDefined();
+    // admins always keep the Admin pages, whatever was chosen
+    const lockedOut = { roles: { users: [] }, people: {} };
+    expect(findPage(menuFor('admin', lockedOut, null), 'admin', 'users')).toBeDefined();
+  });
+
   it('has a name for every app, section, group and page in English, Bulgarian and French', () => {
     for (const lang of LANGUAGES) {
       const texts = MENU_TEXTS[lang];

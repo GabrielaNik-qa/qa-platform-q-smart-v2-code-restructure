@@ -12,6 +12,8 @@ import {
   isAgentTeam,
   listPeople,
   listWorkspaces,
+  logActivity,
+  notify,
   type Membership,
   otherActiveAdmins,
   removeMembership,
@@ -30,6 +32,7 @@ import { SignedInGuard } from './auth/signed-in.guard.js';
 import type { VerifiedPerson } from './auth/token-verifier.js';
 import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { CurrentMembership, CurrentScope, Person } from './decorators.js';
+import { actorOf } from './activity.controller.js';
 import { knownSkills } from './setup.controller.js';
 import { DB } from './tokens.js';
 import { badRequest, conflict, forbidden, notFound } from './errors.js';
@@ -104,6 +107,14 @@ export class PeopleController {
         const teamId = await teamFor(tx, input.data.role, input.data.teamId);
         const made = await invitePerson(tx, person.uid, { ...input.data, teamId });
         await placeInWorkspaces(tx, made, input.data.role, []);
+        const invited = await getPerson(tx, made);
+        await logActivity(tx, actorOf(membership), {
+          action: 'personInvited',
+          targetId: invited?.userId ?? null,
+          targetName: input.data.name,
+          details: { role: input.data.role },
+        });
+        await notify(tx, made, 'welcome', { company: membership.companyName, role: input.data.role }, '/admin/profile');
         return made;
       });
       return { id };
@@ -138,7 +149,9 @@ export class PeopleController {
       if (input.data.workspaceIds || role !== current.role)
         await placeInWorkspaces(tx, current.membershipId, role, input.data.workspaceIds ?? current.workspaceIds);
       if (!isStaff(role)) await stopLeading(tx, current.membershipId);
-      return getPerson(tx, current.membershipId);
+      const after = await getPerson(tx, current.membershipId);
+      if (after) await this.record(tx, membership, current, after);
+      return after;
     });
   }
 
@@ -155,6 +168,35 @@ export class PeopleController {
       if (current.role === 'admin' && current.active && (await otherActiveAdmins(tx, current.membershipId)) === 0)
         throw badRequest('keepOneAdmin');
       await removeMembership(tx, current.membershipId);
+      await logActivity(tx, actorOf(membership), {
+        action: 'personRemoved',
+        targetId: current.userId,
+        targetName: current.name,
+      });
     });
   }
+
+  /** What changed for a person: into the activity log, and a notification for them (as today's bell). */
+  private async record(tx: Tx, membership: Membership, before: PersonView, after: PersonView) {
+    const log = (action: string, details: Record<string, string> = {}) =>
+      logActivity(tx, actorOf(membership), { action, targetId: after.userId, targetName: after.name, details });
+    const same = (a: string[], b: string[]) => [...a].sort().join() === [...b].sort().join();
+    if (before.role !== after.role) {
+      await log('personRole', { from: before.role, to: after.role });
+      await notify(tx, after.membershipId, 'roleChanged', { role: after.role }, '/admin/profile');
+    }
+    if (before.teamId !== after.teamId && after.role === 'agent') {
+      await log('personTeam', { team: after.teamName ?? '' });
+      await notify(tx, after.membershipId, 'teamChanged', { team: after.teamName ?? '' }, '/admin/profile');
+    }
+    if (before.active !== after.active) await log(after.active ? 'personOn' : 'personOff');
+    if (!same(before.skillIds, after.skillIds)) await log('personSkills');
+    if (!same(before.workspaceIds, after.workspaceIds) && isWorkspaceStaff(after.role)) {
+      const names = (await listWorkspaces(tx)).filter((w) => after.workspaceIds.includes(w.id)).map((w) => w.name);
+      await log('personWorkspaces', { workspaces: names.join(', ') });
+      await notify(tx, after.membershipId, 'workspacesChanged', { workspaces: names.join(', ') });
+    }
+  }
 }
+
+type PersonView = NonNullable<Awaited<ReturnType<typeof getPerson>>>;

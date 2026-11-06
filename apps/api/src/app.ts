@@ -2,6 +2,12 @@ import { type DynamicModule, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import type { Db } from '@qsmart/db';
+import {
+  ActivityController,
+  MyPrefsController,
+  NotificationsController,
+  PageRulesController,
+} from './activity.controller.js';
 import { SignedInGuard } from './auth/signed-in.guard.js';
 import type { TokenVerifier } from './auth/token-verifier.js';
 import { CompanyMemberGuard } from './company/company-member.guard.js';
@@ -32,6 +38,10 @@ export class AppModule {
         TeamsController,
         WorkspacesController,
         SkillsController,
+        ActivityController,
+        NotificationsController,
+        PageRulesController,
+        MyPrefsController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },
