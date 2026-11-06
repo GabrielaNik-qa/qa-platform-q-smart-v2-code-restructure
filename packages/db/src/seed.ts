@@ -1,5 +1,5 @@
-import type { Role } from '@qsmart/shared';
-import { eq } from 'drizzle-orm';
+import { isStaff, type Role } from '@qsmart/shared';
+import { and, eq, sql } from 'drizzle-orm';
 import type { Db } from './client.js';
 import { companies, memberships, teams, users } from './schema.js';
 
@@ -79,5 +79,36 @@ export async function seedDemo(owner: Db): Promise<void> {
         teamId: team(second, 'Administration'),
       },
     ]);
+  });
+}
+
+/**
+ * Invites a person into the demo company by e-mail (used on your PC with the real Firebase project). They get the
+ * company the first time they sign in with that e-mail, verified by Firebase. Safe to run again.
+ */
+export async function inviteToDemo(owner: Db, person: { email: string; name: string; role: Role }): Promise<void> {
+  const email = person.email.trim().toLowerCase();
+  await owner.transaction(async (tx) => {
+    const [demo] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.name, DEMO_COMPANY));
+    if (!demo) throw new Error('The demo company is missing: start v2 once first.');
+    const teamName = isStaff(person.role) ? 'Administration' : 'B2C';
+    const [team] = await tx
+      .select({ id: teams.id })
+      .from(teams)
+      .where(and(eq(teams.companyId, demo.id), eq(teams.name, teamName)));
+    const [existing] = await tx
+      .select({ id: users.id })
+      .from(users)
+      .where(sql`lower(${users.email}) = ${email}`);
+    const userId =
+      existing?.id ?? (await tx.insert(users).values({ email, name: person.name }).returning({ id: users.id }))[0]?.id;
+    if (!userId) throw new Error('The invitation could not be saved.');
+    await tx
+      .insert(memberships)
+      .values({ companyId: demo.id, userId, role: person.role, teamId: team?.id ?? null })
+      .onConflictDoUpdate({
+        target: [memberships.companyId, memberships.userId],
+        set: { role: person.role, teamId: team?.id ?? null },
+      });
   });
 }

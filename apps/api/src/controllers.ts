@@ -1,5 +1,5 @@
 import { Controller, Get, Inject, UseGuards } from '@nestjs/common';
-import { type Db, type Membership, membershipsFor, schema, withCompany } from '@qsmart/db';
+import { claimInvitation, type Db, type Membership, membershipsFor, schema, withCompany } from '@qsmart/db';
 import { SignedInGuard } from './auth/signed-in.guard.js';
 import type { VerifiedPerson } from './auth/token-verifier.js';
 import { CompanyMemberGuard } from './company/company-member.guard.js';
@@ -23,7 +23,12 @@ export class MeController {
 
   @Get()
   async me(@Person() person: VerifiedPerson) {
-    const memberships = await membershipsFor(this.db, person.uid);
+    let memberships = await membershipsFor(this.db, person.uid);
+    // a first sign-in: accept the invitation waiting for this e-mail, but only if Firebase has verified it
+    if (memberships.length === 0 && person.email && person.emailVerified) {
+      if (await claimInvitation(this.db, person.uid, person.email))
+        memberships = await membershipsFor(this.db, person.uid);
+    }
     return {
       email: person.email,
       name: memberships[0]?.userName ?? null,

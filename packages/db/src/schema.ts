@@ -28,7 +28,8 @@ export const companies = pgTable('companies', {
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
-  firebaseUid: text('firebase_uid').notNull().unique(),
+  /** Empty for an invitation not yet accepted: it's filled at the first sign-in with the invited, verified e-mail. */
+  firebaseUid: text('firebase_uid').unique(),
   email: text('email').notNull().unique(),
   name: text('name').notNull(),
   createdAt: createdAt(),

@@ -15,6 +15,20 @@
       "when": 1793927942064,
       "tag": "0001_company_wall",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793932236172,
+      "tag": "0002_invitations",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793932238679,
+      "tag": "0003_claim_invitation",
+      "breakpoints": true
     }
   ]
 }

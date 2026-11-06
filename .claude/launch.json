@@ -6,6 +6,12 @@
       "runtimeExecutable": "cmd.exe",
       "runtimeArgs": ["/c", "set QSMART_NO_BROWSER=1&& npm.cmd run dev"],
       "port": 5173
+    },
+    {
+      "name": "qsmart-v2-real",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": ["/c", "set QSMART_NO_BROWSER=1&& npm.cmd run dev:real"],
+      "port": 5173
     }
   ]
 }

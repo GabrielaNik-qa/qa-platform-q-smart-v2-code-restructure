@@ -5,6 +5,7 @@ import {
   createDb,
   type Db,
   DEMO_COMPANY,
+  inviteToDemo,
   type LocalPostgres,
   runMigrations,
   schema,
@@ -18,9 +19,13 @@ import type { TokenVerifier, VerifiedPerson } from './auth/token-verifier.js';
 
 // In the tests, Firebase's proof of sign-in is replaced by simple test tokens.
 const PEOPLE: Record<string, VerifiedPerson> = {
-  'token-admin': { uid: 'demo-admin', email: 'admin@demo.test' },
-  'token-agent': { uid: 'demo-agent', email: 'agent@demo.test' },
-  'token-stranger': { uid: 'someone-else', email: 'stranger@other.test' },
+  'token-admin': { uid: 'demo-admin', email: 'admin@demo.test', emailVerified: true },
+  'token-agent': { uid: 'demo-agent', email: 'agent@demo.test', emailVerified: true },
+  'token-stranger': { uid: 'someone-else', email: 'stranger@other.test', emailVerified: true },
+  // invited by e-mail: the first with an unverified e-mail, then the right person, then someone trying it a second time
+  'token-unverified': { uid: 'google-unverified', email: 'invited@demo.test', emailVerified: false },
+  'token-invited': { uid: 'google-invited', email: 'Invited@Demo.test', emailVerified: true },
+  'token-second-claim': { uid: 'google-other', email: 'invited@demo.test', emailVerified: true },
 };
 const verifier: TokenVerifier = {
   async verify(idToken) {
@@ -41,6 +46,7 @@ beforeAll(async () => {
   await runMigrations(server.ownerUrl);
   owner = createDb(server.ownerUrl);
   await seedDemo(owner);
+  await inviteToDemo(owner, { email: 'invited@demo.test', name: 'Ivo Invited', role: 'trainer' });
   for (const c of await owner.select().from(schema.companies)) companyIds[c.name] = c.id;
   db = createDb(server.appUrl);
   app = await createApp({ db, verifier });
@@ -95,6 +101,16 @@ describe('the server', () => {
     expect(demoTeams.json().map((t: { name: string }) => t.name)).toEqual(['Administration', 'B2B', 'B2C']);
     const secondTeams = await get('/api/teams', 'token-admin', companyIds[SECOND_COMPANY]);
     expect(secondTeams.json().map((t: { name: string }) => t.name)).toEqual(['Administration']);
+  });
+
+  it('gives an invitation only to the invited, verified e-mail, and only once', async () => {
+    const companiesOf = async (token: string) =>
+      (await get('/api/me', token)).json().companies.map((c: { name: string; role: string }) => [c.name, c.role]);
+    expect(await companiesOf('token-unverified')).toEqual([]);
+    expect(await companiesOf('token-invited')).toEqual([[DEMO_COMPANY, 'trainer']]);
+    expect(await companiesOf('token-invited')).toEqual([[DEMO_COMPANY, 'trainer']]);
+    expect(await companiesOf('token-second-claim')).toEqual([]);
+    expect(await companiesOf('token-unverified')).toEqual([]);
   });
 
   it("refuses a company the person doesn't belong to", async () => {

@@ -19,6 +19,8 @@ const en = {
     wrong: 'The e-mail or password is wrong.',
     failed: 'Could not sign in. Please try again.',
     testAccounts: 'Test accounts on this PC: {{accounts}} · password: {{password}}',
+    or: 'or',
+    google: 'Sign in with Google',
   },
   home: {
     welcome: 'Welcome, {{name}}',
@@ -50,6 +52,8 @@ const bg: Messages = {
     wrong: 'Грешен имейл или парола.',
     failed: 'Входът не успя. Опитайте отново.',
     testAccounts: 'Тестови акаунти на този компютър: {{accounts}} · парола: {{password}}',
+    or: 'или',
+    google: 'Вход с Google',
   },
   home: {
     welcome: 'Добре дошли, {{name}}',
@@ -79,6 +83,8 @@ const fr: Messages = {
     wrong: 'L’e-mail ou le mot de passe est incorrect.',
     failed: 'Connexion impossible. Veuillez réessayer.',
     testAccounts: 'Comptes de test sur ce PC : {{accounts}} · mot de passe : {{password}}',
+    or: 'ou',
+    google: 'Se connecter avec Google',
   },
   home: {
     welcome: 'Bienvenue, {{name}}',

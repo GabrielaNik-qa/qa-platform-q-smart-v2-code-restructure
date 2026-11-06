@@ -27,6 +27,17 @@ export interface Membership {
   userName: string;
 }
 
+/**
+ * Accepts an invitation: links the invited e-mail to the Firebase account. Call it only with an account and a
+ * *verified* e-mail that Firebase has just confirmed. Returns true when an invitation was taken.
+ */
+export async function claimInvitation(db: Db, firebaseUid: string, verifiedEmail: string): Promise<boolean> {
+  const result = await db.execute<{ claimed: number }>(
+    sql`select claim_invitation(${firebaseUid}, ${verifiedEmail}) as claimed`,
+  );
+  return (result.rows[0]?.claimed ?? 0) > 0;
+}
+
 /** The companies a signed-in person belongs to, used at sign-in before a company is chosen. */
 export async function membershipsFor(db: Db, firebaseUid: string): Promise<Membership[]> {
   const result = await db.execute<{

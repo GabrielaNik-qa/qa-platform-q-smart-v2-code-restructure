@@ -18,6 +18,8 @@ Double-click **`Start Q-smart v2.cmd`**. It starts four things and then opens ht
 
 Test accounts (made up, password `password`): `admin@demo.test`, `reviewer@demo.test`, `lead@demo.test`, `trainer@demo.test`, `agent@demo.test`. Close the window to stop everything. Today's app keeps running separately.
 
+**With real sign-in:** `Start Q-smart v2 (real sign-in).cmd` uses your real Firebase project "Q-smart Demo" instead: sign in with Google. The people listed in `invites.local.txt` (one `e-mail role` per line; this file stays on your PC) are invited into the demo company and get it at their first sign-in. Only one of the two start files can run at a time.
+
 All of v2's checks (types, code checks, format and tests): `npm.cmd run check`. What changed: `docs/RELEASE_NOTES_V2.md`.
 
 ## Today's app (the starting point)

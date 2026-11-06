@@ -24,3 +24,6 @@ sandbox.json.tmp
 *.log
 .DS_Store
 Thumbs.db
+
+# Local lists that stay on this PC (for example the people invited into the demo)
+*.local.txt

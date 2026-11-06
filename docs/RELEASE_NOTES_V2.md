@@ -4,6 +4,10 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## 6 November 2026: Phase 0 (set-up)
 
+- **Your real Firebase projects:** "Q-smart" (`qsmart-official`, for clients, the website and the Help Center) and "Q-smart Demo" (`qsmart-demo`), with e-mail and Google sign-in switched on.
+- **Sign in with Google**, and **invitations:** a person invited by e-mail gets the company the first time they sign in with that e-mail, verified by Firebase. An unverified e-mail, or someone trying the same invitation a second time, gets nothing (tested).
+- **`Start Q-smart v2 (real sign-in).cmd`** starts v2 with the real "Q-smart Demo" project. If v2 is already running in another window, it says so clearly.
+
 - **Today's app moved into `current-app/`**, unchanged. All 253 of its tests pass there, and it runs on port 3100 as before.
 - **The v2 workspace:** TypeScript in strict mode everywhere, with automatic code checks, one format, and tests. GitHub runs v2's checks on every change, for free.
 - **The five roles of v2:** admin, **reviewer** (today's "QA"), team lead, trainer and agent, named in English, Bulgarian and French.
