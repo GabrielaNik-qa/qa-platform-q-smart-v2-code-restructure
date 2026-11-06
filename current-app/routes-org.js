@@ -36,7 +36,8 @@ module.exports = ({ app, load, save, need, bad, hex, iso, str, list, setOut, lim
     return out;
   }
   const runPurge = () => { try { const db = load(), o = purge(db, app.locals.audit); if (Object.values(o).some(Boolean)) { (db.settings.privacy = db.settings.privacy || {}).last = { at: iso(), ...o }; save(db); } } catch (e) { /* tried again later */ } };
-  setTimeout(runPurge, 20000); setInterval(runPurge, 12 * 36e5).unref();
+  // tests set NO_SCHEDULE: their own purge must not meet this automatic one (on slower PCs they ran together at ~20 s and failed)
+  if (!process.env.NO_SCHEDULE) { setTimeout(runPurge, 20000); setInterval(runPurge, 12 * 36e5).unref(); }
   app.post('/api/org/purge', need('admin'), (req, res) => { const db = load(), o = purge(db, app.locals.audit); (db.settings.privacy = db.settings.privacy || {}).last = { at: iso(), ...o }; save(db); res.json(o); });
 
   // a person's data (the right of access): everything stored about one person, in one file

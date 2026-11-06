@@ -29,7 +29,7 @@ test.before(async () => {
     });
   });
   await new Promise(ok => fake.listen(0, '127.0.0.1', ok));
-  srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: '0', DATA_FILE: DATA, AUDIT_FILE: path.join(DIR, 'audit.json'), REC_DIR: path.join(DIR, 'rec'), BACKUPS_DIR: path.join(DIR, 'backups'), ANTHROPIC_API_KEY: '', KEY_SECRET: '', ANTHROPIC_BASE_URL: 'http://127.0.0.1:' + fake.address().port } });
+  srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: '0', DATA_FILE: DATA, AUDIT_FILE: path.join(DIR, 'audit.json'), REC_DIR: path.join(DIR, 'rec'), BACKUPS_DIR: path.join(DIR, 'backups'), ANTHROPIC_API_KEY: '', KEY_SECRET: '', ANTHROPIC_BASE_URL: 'http://127.0.0.1:' + fake.address().port, NO_SCHEDULE: '1' } });
   BASE = await new Promise((ok, no) => {
     const t = setTimeout(() => no(new Error('the server did not start')), 15000);
     srv.stdout.on('data', d => { const m = String(d).match(/http:\/\/localhost:(\d+)/); if (m) { clearTimeout(t); ok('http://localhost:' + m[1]); } });

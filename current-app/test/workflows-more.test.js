@@ -21,7 +21,7 @@ fs.writeFileSync(DATA, JSON.stringify({
 
 let BASE = '', srv = null;
 test.before(async () => {
-  srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: '0', DATA_FILE: DATA, AUDIT_FILE: path.join(DIR, 'audit.json'), REC_DIR: path.join(DIR, 'rec'), BACKUPS_DIR: path.join(DIR, 'backups'), SECRET: 'test-only', SMTP_HOST: '', ANTHROPIC_API_KEY: '' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT: '0', DATA_FILE: DATA, AUDIT_FILE: path.join(DIR, 'audit.json'), REC_DIR: path.join(DIR, 'rec'), BACKUPS_DIR: path.join(DIR, 'backups'), SECRET: 'test-only', SMTP_HOST: '', ANTHROPIC_API_KEY: '', NO_SCHEDULE: '1' }, stdio: ['ignore', 'pipe', 'pipe'] });
   BASE = await new Promise((ok, no) => {
     const t = setTimeout(() => no(new Error('the server did not start')), 15000);
     srv.stdout.on('data', d => { const m = String(d).match(/http:\/\/localhost:(\d+)/); if (m) { clearTimeout(t); ok('http://localhost:' + m[1]); } });
