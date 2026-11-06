@@ -61,7 +61,7 @@ import { DB } from './tokens.js';
 
 const idParam = z.uuid();
 /** a link, as today: empty, or an http(s) address */
-const link = z
+export const link = z
   .string()
   .trim()
   .max(500)
@@ -147,7 +147,7 @@ export async function reachOf(tx: Tx, membership: Membership, scope: Scope): Pro
 }
 
 /** An active agent the reviewer can reach (today: in their workspaces). */
-async function agentFor(tx: Tx, reach: ReviewScope, agentId: string) {
+export async function agentFor(tx: Tx, reach: ReviewScope, agentId: string) {
   const agent = await findMembership(tx, agentId);
   if (!agent || agent.role !== 'agent' || !agent.active) throw badRequest('reviewAgent');
   if ('teamIds' in reach && !(agent.teamId && reach.teamIds.includes(agent.teamId))) throw badRequest('reviewAgent');

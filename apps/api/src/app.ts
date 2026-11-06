@@ -22,6 +22,7 @@ import {
   ScorecardsController,
 } from './quality.controller.js';
 import { DisputesController } from './disputes.controller.js';
+import { FlagsController } from './flags.controller.js';
 import { ReviewsController } from './reviews.controller.js';
 import { SkillsController, TeamsController, WorkspacesController } from './setup.controller.js';
 import { DB, TOKEN_VERIFIER } from './tokens.js';
@@ -56,6 +57,7 @@ export class AppModule {
         PassRatesController,
         ReviewsController,
         DisputesController,
+        FlagsController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },

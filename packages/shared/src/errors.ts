@@ -56,6 +56,8 @@ export const ERROR_MESSAGES = {
   reviewAgent: 'Choose an active agent of your workspaces.',
   reviewNotFound: 'This review is not there, or you cannot open it.',
   nothingToExport: 'Choose at least one review to export.',
+  flagInvalid: 'Choose the agent, and enter the lead ID (up to 60 characters) and the date. Links start with https://.',
+  flagNotFound: 'This flag is not there, or you cannot open it.',
   disputeReason: 'Write the reason for your dispute (up to 1000 characters).',
   disputeMessage: 'Write a message first (up to 1000 characters).',
   disputeExists: 'This review has already been disputed.',

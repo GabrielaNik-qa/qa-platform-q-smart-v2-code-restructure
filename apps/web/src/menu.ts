@@ -20,6 +20,7 @@ export const BUILT = new Set([
   'quality/qa-entry',
   'quality/reviews',
   'quality/disputes',
+  'quality/quick-flags',
   'admin/categories',
   'admin/root-causes',
   'admin/system-settings',

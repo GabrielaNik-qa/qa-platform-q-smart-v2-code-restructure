@@ -45,6 +45,13 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - **What the disputes say** (admins and reviewers): how disputes end (average time to resolve, how often the agent was right), the disputed categories, who disputes and whose reviews are disputed.
   - **What is kept:** nobody can change or delete a message, not even the server (tested). Deleting the review deletes its dispute. If a person leaves, their name stays on their messages.
   - AI reviews (Phase 3b) will be disputed the same way, and a person then decides.
+- **Quick Flags** (Quality › Quick Flags), as today:
+  - A red or green flag on a call, chat, e-mail or other conversation, kept apart from QA reviews: **scores never change** (tested).
+  - **Who:** admins, reviewers, team leads and trainers give, change and delete flags for the agents of their workspaces (admins: all). The agent is told in the bell, with the comment. Agents don't see the page, as today.
+  - **One row per conversation:** every review, plus the conversations that only have quick flags (matched on lead ID and agent). The review's own flag shows as "QA Red" or "QA Green" next to the quick flags; clicking a quick flag opens it.
+  - The tiles Total Flagged, Red Flags and Green Flags, search, filters for team, agent, type and date, and the flag filter (All Calls, Flagged, Red, Green, No Flags) with counts. Columns to choose (saved with your account), and Export to Excel in today's layout.
+  - **The "New Quick Flag" window:** red or green, the conversation type, team and agent, lead ID, date, and optionally the campaign, the CRM link, the recording or conversation link and a comment. The red and green flag buttons on a row fill it in from that conversation. When you change a flag, it shows who gave it and has Delete (after "Are you sure?").
+  - Every flag given, changed or deleted, and every export, goes into the activity log.
 - **Tests on Windows:** a temporary test database folder that Windows keeps locked for a moment no longer fails the run.
 
 ## 6 November 2026: Phase 1 (foundation), finished (tag `v2-phase-1`)

@@ -508,3 +508,55 @@ export const disputeMessages = pgTable(
     }),
   ],
 );
+
+export const quickFlagType = pgEnum('quick_flag_type', ['red', 'green']);
+
+/**
+ * A quick flag (today's rule): a red or green flag on a conversation, kept apart from QA reviews, so scores never
+ * change. Staff give them to the agents of their workspaces; the agent is told. Recordings are never stored, only links.
+ */
+export const quickFlags = pgTable(
+  'quick_flags',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    type: quickFlagType('type').notNull(),
+    channel: channel('channel').notNull().default('call'),
+    agentId: uuid('agent_membership_id'),
+    agentName: text('agent_name').notNull(),
+    teamId: uuid('team_id'),
+    teamName: text('team_name').notNull().default(''),
+    leadId: text('lead_id').notNull(),
+    flaggedOn: date('flagged_on').notNull(),
+    campaign: text('campaign').notNull().default(''),
+    /** the CRM link */
+    leadLink: text('lead_link').notNull().default(''),
+    /** the recording, chat, e-mail or conversation link */
+    conversationLink: text('conversation_link').notNull().default(''),
+    comment: text('comment').notNull().default(''),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('quick_flags_company_date').on(t.companyId, t.flaggedOn),
+    foreignKey({
+      name: 'quick_flags_agent_same_company',
+      columns: [t.agentId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'quick_flags_team_same_company',
+      columns: [t.teamId, t.companyId],
+      foreignColumns: [teams.id, teams.companyId],
+    }),
+    foreignKey({
+      name: 'quick_flags_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);

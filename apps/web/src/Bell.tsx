@@ -66,6 +66,8 @@ export function Bell({ company }: { company: Company }) {
   const unread = notes.filter((n) => !n.read).length;
   const kindOf = (n: Note) => {
     if ((n.kind === 'reviewNew' || n.kind === 'reviewUpdated') && !n.details['score']) return `${n.kind}NotScored`;
+    if (n.kind === 'flagGiven')
+      return `flag${n.details['type'] === 'green' ? 'Green' : 'Red'}${n.details['comment'] ? 'Comment' : ''}`;
     if (n.kind === 'disputeResolved') {
       const outcome = n.details['outcome'] ?? 'kept';
       return `disputeResolved${outcome.charAt(0).toUpperCase()}${outcome.slice(1)}`;

@@ -1,7 +1,7 @@
 // Reviews (QA Entry and Reviews), always behind the company wall (inside withCompany). Who may see or change which
 // review is decided by the server (today's rules: agents their own, staff their workspaces, admins all).
 import type { ScoredCategory } from '@qsmart/shared';
-import { and, desc, eq, inArray, isNull, type SQL, sql } from 'drizzle-orm';
+import { and, type AnyColumn, desc, eq, inArray, isNull, type SQL, sql } from 'drizzle-orm';
 import type { Tx } from './company.js';
 import { reviews } from './schema.js';
 
@@ -73,10 +73,14 @@ export type ReviewChange = Partial<
 /** Whose reviews: everyone's (admins), those of some teams (staff: their workspaces), or one agent's own. */
 export type ReviewScope = { all: true } | { teamIds: string[] } | { agentId: string };
 
-const scopeWhere = (scope: ReviewScope): SQL | undefined => {
+/** The rows of a table (reviews, quick flags …) that a scope reaches, through their agent and team columns. */
+export const scopeWhere = (
+  scope: ReviewScope,
+  table: { agentId: AnyColumn; teamId: AnyColumn } = reviews,
+): SQL | undefined => {
   if ('all' in scope) return undefined;
-  if ('agentId' in scope) return eq(reviews.agentId, scope.agentId);
-  return scope.teamIds.length ? inArray(reviews.teamId, scope.teamIds) : sql`false`;
+  if ('agentId' in scope) return eq(table.agentId, scope.agentId);
+  return scope.teamIds.length ? inArray(table.teamId, scope.teamIds) : sql`false`;
 };
 
 /** Newest first (today: by review date, then by when it was saved). */

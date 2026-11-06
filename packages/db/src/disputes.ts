@@ -2,7 +2,7 @@
 // the server (today's rules: the agent opens one on their own review, once; admins and reviewers answer and resolve).
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import type { Tx } from './company.js';
-import type { ReviewScope } from './reviews.js';
+import { type ReviewScope, scopeWhere } from './reviews.js';
 import { disputeMessages, disputes, reviews } from './schema.js';
 
 const thisCompany = sql<string>`app_company()`;
@@ -77,19 +77,13 @@ async function withMessages(tx: Tx, rows: (typeof disputes.$inferSelect)[]): Pro
   });
 }
 
-const reachWhere = (scope: ReviewScope) => {
-  if ('all' in scope) return undefined;
-  if ('agentId' in scope) return eq(reviews.agentId, scope.agentId);
-  return scope.teamIds.length ? inArray(reviews.teamId, scope.teamIds) : sql`false`;
-};
-
 /** The disputes of the reviews a person reaches, newest first. */
 export async function listDisputes(tx: Tx, scope: ReviewScope): Promise<Dispute[]> {
   const rows = await tx
     .select({ dispute: disputes })
     .from(disputes)
     .innerJoin(reviews, eq(reviews.id, disputes.reviewId))
-    .where(reachWhere(scope))
+    .where(scopeWhere(scope))
     .orderBy(sql`${disputes.openedAt} desc`);
   return withMessages(
     tx,

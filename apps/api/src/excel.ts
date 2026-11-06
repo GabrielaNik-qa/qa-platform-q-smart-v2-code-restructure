@@ -1,7 +1,7 @@
 // The Excel file of the Reviews page, as today's (current-app: reviews.js `xpRun` and routes-reviews.js
 // /api/export/call-reviews): always in English, one column per scorecard category, dates as real Excel dates and
 // scores as real Excel percentages (85.6 is shown as 85.60%), so filters, formulas and pivot tables read them as numbers.
-import type { Review } from '@qsmart/db';
+import type { QuickFlag, Review } from '@qsmart/db';
 import ExcelJS from 'exceljs';
 
 const TYPE: Record<Review['channel'], string> = { call: 'call', chat: 'chat', email: 'email', other: 'conversation' };
@@ -81,6 +81,69 @@ export async function reviewsWorkbook(reviews: Review[], sheetName: string): Pro
   const wide: Record<number, number> = { 5: 34, [head.length - 2]: 30, [head.length - 1]: 40, [head.length]: 40 };
   sheet.columns.forEach((column, i) => {
     column.width = wide[i + 1] ?? Math.min(34, Math.max(11, String(head[i]).length + 4));
+  });
+  return Buffer.from(await book.xlsx.writeBuffer());
+}
+
+/** One conversation of the Quick Flags page: its review (if it has one) and its quick flags. */
+export interface FlagRow {
+  review: Review | undefined;
+  flags: QuickFlag[];
+}
+const CHANNEL: Record<Review['channel'], string> = { call: 'Call', chat: 'Chat', email: 'Email', other: 'Other' };
+
+/** The Excel file of the Quick Flags page, as today's (current-app: flags.js `xfExport`). */
+export async function flagsWorkbook(rows: FlagRow[]): Promise<Buffer> {
+  const head = [
+    'Lead ID',
+    'Type',
+    'Date',
+    'Agent',
+    'Team',
+    'Campaign',
+    'QA Score',
+    'QA flag',
+    'Quick flags',
+    'Comments',
+    'Flagged by',
+  ];
+  const book = new ExcelJS.Workbook();
+  const sheet = book.addWorksheet('Quick Flags');
+  sheet.addRow(head);
+  for (const { review, flags } of rows) {
+    const first = flags[0];
+    const day = review?.reviewedOn ?? first?.flaggedOn ?? '';
+    const campaign = review?.campaign ?? first?.campaign ?? '';
+    sheet.addRow([
+      review?.leadId ?? first?.leadId ?? '',
+      CHANNEL[review?.channel ?? first?.channel ?? 'call'],
+      day ? new Date(`${day}T12:00:00`) : '',
+      review?.agentName ?? first?.agentName ?? '',
+      review?.teamName ?? first?.teamName ?? '',
+      `${day} ${campaign || 'general'}`,
+      review && !review.notScored ? (review.score ?? '') : '',
+      review?.flag ?? '',
+      flags.map((f) => f.type).join(', '),
+      flags
+        .map((f) => f.comment)
+        .filter(Boolean)
+        .join(' | '),
+      [...new Set(flags.map((f) => f.byName))].join(', '),
+    ]);
+  }
+  sheet.eachRow((row, rowNumber) =>
+    row.eachCell((cell, column) => {
+      cell.font = { name: 'Calibri', size: 12, bold: rowNumber === 1 };
+      if (rowNumber === 1) return;
+      if (column === 3 && cell.value instanceof Date) cell.numFmt = 'mm-dd-yy';
+      if (column === 7 && typeof cell.value === 'number') {
+        cell.value = Math.round(cell.value * 10) / 1000;
+        cell.numFmt = '0.00%';
+      }
+    }),
+  );
+  sheet.columns.forEach((column, i) => {
+    column.width = i === 5 || i === 9 ? 34 : Math.min(34, Math.max(11, String(head[i]).length + 4));
   });
   return Buffer.from(await book.xlsx.writeBuffer());
 }
