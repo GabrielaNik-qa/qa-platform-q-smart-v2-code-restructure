@@ -21,6 +21,7 @@ import {
   RootCausesController,
   ScorecardsController,
 } from './quality.controller.js';
+import { CalibrationsController } from './calibrations.controller.js';
 import { DisputesController } from './disputes.controller.js';
 import { FlagsController } from './flags.controller.js';
 import { ReviewsController } from './reviews.controller.js';
@@ -58,6 +59,7 @@ export class AppModule {
         ReviewsController,
         DisputesController,
         FlagsController,
+        CalibrationsController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },

@@ -560,3 +560,134 @@ export const quickFlags = pgTable(
     }),
   ],
 );
+
+export const calibrationStatus = pgEnum('calibration_status', ['planned', 'held', 'closed']);
+
+/** A decision or action of a calibration session (today: up to 30). */
+export interface CalibrationDecision {
+  text: string;
+  /** a participant's membership, or empty */
+  ownerId: string;
+  due: string;
+  done: boolean;
+}
+
+/**
+ * A calibration session (today's rule): reviewers, team leads and trainers compare their impressions, score the same
+ * reviews blind, and decide together. Only its participants (and admins) see it.
+ */
+export const calibrations = pgTable(
+  'calibrations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    heldOn: date('held_on').notNull(),
+    status: calibrationStatus('status').notNull().default('planned'),
+    /** the agenda and notes */
+    notes: text('notes').notNull().default(''),
+    /** the teams discussed */
+    teamIds: uuid('team_ids').array().notNull().default([]),
+    decisions: jsonb('decisions').$type<CalibrationDecision[]>().notNull().default([]),
+    /** the reference score of each review: "review" (the review itself) or a participant's id */
+    reference: jsonb('reference').$type<Record<string, string>>().notNull().default({}),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('calibrations_id_company').on(t.id, t.companyId),
+    foreignKey({
+      name: 'calibrations_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/** Who takes part, and their own part: impressions of the team(s) and what they have done. */
+export const calibrationParticipants = pgTable(
+  'calibration_participants',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id').notNull(),
+    calibrationId: uuid('calibration_id').notNull(),
+    membershipId: uuid('membership_id').notNull(),
+    impression: text('impression').notNull().default(''),
+    done: text('done').notNull().default(''),
+    wroteAt: timestamp('wrote_at', { withTimezone: true }),
+  },
+  (t) => [
+    unique('calibration_participants_id_company').on(t.id, t.companyId),
+    uniqueIndex('calibration_participants_pair').on(t.calibrationId, t.membershipId),
+    foreignKey({
+      name: 'calibration_participants_calibration',
+      columns: [t.calibrationId, t.companyId],
+      foreignColumns: [calibrations.id, calibrations.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'calibration_participants_member',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+/** The reviews a session discusses (today: up to 30). */
+export const calibrationReviews = pgTable(
+  'calibration_reviews',
+  {
+    companyId: uuid('company_id').notNull(),
+    calibrationId: uuid('calibration_id').notNull(),
+    reviewId: uuid('review_id').notNull(),
+    addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('calibration_reviews_pair').on(t.calibrationId, t.reviewId),
+    foreignKey({
+      name: 'calibration_reviews_calibration',
+      columns: [t.calibrationId, t.companyId],
+      foreignColumns: [calibrations.id, calibrations.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'calibration_reviews_review',
+      columns: [t.reviewId, t.companyId],
+      foreignColumns: [reviews.id, reviews.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+/** Blind scoring: each participant's own score of a review, hidden from the others until they score it too. */
+export const calibrationScores = pgTable(
+  'calibration_scores',
+  {
+    companyId: uuid('company_id').notNull(),
+    calibrationId: uuid('calibration_id').notNull(),
+    reviewId: uuid('review_id').notNull(),
+    participantId: uuid('participant_id').notNull(),
+    score: integer('score').notNull(),
+    note: text('note').notNull().default(''),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('calibration_scores_one').on(t.calibrationId, t.reviewId, t.participantId),
+    foreignKey({
+      name: 'calibration_scores_calibration',
+      columns: [t.calibrationId, t.companyId],
+      foreignColumns: [calibrations.id, calibrations.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'calibration_scores_review',
+      columns: [t.reviewId, t.companyId],
+      foreignColumns: [reviews.id, reviews.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'calibration_scores_participant',
+      columns: [t.participantId, t.companyId],
+      foreignColumns: [calibrationParticipants.id, calibrationParticipants.companyId],
+    }).onDelete('cascade'),
+  ],
+);

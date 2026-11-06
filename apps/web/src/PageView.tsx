@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Account } from './Account';
 import { Activity } from './Activity';
 import { findPage, isBuilt, menuOf } from './menu';
+import { Calibrations } from './Calibration';
 import { Disputes } from './Disputes';
 import { People } from './People';
 import { Prefs } from './Prefs';
@@ -35,6 +36,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'quality/reviews': (company) => <Reviews company={company} />,
   'quality/disputes': (company) => <Disputes company={company} />,
   'quality/quick-flags': (company) => <QuickFlags company={company} />,
+  'quality/calibration': (company) => <Calibrations company={company} />,
   'admin/categories': (company) => <Library company={company} />,
   'admin/root-causes': (company) => <RootCauses company={company} />,
   'admin/system-settings': (company) => <SystemSettings company={company} />,

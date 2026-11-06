@@ -1,6 +1,7 @@
 // The addresses of the pages: /<app>/<page> (for example /admin/users), and /owner for the owner of Q-smart.
 // The typed router of the plan (TanStack Router); every page is drawn inside the sidebar frame (Shell).
 import { createRootRoute, createRoute, createRouter, Navigate } from '@tanstack/react-router';
+import { CalibrationView } from './Calibration';
 import { firstPage, menuOf } from './menu';
 import { PageView, NotFound } from './PageView';
 import { Platform } from './Platform';
@@ -29,7 +30,10 @@ const page = createRoute({ getParentRoute: () => root, path: '/$app/$page', comp
 /** one review: from the bell, the list of reviews and QA Entry */
 const review = createRoute({ getParentRoute: () => root, path: '/review/$id', component: ReviewView });
 
-export const router = createRouter({ routeTree: root.addChildren([start, owner, review, page]) });
+/** one calibration session: from the bell and the Calibration page */
+const calibration = createRoute({ getParentRoute: () => root, path: '/calibration/$id', component: CalibrationView });
+
+export const router = createRouter({ routeTree: root.addChildren([start, owner, review, calibration, page]) });
 
 declare module '@tanstack/react-router' {
   interface Register {

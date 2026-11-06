@@ -52,6 +52,14 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - The tiles Total Flagged, Red Flags and Green Flags, search, filters for team, agent, type and date, and the flag filter (All Calls, Flagged, Red, Green, No Flags) with counts. Columns to choose (saved with your account), and Export to Excel in today's layout.
   - **The "New Quick Flag" window:** red or green, the conversation type, team and agent, lead ID, date, and optionally the campaign, the CRM link, the recording or conversation link and a comment. The red and green flag buttons on a row fill it in from that conversation. When you change a flag, it shows who gave it and has Delete (after "Are you sure?").
   - Every flag given, changed or deleted, and every export, goes into the activity log.
+- **Calibration** (Quality › Coaching › Calibration), as today:
+  - **Sessions:** admins, reviewers, team leads and trainers make a session with a title, date, status (planned, held, closed), participants, the teams discussed and an agenda. The person who makes it is always in it, and the others are invited in the bell. **Only the participants and admins see a session** (today's permission rule, now also on the server).
+  - **Who changes what:** the maker (or an admin) edits, deletes, takes reviews off and chooses the reference score. Each participant writes only their own part (impressions of the team(s), what they have done), adds reviews they can see, scores, and keeps the decisions and actions (with an owner among the participants and a due date).
+  - **Blind scoring** (from Zendesk QA): everyone scores the same reviews on their own. Until you have saved your score of a review you see only how many have scored it, not their scores. The maker and admins see all of them, and everyone does once the session is closed; then the scores can no longer change. The server hides them, not just the page (tested).
+  - **The reference** is the review's own score, or one participant's. Each score shows its difference in points, and "How far each person is from the reference" rates everyone Aligned, Close or Calibrate.
+  - **Reviewer consistency:** each reviewer's average score against everyone's, and how often their scores had to change after a dispute (Consistent, Watch, Calibrate).
+  - Each session has its own page (its address can be shared, and the invitation in the bell opens it). Making and deleting a session go into the activity log.
+  - If a participant is taken off the session or leaves the company, their part and their scores go with them. A review that is deleted leaves the sessions too.
 - **Tests on Windows:** a temporary test database folder that Windows keeps locked for a moment no longer fails the run.
 
 ## 6 November 2026: Phase 1 (foundation), finished (tag `v2-phase-1`)

@@ -21,6 +21,7 @@ export const BUILT = new Set([
   'quality/reviews',
   'quality/disputes',
   'quality/quick-flags',
+  'quality/calibration',
   'admin/categories',
   'admin/root-causes',
   'admin/system-settings',

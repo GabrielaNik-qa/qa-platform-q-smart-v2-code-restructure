@@ -1,6 +1,7 @@
 // @qsmart/db: the tables, the company wall and the migrations.
 export * from './account.js';
 export * from './client.js';
+export * from './calibrations.js';
 export * from './company.js';
 export * from './disputes.js';
 export * from './flags.js';
