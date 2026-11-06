@@ -1168,7 +1168,7 @@ th.tts { cursor: pointer; user-select: none } th.tts:hover { color: var(--tx) } 
 /* Help Center website editor (3 November): one block per section */
 .hcsec { border-top: 1px solid var(--bd); padding: 12px 0 } .hcsec:first-of-type { border-top: 0 } .hcsec .row { margin-bottom: 6px }
 
-/* Call Simulator (3 November): like the one of converst-qa.web.app */
+/* Call Simulator (3 November) */
 .cskick { display: block; font: 600 11px var(--font); letter-spacing: .12em; text-transform: uppercase; color: var(--mu) }
 .cshero { text-align: center; padding: 34px 24px; border-top: 3px solid var(--orange) } .cshero h2 { margin: 8px 0 4px; font-size: 26px }
 .cswave { display: inline-flex; gap: 4px; align-items: center; height: 46px } .cswave i { width: 5px; border-radius: 3px; background: linear-gradient(var(--orange), #14b8a6); height: 40% }

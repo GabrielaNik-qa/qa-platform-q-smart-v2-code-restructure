@@ -1071,7 +1071,7 @@ Also on 3 November:
 - The Knowledge Base goes back to **Learning** (with My Learning, Quizzes and Newsletter). It is not the Help Center.
 - The **Help Center** becomes a separate website on its own sub-domain, like the Zendesk Help Center, with articles about Q-smart (to build, from the Zendesk Help Center you will open).
 - The **Knowledge Base** in Learning should look and work like **Confluence** (to build, from the Confluence you will open).
-- The **Call Simulator** should be built like the one on converst-qa.web.app (to build, from the page you will open).
+- The **Call Simulator** should be built like the earlier simulator Gabriela opened for reference (its address is kept out of this repository on purpose).
 
 ### E-mails with Brevo (3 November)
 The app already sends its e-mails through any SMTP service. For Brevo, start the app with these five settings (Brevo › SMTP & API › SMTP; never put the key in GitHub):
