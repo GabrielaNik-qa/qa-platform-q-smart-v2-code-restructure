@@ -11,6 +11,8 @@ export default [
     languageOptions: { globals: { ...globals.node } },
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // NestJS modules are decorated classes that may hold only static parts
+      '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
     },
   },
 ];
