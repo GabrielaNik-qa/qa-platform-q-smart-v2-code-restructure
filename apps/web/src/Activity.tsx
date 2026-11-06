@@ -37,6 +37,7 @@ export function describe(entry: Entry, t: TFunction, lang: Language): string {
     from: isRole(d['from']) ? roleName(d['from'], lang) : (d['from'] ?? ''),
     to: roleName(d['to'], lang),
     kind: d['kind'] === 'language' ? t('activity.language') : t('activity.skill'),
+    outcome: d['outcome'] ? t(`disputes.outcomes.${d['outcome']}`) : '',
     defaultValue: entry.action,
   });
 }

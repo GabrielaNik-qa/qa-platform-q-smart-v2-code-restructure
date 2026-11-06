@@ -56,6 +56,12 @@ export const ERROR_MESSAGES = {
   reviewAgent: 'Choose an active agent of your workspaces.',
   reviewNotFound: 'This review is not there, or you cannot open it.',
   nothingToExport: 'Choose at least one review to export.',
+  disputeReason: 'Write the reason for your dispute (up to 1000 characters).',
+  disputeMessage: 'Write a message first (up to 1000 characters).',
+  disputeExists: 'This review has already been disputed.',
+  disputeNotFound: 'This review has no dispute, or you cannot open it.',
+  disputeClosed: 'This dispute is already resolved.',
+  disputeResolveInvalid: 'Choose how the dispute ended. The closing note is up to 500 characters.',
   notificationNotFound: 'This notification is no longer there.',
   profileInvalid: 'Enter a name of 2 to 120 characters, or choose English, Bulgarian or French.',
 } as const;

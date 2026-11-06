@@ -36,6 +36,16 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - Sorting by any column, and pages of 10, 20, 50 or 100.
   - View, remind the agent, and delete, for staff.
   - **Export to Excel**, always in English as today: one column per scorecard category, real Excel dates and percentages. Only reviews the person may see ever go in the file (tested), and each export is listed in Activity Log › Exports & downloads.
+- **Disputes**, as today:
+  - **On the review's page**, the agent disputes their own review with a reason, once. The review then shows as "Disputed".
+  - **The conversation:** the agent, the admins and the reviewers of the agent's workspaces write in it while it is open. Team leads and trainers read it.
+  - **Resolving it:** an admin or reviewer chooses "Score kept", "Score changed" or "Score partly changed", with an optional closing note, and is asked "Are you sure?" first. A resolved dispute can't be reopened. The score itself is changed with Edit, as today.
+  - **Who is told:** the admins and the reviewers who reach the agent's team get the new dispute and the agent's messages in the bell; the agent gets the answers and how it ended. Opening and resolving go into the activity log.
+  - **Quality › Disputes:** the tiles Total, Disputed, In progress and Resolved (click one to filter), search, filters for team, agent, type and date, the table with columns to choose (saved with your account), and Export to Excel for admins and reviewers.
+  - **What the disputes say** (admins and reviewers): how disputes end (average time to resolve, how often the agent was right), the disputed categories, who disputes and whose reviews are disputed.
+  - **What is kept:** nobody can change or delete a message, not even the server (tested). Deleting the review deletes its dispute. If a person leaves, their name stays on their messages.
+  - AI reviews (Phase 3b) will be disputed the same way, and a person then decides.
+- **Tests on Windows:** a temporary test database folder that Windows keeps locked for a moment no longer fails the run.
 
 ## 6 November 2026: Phase 1 (foundation), finished (tag `v2-phase-1`)
 

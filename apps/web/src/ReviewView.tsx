@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from './api';
 import { when } from './Activity';
+import { DisputeBox } from './Disputes';
 import { currentLanguage } from './i18n';
 import { NotFound } from './PageView';
 import { type PassRates, passRateFor, QAEntry, type ReviewRow } from './QAEntry';
@@ -213,6 +214,7 @@ export function ReviewView() {
           <p className="text-sm whitespace-pre-wrap mt-2">{review.transcript}</p>
         </details>
       )}
+      <DisputeBox company={company} review={review} onChange={load} />
     </section>
   );
 }

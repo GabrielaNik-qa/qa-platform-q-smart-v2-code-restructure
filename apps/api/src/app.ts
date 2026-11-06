@@ -21,6 +21,7 @@ import {
   RootCausesController,
   ScorecardsController,
 } from './quality.controller.js';
+import { DisputesController } from './disputes.controller.js';
 import { ReviewsController } from './reviews.controller.js';
 import { SkillsController, TeamsController, WorkspacesController } from './setup.controller.js';
 import { DB, TOKEN_VERIFIER } from './tokens.js';
@@ -54,6 +55,7 @@ export class AppModule {
         RootCausesController,
         PassRatesController,
         ReviewsController,
+        DisputesController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },

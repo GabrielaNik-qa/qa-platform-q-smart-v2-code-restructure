@@ -432,3 +432,79 @@ export const reviews = pgTable(
     }),
   ],
 );
+
+export const disputeOutcome = pgEnum('dispute_outcome', ['kept', 'changed', 'partly']);
+
+/**
+ * A dispute (today's rule): the agent disagrees with a review, once per review. The agent and the reviewers talk in its
+ * messages, and an admin or reviewer resolves it: score kept, changed, or partly changed. Deleting the review deletes it.
+ */
+export const disputes = pgTable(
+  'disputes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    reviewId: uuid('review_id').notNull(),
+    /** the agent who disputed it */
+    agentId: uuid('agent_membership_id'),
+    openedAt: timestamp('opened_at', { withTimezone: true }).notNull().defaultNow(),
+    /** empty while it is open */
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    outcome: disputeOutcome('outcome'),
+    /** the closing note */
+    note: text('note').notNull().default(''),
+    resolvedById: uuid('resolved_by_membership_id'),
+    resolvedByName: text('resolved_by_name').notNull().default(''),
+  },
+  (t) => [
+    unique('disputes_id_company').on(t.id, t.companyId),
+    uniqueIndex('disputes_review').on(t.reviewId),
+    foreignKey({
+      name: 'disputes_review_same_company',
+      columns: [t.reviewId, t.companyId],
+      foreignColumns: [reviews.id, reviews.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'disputes_agent_same_company',
+      columns: [t.agentId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'disputes_resolver_same_company',
+      columns: [t.resolvedById, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/** The conversation of a dispute. A message is never changed or deleted; "system" ones say how it was resolved. */
+export const disputeMessages = pgTable(
+  'dispute_messages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id').notNull(),
+    disputeId: uuid('dispute_id').notNull(),
+    authorId: uuid('author_membership_id'),
+    /** kept as name and role too, in case the person leaves the company later */
+    authorName: text('author_name').notNull(),
+    authorRole: text('author_role').notNull(),
+    system: boolean('system').notNull().default(false),
+    text: text('text').notNull(),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('dispute_messages_of').on(t.disputeId, t.at),
+    foreignKey({
+      name: 'dispute_messages_dispute_same_company',
+      columns: [t.disputeId, t.companyId],
+      foreignColumns: [disputes.id, disputes.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'dispute_messages_author_same_company',
+      columns: [t.authorId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);

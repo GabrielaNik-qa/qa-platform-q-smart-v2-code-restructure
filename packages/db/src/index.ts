@@ -2,6 +2,7 @@
 export * from './account.js';
 export * from './client.js';
 export * from './company.js';
+export * from './disputes.js';
 export * from './local-postgres.js';
 export * from './log.js';
 export * from './migrate.js';

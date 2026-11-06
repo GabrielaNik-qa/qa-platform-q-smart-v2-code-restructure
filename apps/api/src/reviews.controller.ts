@@ -136,7 +136,7 @@ function score(categories: ScorecardCategory[], given: z.infer<typeof answers>) 
 }
 
 /** Whose reviews a person reaches with a right: everyone's, their workspaces' teams, or their own. */
-async function reachOf(tx: Tx, membership: Membership, scope: Scope): Promise<ReviewScope> {
+export async function reachOf(tx: Tx, membership: Membership, scope: Scope): Promise<ReviewScope> {
   if (scope === 'all') return { all: true };
   if (scope === 'own') {
     const me = await membershipOfUser(tx, membership.userId);

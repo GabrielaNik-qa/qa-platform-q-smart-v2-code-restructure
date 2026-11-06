@@ -69,7 +69,8 @@ export async function startLocalPostgres(
     user: 'postgres',
     password: 'postgres',
     authMethod: 'scram-sha-256',
-    persistent: !throwAway,
+    // the library never deletes the folder itself: stop() below does, and tolerates Windows holding it a moment
+    persistent: true,
     initdbFlags: ['--encoding=UTF8', '--locale=C'],
     // no separate input/output helper processes (PostgreSQL 18), so nothing can be left behind if a run is cut short
     postgresFlags: ['-c', 'io_method=sync'],

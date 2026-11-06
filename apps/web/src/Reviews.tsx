@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { api, apiFile } from './api';
 import { Icon } from './icon';
 import { type Channel, type PassRates, passRateFor, type ReviewRow } from './QAEntry';
+import { Pager, pageOf } from './Pager';
 import { useSession } from './session';
 import { card, type CompanyRef, field, Notice, type PersonRow, smallButton, type TeamRow, useAction } from './ui';
 
@@ -175,9 +176,7 @@ export function Reviews({ company }: { company: CompanyRef }) {
       });
   }, [reviews, inFilters, sort, passed]);
 
-  const pages = Math.max(1, Math.ceil(shown.length / perPage));
-  const current = Math.min(page, pages);
-  const slice = shown.slice((current - 1) * perPage, current * perPage);
+  const { current, slice } = pageOf(shown, page, perPage);
   const active = Object.entries(filters).filter(([k, v]) => v && !(k === 'period' && v === 'month')).length;
 
   const saveColumns = (next: Column[]) => {
@@ -576,62 +575,7 @@ export function Reviews({ company }: { company: CompanyRef }) {
             </table>
           </div>
         )}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-bd pt-3 text-sm">
-          <label className="inline-flex items-center gap-2">
-            {t('list.perPage')}
-            <select
-              className={field}
-              value={perPage}
-              onChange={(e) => {
-                setPerPage(Number(e.target.value));
-                setPage(1);
-              }}
-            >
-              {[10, 20, 50, 100].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </label>
-          <small>
-            {shown.length
-              ? t('list.showing', {
-                  from: (current - 1) * perPage + 1,
-                  to: Math.min(current * perPage, shown.length),
-                  count: shown.length,
-                })
-              : t('list.noResults')}
-          </small>
-          <div className="flex gap-1">
-            <button type="button" className={smallButton} disabled={current < 2} onClick={() => setPage(current - 1)}>
-              ← {t('list.previous')}
-            </button>
-            {Array.from({ length: pages }, (_, i) => i + 1)
-              .filter((n) => n === 1 || n === pages || Math.abs(n - current) <= 1)
-              .map((n, i, all) => (
-                <span key={n} className="inline-flex gap-1">
-                  {i > 0 && n - (all[i - 1] ?? n) > 1 && <span className="text-mu">…</span>}
-                  <button
-                    type="button"
-                    aria-current={n === current ? 'page' : undefined}
-                    className={`${smallButton} ${n === current ? 'border-brand' : ''}`}
-                    onClick={() => setPage(n)}
-                  >
-                    {n}
-                  </button>
-                </span>
-              ))}
-            <button
-              type="button"
-              className={smallButton}
-              disabled={current >= pages}
-              onClick={() => setPage(current + 1)}
-            >
-              {t('list.next')} →
-            </button>
-          </div>
-        </div>
+        <Pager count={shown.length} page={current} perPage={perPage} onPage={setPage} onPerPage={setPerPage} />
       </div>
     </section>
   );
