@@ -68,6 +68,8 @@ export const memberships = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     role: memberRole('role').notNull(),
     teamId: uuid('team_id'),
+    /** switched off by an admin: the person keeps their history but can't open this company */
+    active: boolean('active').notNull().default(true),
     createdAt: createdAt(),
   },
   (t) => [

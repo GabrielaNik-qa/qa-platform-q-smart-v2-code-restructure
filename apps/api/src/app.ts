@@ -8,6 +8,7 @@ import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { PermissionGuard } from './auth/permission.guard.js';
 import { PlatformGuard } from './auth/platform.guard.js';
 import { HealthController, MeController, PlatformController, TeamsController } from './controllers.js';
+import { PeopleController } from './people.controller.js';
 import { DB, TOKEN_VERIFIER } from './tokens.js';
 
 /** The parts the server is built from: the real ones in main.ts, test ones in the tests. */
@@ -21,7 +22,7 @@ export class AppModule {
   static with(parts: AppParts): DynamicModule {
     return {
       module: AppModule,
-      controllers: [HealthController, MeController, TeamsController, PlatformController],
+      controllers: [HealthController, MeController, TeamsController, PlatformController, PeopleController],
       providers: [
         { provide: DB, useValue: parts.db },
         { provide: TOKEN_VERIFIER, useValue: parts.verifier },
