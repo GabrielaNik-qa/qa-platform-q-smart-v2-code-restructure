@@ -71,6 +71,20 @@
       "when": 1793953918092,
       "tag": "0009_teams_workspaces",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793958028244,
+      "tag": "0010_account_language",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793958029845,
+      "tag": "0011_account_functions",
+      "breakpoints": true
     }
   ]
 }

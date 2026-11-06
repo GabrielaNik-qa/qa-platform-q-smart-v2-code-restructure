@@ -1,6 +1,7 @@
 // Every text of the pages, in English, Bulgarian and French (terms as in docs/i18n-glossary.md).
 // A test checks that the three languages have exactly the same texts.
 import { ERROR_MESSAGES, type ErrorCode, type Language } from '@qsmart/shared';
+import { MENU_TEXTS } from './menu-data';
 
 const en = {
   common: {
@@ -103,13 +104,6 @@ const en = {
     howInvitationsWork:
       'The person gets the company the first time they sign in with this e-mail: with Google, or with a password they create (Firebase checks the e-mail first).',
   },
-  tabs: {
-    label: 'Company',
-    people: 'People',
-    teams: 'Teams',
-    workspaces: 'Workspaces',
-    skills: 'Skills & languages',
-  },
   fields: {
     name: 'Name',
     description: 'Description',
@@ -167,6 +161,63 @@ const en = {
     renamed: 'Renamed: {{name}}.',
     deleted: '{{name}} is deleted.',
   },
+  account: {
+    saved: 'Saved',
+    withGoogle: 'You sign in with Google, so your password is managed by your Google account.',
+    current: 'Current password',
+    new: 'New password',
+    again: 'Repeat new password',
+    update: 'Update password',
+    mismatch: 'The two new passwords are not the same.',
+    wrongCurrent: 'The current password is wrong.',
+    passwordChanged: 'Your password is changed.',
+    mode: 'Mode',
+    light: 'Light',
+    dark: 'Dark',
+    system: 'System',
+    themesLater: 'Today’s colour themes come to v2 with the final look check.',
+    languageOfApp: 'Language of the app',
+    languageNote:
+      'Menus, pages, messages and dates change at once. Saved with your account: the same on every browser and device where you sign in. Names, comments, articles and other things people typed stay as they were written.',
+  },
+  shell: {
+    mainMenu: 'Main menu',
+    searchMenu: 'Search the menu…',
+    nothingFound: 'Nothing found',
+    back: 'Back to the main menu',
+    switchApp: 'Switch app',
+    company: 'Company',
+    signOut: 'Log out',
+    myAccount: 'My account',
+    systemMode: 'System mode',
+    soon: 'Soon',
+    showHide: 'Show / hide',
+    owner: 'Q-smart owner',
+  },
+  soon: {
+    text: 'This page comes in phase {{phase}} of the plan: {{name}}.',
+    today: 'Today’s app already has it; v2 rebuilds it then, with the same look and the same rules.',
+  },
+  notFound: {
+    title: 'Page not found',
+    text: 'This page doesn’t exist, or your role can’t open it.',
+    home: 'Go to the first page',
+  },
+  phases: {
+    '1': 'Foundation',
+    '2': 'Quality',
+    '3': 'Home & Analytics',
+    '3b': 'AutoQA, first version',
+    '4': 'Coaching & Tasks',
+    '5': 'Learning & Tools',
+    '6': 'Workforce',
+    '7': 'Company & governance',
+    '8': 'AI',
+    '9': 'Q Trainer & developer platform',
+    '10': 'Billing & going online',
+    '11': 'Website & Help Center',
+  },
+  menu: MENU_TEXTS.en,
   /** the server's reasons for refusing something (packages/shared/src/errors.ts) */
   errors: ERROR_MESSAGES as Record<ErrorCode, string>,
 };
@@ -275,13 +326,6 @@ const bg: Messages = {
     howInvitationsWork:
       'Човекът получава компанията при първия си вход с този имейл: с Google или с парола, която сам създаде (Firebase първо проверява имейла).',
   },
-  tabs: {
-    label: 'Компания',
-    people: 'Хора',
-    teams: 'Екипи',
-    workspaces: 'Работни пространства',
-    skills: 'Умения и езици',
-  },
   fields: {
     name: 'Име',
     description: 'Описание',
@@ -340,6 +384,63 @@ const bg: Messages = {
     renamed: 'Преименувано: {{name}}.',
     deleted: '{{name}} е изтрито.',
   },
+  account: {
+    saved: 'Запазено',
+    withGoogle: 'Влизате с Google, затова паролата ви се управлява от акаунта ви в Google.',
+    current: 'Текуща парола',
+    new: 'Нова парола',
+    again: 'Повторете новата парола',
+    update: 'Обнови паролата',
+    mismatch: 'Двете нови пароли не съвпадат.',
+    wrongCurrent: 'Текущата парола е грешна.',
+    passwordChanged: 'Паролата ви е сменена.',
+    mode: 'Режим',
+    light: 'Светъл',
+    dark: 'Тъмен',
+    system: 'Системен',
+    themesLater: 'Цветовите теми от днешното приложение идват във v2 с последната проверка на външния вид.',
+    languageOfApp: 'Език на приложението',
+    languageNote:
+      'Менютата, страниците, съобщенията и датите се сменят веднага. Запазва се с акаунта ви: еднакво във всеки браузър и устройство, където влезете. Имената, коментарите, статиите и всичко, въведено от хората, остават така, както са написани.',
+  },
+  shell: {
+    mainMenu: 'Главно меню',
+    searchMenu: 'Търсене в менюто…',
+    nothingFound: 'Нищо не е намерено',
+    back: 'Назад към главното меню',
+    switchApp: 'Смяна на приложение',
+    company: 'Компания',
+    signOut: 'Изход',
+    myAccount: 'Моят акаунт',
+    systemMode: 'Системен режим',
+    soon: 'Скоро',
+    showHide: 'Покажи / скрий',
+    owner: 'Собственик на Q-smart',
+  },
+  soon: {
+    text: 'Тази страница идва във фаза {{phase}} от плана: {{name}}.',
+    today: 'Днешното приложение вече я има; v2 я изгражда тогава, със същия вид и същите правила.',
+  },
+  notFound: {
+    title: 'Страницата не е намерена',
+    text: 'Тази страница не съществува или ролята ви не може да я отвори.',
+    home: 'Към първата страница',
+  },
+  phases: {
+    '1': 'Основа',
+    '2': 'Качество',
+    '3': 'Начало и анализи',
+    '3b': 'AutoQA, първа версия',
+    '4': 'Коучинг и задачи',
+    '5': 'Обучение и инструменти',
+    '6': 'Персонал',
+    '7': 'Компания и управление',
+    '8': 'AI',
+    '9': 'Q Trainer и платформа за разработчици',
+    '10': 'Плащания и пускане онлайн',
+    '11': 'Уебсайт и Помощен център',
+  },
+  menu: MENU_TEXTS.bg,
   errors: {
     signIn: 'Моля, влезте.',
     signInExpired: 'Входът ви е изтекъл. Моля, влезте отново.',
@@ -376,6 +477,7 @@ const bg: Messages = {
     nameMissing: 'Въведете име.',
     skillExists: 'Вече съществува.',
     skillNotFound: 'Това умение или език не е в компанията.',
+    profileInvalid: 'Въведете име от 2 до 120 знака или изберете английски, български или френски.',
   },
 };
 
@@ -484,13 +586,6 @@ const fr: Messages = {
     howInvitationsWork:
       'La personne reçoit l’entreprise à sa première connexion avec cet e-mail : avec Google, ou avec un mot de passe qu’elle crée (Firebase vérifie d’abord l’e-mail).',
   },
-  tabs: {
-    label: 'Entreprise',
-    people: 'Personnes',
-    teams: 'Équipes',
-    workspaces: 'Espaces de travail',
-    skills: 'Compétences et langues',
-  },
   fields: {
     name: 'Nom',
     description: 'Description',
@@ -550,6 +645,64 @@ const fr: Messages = {
     renamed: 'Renommé : {{name}}.',
     deleted: '{{name}} est supprimé.',
   },
+  account: {
+    saved: 'Enregistré',
+    withGoogle: 'Vous vous connectez avec Google : votre mot de passe est géré par votre compte Google.',
+    current: 'Mot de passe actuel',
+    new: 'Nouveau mot de passe',
+    again: 'Répétez le nouveau mot de passe',
+    update: 'Mettre à jour le mot de passe',
+    mismatch: 'Les deux nouveaux mots de passe ne sont pas identiques.',
+    wrongCurrent: 'Le mot de passe actuel est incorrect.',
+    passwordChanged: 'Votre mot de passe est modifié.',
+    mode: 'Mode',
+    light: 'Clair',
+    dark: 'Sombre',
+    system: 'Système',
+    themesLater:
+      'Les thèmes de couleurs de l’application actuelle arrivent dans la v2 avec la vérification finale de l’aspect.',
+    languageOfApp: 'Langue de l’application',
+    languageNote:
+      'Les menus, pages, messages et dates changent immédiatement. Enregistré avec votre compte : identique sur chaque navigateur et appareil où vous vous connectez. Les noms, commentaires, articles et autres contenus saisis restent tels qu’ils ont été écrits.',
+  },
+  shell: {
+    mainMenu: 'Menu principal',
+    searchMenu: 'Rechercher dans le menu…',
+    nothingFound: 'Aucun résultat',
+    back: 'Retour au menu principal',
+    switchApp: 'Changer d’application',
+    company: 'Entreprise',
+    signOut: 'Se déconnecter',
+    myAccount: 'Mon compte',
+    systemMode: 'Mode système',
+    soon: 'Bientôt',
+    showHide: 'Afficher / masquer',
+    owner: 'Propriétaire de Q-smart',
+  },
+  soon: {
+    text: 'Cette page arrive à la phase {{phase}} du plan : {{name}}.',
+    today: 'L’application actuelle l’a déjà ; la v2 la reconstruit alors, avec le même aspect et les mêmes règles.',
+  },
+  notFound: {
+    title: 'Page introuvable',
+    text: 'Cette page n’existe pas, ou votre rôle ne permet pas de l’ouvrir.',
+    home: 'Aller à la première page',
+  },
+  phases: {
+    '1': 'Fondations',
+    '2': 'Qualité',
+    '3': 'Accueil et analyses',
+    '3b': 'AutoQA, première version',
+    '4': 'Coaching et tâches',
+    '5': 'Apprentissage et outils',
+    '6': 'Personnel',
+    '7': 'Entreprise et gouvernance',
+    '8': 'IA',
+    '9': 'Q Trainer et plateforme développeurs',
+    '10': 'Facturation et mise en ligne',
+    '11': 'Site web et Centre d’aide',
+  },
+  menu: MENU_TEXTS.fr,
   errors: {
     signIn: 'Veuillez vous connecter.',
     signInExpired: 'Votre connexion a expiré. Veuillez vous reconnecter.',
@@ -587,6 +740,7 @@ const fr: Messages = {
     nameMissing: 'Saisissez un nom.',
     skillExists: 'Cet élément existe déjà.',
     skillNotFound: 'Cette compétence ou langue n’est pas dans l’entreprise.',
+    profileInvalid: 'Saisissez un nom de 2 à 120 caractères, ou choisissez l’anglais, le bulgare ou le français.',
   },
 };
 

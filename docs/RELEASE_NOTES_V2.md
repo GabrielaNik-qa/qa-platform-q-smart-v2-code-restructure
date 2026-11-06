@@ -4,6 +4,22 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## 6 November 2026: Phase 1 (foundation), in progress
 
+- **The menu as apps**, with today's sidebar:
+  - **Quality** is the main menu: Operations and Manage.
+  - **Workforce** is now its own app.
+  - **Learning** (with Tools), **Q Trainer**, **AI** (Q-Intelligence, AI agents, Transcripts, AI Hub) and **Admin** (Account, People, Setup, Governance, Platform). Admin is called **Settings** for everyone but admins, as today.
+  - An app switcher beside the Q-SMART name (like Google's or Atlassian's). You also see the **Q-smart owner** area there.
+  - Each role sees today's pages: for example, only admins see Users, Teams, Workspaces and Skills, and agents don't see QA Entry or Quick Flags. Opening a page by its address doesn't get around this.
+  - The 144 pages, their icons and their names in three languages come straight from today's menu. Pages v2 hasn't built yet are greyed with "Soon" and say which phase of the plan builds them.
+  - Today's **Search the menu…**; sections that fold into a row of icons; the light/dark/system buttons; your initials, name and role at the bottom, with Admin/Settings and Log out.
+  - For the look pass at the end: today's icons-only sidebar (for narrow windows) and its pop-out lists.
+- **My account:**
+  - **Profile:** your name, and your own skills and languages, as today.
+  - **Password:** asks for the current one first. Google accounts are told Google manages it.
+  - **Appearance:** light, dark or system. Today's colour themes come in the look pass.
+  - **Language:** saved with your account, so it's the same on every computer. At sign-in your saved language comes back. If you haven't saved one, the one you picked on the sign-in screen is saved.
+  - Notifications & Confirmations come with the notification bell, the next step.
+- **Sign-out** clears the menu's folded sections from the browser. The next person always starts on their own first page.
 - **The sign-in screen now looks like today's** (your design of 4 November). It has:
   - the Q-SMART name, the round light/dark button and the language globe on top;
   - the big Q logo with sound waves;

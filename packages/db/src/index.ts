@@ -1,4 +1,5 @@
 // @qsmart/db: the tables, the company wall and the migrations.
+export * from './account.js';
 export * from './client.js';
 export * from './company.js';
 export * from './local-postgres.js';

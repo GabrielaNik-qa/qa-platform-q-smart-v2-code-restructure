@@ -1,34 +1,21 @@
-import { ROLE_LABELS, type Role } from '@qsmart/shared';
-import { signOut, type User } from 'firebase/auth';
-import { useCallback, useEffect, useState } from 'react';
+// After sign-in: loads who you are and your companies (with today's heartbeat), then opens the app (the menu as apps).
+// Before that, two simple screens: confirming the e-mail of an invitation, and "no company yet".
+import { RouterProvider } from '@tanstack/react-router';
+import type { User } from 'firebase/auth';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, errorText } from './api';
 import { Logo, Settings } from './chrome';
-import { auth } from './firebase';
-import { currentLanguage } from './i18n';
-import { CompanyArea } from './CompanyArea';
-import { Platform } from './Platform';
+import { currentLanguage, setLanguage } from './i18n';
 import { QLoader, useAtLeast } from './QLoader';
+import { router } from './router';
+import { type Me, type Session, SessionContext, signOutAndClear } from './session';
 import { VerifyEmail } from './VerifyEmail';
 
-interface Company {
-  id: string;
-  name: string;
-  role: Role;
-}
-interface Me {
-  email: string | null;
-  name: string | null;
-  platformAdmin: boolean;
-  companies: Company[];
-}
-/** The first page after sign-in: who you are, your companies, and a company's people and teams (read behind the
- *  company wall). */
 export function Home({ user }: { user: User }) {
   const { t } = useTranslation();
-  const lang = currentLanguage();
   const [me, setMe] = useState<Me | null>(null);
-  const [company, setCompany] = useState<Company | null>(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
   const [error, setError] = useState('');
   // today's heartbeat until the first page is ready: a full beat at least, so it never flickers
   const loading = useAtLeast(!me && !error, 1600);
@@ -37,6 +24,32 @@ export function Home({ user }: { user: User }) {
     api<Me>('/me').then(setMe, (e: unknown) => setError(errorText(t, e)));
   }, [t]);
   useEffect(loadMe, [loadMe]);
+
+  // the language is saved with the account (docs/i18n-glossary.md): the saved one is used; with none saved yet, the
+  // one shown now (picked on the sign-in screen, or English) is saved
+  const savedLanguage = me?.language;
+  useEffect(() => {
+    if (me === null) return;
+    if (savedLanguage) {
+      if (savedLanguage !== currentLanguage()) setLanguage(savedLanguage);
+    } else
+      void api('/me', undefined, { method: 'PATCH', body: { language: currentLanguage() } }).catch(() => undefined);
+  }, [me, savedLanguage]);
+
+  const session = useMemo<Session | null>(() => {
+    if (!me) return null;
+    const company = me.companies.find((c) => c.id === companyId) ?? me.companies[0] ?? null;
+    return { user, me, company, setCompany: setCompanyId, reloadMe: loadMe };
+  }, [me, companyId, user, loadMe]);
+
+  const ready = session && (session.company || me?.platformAdmin);
+  if (ready)
+    return (
+      <SessionContext.Provider value={session}>
+        <RouterProvider router={router} />
+        <QLoader on={loading} />
+      </SessionContext.Provider>
+    );
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -48,13 +61,12 @@ export function Home({ user }: { user: User }) {
           <button
             type="button"
             className="rounded-s border border-bd px-3 py-1.5 text-sm font-semibold hover:border-tx"
-            onClick={() => void signOut(auth)}
+            onClick={() => void signOutAndClear()}
           >
             {t('home.signOut')}
           </button>
         </div>
       </header>
-
       <main className="flex-1 w-full max-w-4xl mx-auto px-6 py-8 grid gap-6 content-start">
         <h1 className="lane font-display text-3xl font-bold uppercase tracking-wide">
           {t('home.welcome', { name: me?.name ?? user.email ?? '' })}
@@ -64,47 +76,11 @@ export function Home({ user }: { user: User }) {
             {t('common.error', { message: error })}
           </p>
         )}
-
-        {me && !user.emailVerified && me.companies.length === 0 && !me.platformAdmin && (
-          <VerifyEmail user={user} onConfirmed={loadMe} />
+        {me && !user.emailVerified && <VerifyEmail user={user} onConfirmed={loadMe} />}
+        {me && user.emailVerified && (
+          <p className="bg-pn border border-bd rounded-m p-5 text-mu">{t('home.noCompanies')}</p>
         )}
-        {me?.platformAdmin && <Platform />}
-
-        <section className="bg-pn border border-bd rounded-m p-5" aria-labelledby="companies-title">
-          <h2 id="companies-title" className="font-display text-xl font-bold mb-3">
-            {t('home.companies')}
-          </h2>
-          {!me && <p className="text-mu">{t('common.loading')}</p>}
-          {me && me.companies.length === 0 && <p className="text-mu">{t('home.noCompanies')}</p>}
-          <ul className="grid gap-2">
-            {me?.companies.map((c) => (
-              <li key={c.id}>
-                <button
-                  type="button"
-                  aria-pressed={company?.id === c.id}
-                  onClick={() => setCompany(c)}
-                  className={`w-full flex items-center justify-between rounded-s border px-4 py-3 text-left hover:border-tx ${
-                    company?.id === c.id ? 'border-brand bg-pn2' : 'border-bd'
-                  }`}
-                >
-                  <span className="font-semibold">{c.name}</span>
-                  <span className="text-sm text-ac font-semibold uppercase tracking-wide">
-                    {ROLE_LABELS[lang][c.role]}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {me && me.companies.length > 0 && !company && (
-          <p className="bg-pn border border-bd rounded-m p-5 text-mu" aria-live="polite">
-            {t('home.choose')}
-          </p>
-        )}
-        {company && <CompanyArea key={company.id} company={company} myEmail={me?.email ?? null} />}
       </main>
-      <p className="text-center text-xs text-mu pb-4">{t('common.preview')}</p>
       <QLoader on={loading} />
     </div>
   );

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@qsmart/shared": "0.0.0",
+    "@tanstack/react-router": "1.170.46",
     "firebase": "13.2.0",
     "i18next": "26.7.2",
     "react": "19.3.1",

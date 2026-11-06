@@ -1,17 +1,27 @@
-import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import {
   claimInvitation,
   type Db,
   isPlatformAdmin,
+  type Membership,
+  membershipOfUser,
   membershipsFor,
+  myProfile,
   platformCompanies,
   platformCreateCompany,
+  setPersonSkills,
+  updateMyProfile,
+  withCompany,
 } from '@qsmart/db';
+import { LANGUAGES } from '@qsmart/shared';
 import { z } from 'zod';
+import { Allow, PermissionGuard } from './auth/permission.guard.js';
 import { PlatformGuard } from './auth/platform.guard.js';
 import { SignedInGuard } from './auth/signed-in.guard.js';
 import type { VerifiedPerson } from './auth/token-verifier.js';
-import { Person } from './decorators.js';
+import { CompanyMemberGuard } from './company/company-member.guard.js';
+import { CurrentMembership, Person } from './decorators.js';
+import { knownSkills } from './setup.controller.js';
 import { DB } from './tokens.js';
 import { badRequest } from './errors.js';
 
@@ -41,12 +51,49 @@ export class MeController {
         platformAdmin = await isPlatformAdmin(this.db, person.uid);
       }
     }
+    const profile = await myProfile(this.db, person.uid);
     return {
       email: person.email,
-      name: memberships[0]?.userName ?? person.name ?? null,
+      name: profile?.name ?? memberships[0]?.userName ?? person.name ?? null,
+      /** the language saved with the account (null until chosen) */
+      language: profile?.language ?? null,
       platformAdmin,
       companies: memberships.map((m) => ({ id: m.companyId, name: m.companyName, role: m.role })),
     };
+  }
+
+  /** My account: my own name and the language of the app (saved with the account, for every browser). */
+  @Patch()
+  @HttpCode(204)
+  async change(@Person() person: VerifiedPerson, @Body() body: unknown) {
+    const input = myChange.safeParse(body);
+    if (!input.success) throw badRequest('profileInvalid');
+    await updateMyProfile(this.db, person.uid, input.data);
+  }
+}
+
+const myChange = z
+  .object({ name: z.string().trim().min(2).max(120).optional(), language: z.enum(LANGUAGES).optional() })
+  .refine((c) => c.name !== undefined || c.language !== undefined);
+
+/** My account › Profile: my own skills and languages in the company of the request (today: everyone picks theirs). */
+@Controller('me/skills')
+@UseGuards(SignedInGuard, CompanyMemberGuard, PermissionGuard)
+export class MySkillsController {
+  constructor(@Inject(DB) private readonly db: Db) {}
+
+  @Put()
+  @Allow('account.edit')
+  async set(@CurrentMembership() membership: Membership, @Body() body: unknown) {
+    const input = z.object({ skillIds: z.array(z.uuid()).max(200) }).safeParse(body);
+    if (!input.success) throw badRequest('nothingToChange');
+    return withCompany(this.db, membership.companyId, async (tx) => {
+      const me = await membershipOfUser(tx, membership.userId);
+      if (!me) throw badRequest('personNotFound');
+      const skillIds = await knownSkills(tx, input.data.skillIds);
+      await setPersonSkills(tx, me.id, skillIds);
+      return { skillIds };
+    });
   }
 }
 

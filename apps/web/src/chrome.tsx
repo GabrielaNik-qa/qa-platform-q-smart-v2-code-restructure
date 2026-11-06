@@ -203,6 +203,39 @@ export function restoreTheme(): void {
   }
 }
 
+export type ThemeMode = 'light' | 'dark' | 'system';
+
+const chosenMode = (): ThemeMode => {
+  const chosen = document.documentElement.dataset.theme;
+  return chosen === 'light' || chosen === 'dark' ? chosen : 'system';
+};
+
+/** Today's three choices (menu and My account › Appearance): light, dark, or the computer's setting. */
+export function useThemeMode() {
+  const [mode, setMode] = useState<ThemeMode>(chosenMode);
+  useEffect(() => {
+    // another switch on the page changed it
+    const watch = new MutationObserver(() => setMode(chosenMode()));
+    watch.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => watch.disconnect();
+  }, []);
+  const choose = (next: ThemeMode) => {
+    try {
+      if (next === 'system') {
+        delete document.documentElement.dataset.theme;
+        localStorage.removeItem(THEME_KEY);
+      } else {
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem(THEME_KEY, next);
+      }
+    } catch {
+      // private window: the choice lasts until the page closes
+    }
+    setMode(next);
+  };
+  return { mode, choose };
+}
+
 /** The light or dark mode shown, and a way to switch it (the choice is kept on this computer). */
 function useTheme() {
   const [theme, setTheme] = useState(shownTheme);
