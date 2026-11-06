@@ -18,6 +18,7 @@ import {
   deleteWorkspace,
   findMembership,
   listPeople,
+  listScorecards,
   listSkills,
   listTeams,
   listWorkspaces,
@@ -67,6 +68,7 @@ const workspaceInput = z.object({
   color,
   teamIds: ids(500),
   staffIds: ids(2000),
+  scorecardIds: ids(500),
 });
 
 const skillInput = z.object({ kind: z.enum(['skill', 'language']), name: z.string().trim().min(1).max(40) });
@@ -249,10 +251,12 @@ export class WorkspacesController {
   private async clean(tx: Tx, input: z.infer<typeof workspaceInput>) {
     const working = new Set((await listTeams(tx)).filter((t) => !t.isAdministration).map((t) => t.id));
     const staff = new Set((await listPeople(tx)).filter((p) => isWorkspaceStaff(p.role)).map((p) => p.membershipId));
+    const cards = new Set((await listScorecards(tx)).map((s) => s.id));
     return {
       ...input,
       teamIds: unique(input.teamIds).filter((id) => working.has(id)),
       staffIds: unique(input.staffIds).filter((id) => staff.has(id)),
+      scorecardIds: unique(input.scorecardIds).filter((id) => cards.has(id)),
     };
   }
 }

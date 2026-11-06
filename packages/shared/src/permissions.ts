@@ -38,7 +38,8 @@ export const PERMISSIONS = {
   'people.read': { ...STAFF_WS, agent: 'workspace' },
   // My account (profile, skills and languages): the route only ever changes the person's own account
   'account.edit': { admin: 'all', reviewer: 'own', lead: 'own', trainer: 'own', agent: 'own' },
-  'settings.readAll': ADMIN, // the others read settings without e-mail templates and notification rules
+  'settings.readAll': ADMIN,
+  'settings.write': ADMIN, // pass rates and the other company settings // the others read settings without e-mail templates and notification rules
   'activity.readAll': ADMIN,
   // My activity: what I did and what was done to my account
   'activity.readOwn': { admin: 'all', reviewer: 'own', lead: 'own', trainer: 'own', agent: 'own' },

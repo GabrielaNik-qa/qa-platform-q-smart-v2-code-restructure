@@ -15,6 +15,12 @@ import { PermissionGuard } from './auth/permission.guard.js';
 import { PlatformGuard } from './auth/platform.guard.js';
 import { HealthController, MeController, MySkillsController, PlatformController } from './controllers.js';
 import { PeopleController } from './people.controller.js';
+import {
+  LibraryController,
+  PassRatesController,
+  RootCausesController,
+  ScorecardsController,
+} from './quality.controller.js';
 import { SkillsController, TeamsController, WorkspacesController } from './setup.controller.js';
 import { DB, TOKEN_VERIFIER } from './tokens.js';
 
@@ -42,6 +48,10 @@ export class AppModule {
         NotificationsController,
         PageRulesController,
         MyPrefsController,
+        ScorecardsController,
+        LibraryController,
+        RootCausesController,
+        PassRatesController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },

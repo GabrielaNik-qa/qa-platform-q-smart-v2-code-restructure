@@ -1,15 +1,20 @@
 import { isStaff, type Role } from '@qsmart/shared';
 import { and, eq, sql } from 'drizzle-orm';
 import type { Db } from './client.js';
+import { DEMO_LIBRARY, DEMO_ROOT_CAUSES, DEMO_SCORECARDS } from './seed-quality.js';
 import {
+  categoryLibrary,
   companies,
   memberships,
   membershipSkills,
+  rootCauses,
+  scorecards,
   skills,
   teams,
   teamSkills,
   users,
   workspaces,
+  workspaceScorecards,
   workspaceStaff,
   workspaceTeams,
 } from './schema.js';
@@ -50,6 +55,41 @@ export async function seedDemo(owner: Db): Promise<void> {
   const existing = await owner.select({ id: companies.id }).from(companies).where(eq(companies.name, DEMO_COMPANY));
   if (!existing.length) await createDemoCompanies(owner);
   await seedDemoSetup(owner);
+  await seedDemoQuality(owner);
+}
+
+/**
+ * The demo company's quality set-up (Phase 2): today's demo scorecards (in its first workspace), categories library
+ * and root causes. Done once, while the company has no scorecard yet (a company always keeps one afterwards).
+ */
+async function seedDemoQuality(owner: Db): Promise<void> {
+  await owner.transaction(async (tx) => {
+    const [demo] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.name, DEMO_COMPANY));
+    if (!demo) return;
+    const companyId = demo.id;
+    const [hasScorecard] = await tx
+      .select({ id: scorecards.id })
+      .from(scorecards)
+      .where(eq(scorecards.companyId, companyId))
+      .limit(1);
+    if (hasScorecard) return;
+    const made = await tx
+      .insert(scorecards)
+      .values(DEMO_SCORECARDS.map((card) => ({ companyId, ...card })))
+      .returning({ id: scorecards.id });
+    const [first] = await tx
+      .select({ id: workspaces.id })
+      .from(workspaces)
+      .where(eq(workspaces.companyId, companyId))
+      .orderBy(workspaces.createdAt)
+      .limit(1);
+    if (first && made.length)
+      await tx
+        .insert(workspaceScorecards)
+        .values(made.map((card) => ({ companyId, workspaceId: first.id, scorecardId: card.id })));
+    await tx.insert(categoryLibrary).values(DEMO_LIBRARY.map((category) => ({ companyId, ...category })));
+    await tx.insert(rootCauses).values(DEMO_ROOT_CAUSES.map((cause) => ({ companyId, ...cause })));
+  });
 }
 
 async function createDemoCompanies(owner: Db): Promise<void> {

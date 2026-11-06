@@ -7,6 +7,7 @@ export * from './log.js';
 export * from './migrate.js';
 export * from './people.js';
 export * from './platform.js';
+export * from './quality.js';
 export * from './seed.js';
 export * from './teams.js';
 export type { PageRules, Prefs } from './schema.js';

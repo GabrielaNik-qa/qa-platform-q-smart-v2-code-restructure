@@ -23,7 +23,7 @@ import {
 } from './ui';
 
 type Draft = Omit<WorkspaceRow, 'id'>;
-const EMPTY: Draft = { name: '', description: '', color: '#0d9488', teamIds: [], staffIds: [] };
+const EMPTY: Draft = { name: '', description: '', color: '#0d9488', teamIds: [], staffIds: [], scorecardIds: [] };
 
 export function Workspaces({ company }: { company: CompanyRef }) {
   const { t } = useTranslation();
@@ -32,6 +32,7 @@ export function Workspaces({ company }: { company: CompanyRef }) {
   const [workspaces, setWorkspaces] = useState<WorkspaceRow[] | null>(null);
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [people, setPeople] = useState<PersonRow[]>([]);
+  const [scorecards, setScorecards] = useState<{ id: string; name: string }[]>([]);
   const [editing, setEditing] = useState<WorkspaceRow | 'new' | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const { message, run, fail } = useAction();
@@ -41,10 +42,12 @@ export function Workspaces({ company }: { company: CompanyRef }) {
       api<WorkspaceRow[]>('/workspaces', company.id),
       api<TeamRow[]>('/teams', company.id),
       api<PersonRow[]>('/people', company.id),
-    ]).then(([workspaceRows, teamRows, personRows]) => {
+      api<{ id: string; name: string }[]>('/scorecards', company.id),
+    ]).then(([workspaceRows, teamRows, personRows, cards]) => {
       setWorkspaces(workspaceRows);
       setTeams(teamRows);
       setPeople(personRows);
+      setScorecards(cards);
     }, fail);
   }, [company.id, fail]);
   useEffect(load, [load]);
@@ -121,6 +124,12 @@ export function Workspaces({ company }: { company: CompanyRef }) {
         value={draft.staffIds}
         onChange={(staffIds) => setDraft({ ...draft, staffIds })}
       />
+      <CheckList
+        legend={t('quality.scorecardsUsedHere')}
+        options={scorecards.map((s) => ({ id: s.id, label: s.name }))}
+        value={draft.scorecardIds}
+        onChange={(scorecardIds) => setDraft({ ...draft, scorecardIds })}
+      />
       <div className="flex gap-2">
         <button type="submit" className={primaryButton}>
           {t('common.save')}
@@ -173,6 +182,12 @@ export function Workspaces({ company }: { company: CompanyRef }) {
                   <span className="text-sm">{t('common.none')}</span>
                 )}
               </div>
+              {w.scorecardIds.length > 0 && (
+                <div className="grid gap-1">
+                  <span className="text-sm text-mu">{t('quality.scorecardsUsedHere')}</span>
+                  <Chips items={namesOf(w.scorecardIds, scorecards)} />
+                </div>
+              )}
               {admin && !editing && (
                 <div className="flex gap-2 pt-1">
                   <button

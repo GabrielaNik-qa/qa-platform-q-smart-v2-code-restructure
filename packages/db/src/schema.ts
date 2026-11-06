@@ -2,11 +2,12 @@
 // Every company table has company_id and sits behind the company wall (migrations/0001_company_wall.sql).
 // People are the one exception: a person can belong to several companies, so `users` is shared and
 // reaches companies through `memberships`; its wall rule shows a person only to the companies they belong to.
-import { ROLES } from '@qsmart/shared';
+import { ROLES, type ScorecardCategory, type ScorecardQuestion } from '@qsmart/shared';
 import {
   boolean,
   foreignKey,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -25,6 +26,8 @@ export const companies = pgTable('companies', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   pageRules: jsonb('page_rules').$type<PageRules>().notNull().default({}),
+  /** Quality set-up › System settings: a review passes at this score or above (today's default: 85) */
+  passRate: integer('pass_rate').notNull().default(85),
   createdAt: createdAt(),
 });
 
@@ -68,6 +71,8 @@ export const teams = pgTable(
     name: text('name').notNull(),
     /** Staff (admins, reviewers, team leads, trainers) are in the Administration team, as today. */
     isAdministration: boolean('is_administration').notNull().default(false),
+    /** the team's own pass rate (empty: the company's) */
+    passRate: integer('pass_rate'),
     description: text('description').notNull().default(''),
     color: text('color').notNull().default('#2563eb'),
     /** the team lead: a staff membership of the same company (foreign key in migrations/0009_teams_workspaces.sql) */
@@ -279,3 +284,71 @@ export const notifications = pgTable(
     }).onDelete('cascade'),
   ],
 );
+
+// ------------------------------------------------------------------------------------------------ Phase 2: Quality
+
+/** Quality set-up › Scorecards. Reviews keep a copy of the scorecard as it was, so editing one never changes them. */
+export const scorecards = pgTable(
+  'scorecards',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    description: text('description').notNull().default(''),
+    /** what it is for (Calls, Chats, B2C …): they only help to find and filter scorecards */
+    tags: text('tags').array().notNull().default([]),
+    categories: jsonb('categories').$type<ScorecardCategory[]>().notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('scorecards_id_company').on(t.id, t.companyId)],
+);
+
+/** The scorecards of a workspace: outside admins, people see the scorecards of their own workspaces (as today). */
+export const workspaceScorecards = pgTable(
+  'workspace_scorecards',
+  {
+    companyId: uuid('company_id').notNull(),
+    workspaceId: uuid('workspace_id').notNull(),
+    scorecardId: uuid('scorecard_id').notNull(),
+  },
+  (t) => [
+    uniqueIndex('workspace_scorecards_pair').on(t.workspaceId, t.scorecardId),
+    foreignKey({
+      columns: [t.workspaceId, t.companyId],
+      foreignColumns: [workspaces.id, workspaces.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [t.scorecardId, t.companyId],
+      foreignColumns: [scorecards.id, scorecards.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+/** Quality set-up › Categories: the library of reusable categories that scorecards copy. */
+export const categoryLibrary = pgTable('category_library', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description').notNull().default(''),
+  critical: boolean('critical').notNull().default(false),
+  questions: jsonb('questions').$type<ScorecardQuestion[]>().notNull(),
+  active: boolean('active').notNull().default(true),
+  createdAt: createdAt(),
+});
+
+/** Quality set-up › Root causes: why a question was answered No. */
+export const rootCauses = pgTable('root_causes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description').notNull().default(''),
+  active: boolean('active').notNull().default(true),
+  createdAt: createdAt(),
+});

@@ -2,7 +2,25 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
-## 6 November 2026: Phase 1 (foundation), in progress
+## 6 November 2026: Phase 2 (Quality), in progress, on branch `v2-phase-2`
+
+- **Scoring, the same as today's:**
+  - Yes/No/N/A per item; N/A leaves its points out.
+  - A critical item answered No makes its category 0; a critical category with any No makes the review 0%.
+  - Everything N/A means "not scored", and the review stays out of every average.
+  - A review passes at the pass rate or above.
+  - Proven by a test that runs today's own scoring next to v2's on today's scorecards, 5000 times with random answers: always the same result.
+- **Quality set-up** (Admin › Setup › Quality set-up), with today's rules:
+  - **Scorecards:** the list with tag filters, and the editor (categories, items, points, critical and compliance, move up and down, "Add category from library", a total that turns green at 100), plus Duplicate.
+    - Points must add up to exactly 100, and at least one scorecard remains.
+    - Reviews keep their own copy, so editing a scorecard never changes them.
+    - Outside admins, people see the scorecards of their own workspaces.
+  - **Categories** (the library), **Root causes** (admins and reviewers change them) and **System settings** (the company's pass rate, 85% by default, and an optional one per team).
+  - **Workspaces** now also hold their scorecards.
+  - The demo company starts with today's two demo scorecards, seven library categories and six root causes.
+  - Every change goes into the activity log.
+
+## 6 November 2026: Phase 1 (foundation), finished (tag `v2-phase-1`)
 
 - **The activity log** (Quality › Activity Log), as today:
   - **All activity**, **Sign-ins** and **Exports & downloads** for admins; **My activity** for everyone (what you did, and what was done to your account).

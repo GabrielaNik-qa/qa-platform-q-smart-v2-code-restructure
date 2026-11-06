@@ -28,6 +28,8 @@ export interface WorkspaceRow {
   color: string;
   teamIds: string[];
   staffIds: string[];
+  /** the scorecards its people use */
+  scorecardIds: string[];
 }
 export interface SkillRow {
   id: string;

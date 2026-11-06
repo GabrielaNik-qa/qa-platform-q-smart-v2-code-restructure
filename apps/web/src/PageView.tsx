@@ -7,7 +7,9 @@ import { Activity } from './Activity';
 import { findPage, isBuilt, menuOf } from './menu';
 import { People } from './People';
 import { Prefs } from './Prefs';
+import { Library, RootCauses, SystemSettings } from './QualitySetup';
 import { Roles } from './Roles';
+import { Scorecards } from './Scorecards';
 import { useSession } from './session';
 import { Skills } from './Skills';
 import { Teams } from './Teams';
@@ -24,6 +26,10 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'admin/appearance': (company) => <Account tab="appearance" company={company} />,
   'admin/language': (company) => <Account tab="language" company={company} />,
   'admin/notifications-and-confirmations': () => <Prefs />,
+  'admin/scorecards': (company) => <Scorecards company={company} />,
+  'admin/categories': (company) => <Library company={company} />,
+  'admin/root-causes': (company) => <RootCauses company={company} />,
+  'admin/system-settings': (company) => <SystemSettings company={company} />,
   'admin/all-roles': (company) => <Roles company={company} />,
   'admin/agent': (company) => <Roles company={company} role="agent" />,
   'admin/trainer': (company) => <Roles company={company} role="trainer" />,

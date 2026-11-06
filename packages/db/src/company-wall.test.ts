@@ -233,11 +233,25 @@ describe('teams, workspaces, skills and languages behind the wall', () => {
 
   it("never puts another company's team in a workspace", async () => {
     const sneaky = withCompany(app, A, (tx) =>
-      addWorkspace(tx, { name: 'Sneaky', description: '', color: '#2563eb', teamIds: [salesOfB], staffIds: [] }),
+      addWorkspace(tx, {
+        name: 'Sneaky',
+        description: '',
+        color: '#2563eb',
+        teamIds: [salesOfB],
+        staffIds: [],
+        scorecardIds: [],
+      }),
     );
     expect(await refusal(sneaky)).toBe('23503');
     const own = await withCompany(app, A, (tx) =>
-      addWorkspace(tx, { name: 'Main', description: '', color: '#2563eb', teamIds: [], staffIds: [] }),
+      addWorkspace(tx, {
+        name: 'Main',
+        description: '',
+        color: '#2563eb',
+        teamIds: [],
+        staffIds: [],
+        scorecardIds: [],
+      }),
     );
     expect((await withCompany(app, B, (tx) => listWorkspaces(tx))).map((w) => w.id)).not.toContain(own);
     const intoB = withCompany(app, B, (tx) =>

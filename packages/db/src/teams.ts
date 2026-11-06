@@ -13,6 +13,7 @@ import {
   teamSkills,
   users,
   workspaces,
+  workspaceScorecards,
   workspaceStaff,
   workspaceTeams,
 } from './schema.js';
@@ -146,6 +147,8 @@ export interface Workspace {
   teamIds: string[];
   /** memberships of its reviewers, team leads and trainers */
   staffIds: string[];
+  /** the scorecards its people use (Phase 2) */
+  scorecardIds: string[];
 }
 
 export type WorkspaceChange = Omit<Workspace, 'id'>;
@@ -162,7 +165,17 @@ export async function listWorkspaces(tx: Tx): Promise<Workspace[]> {
   const staffLinks = grouped(
     await tx.select({ owner: workspaceStaff.workspaceId, id: workspaceStaff.membershipId }).from(workspaceStaff),
   );
-  return rows.map((w) => ({ ...w, teamIds: teamLinks.get(w.id) ?? [], staffIds: staffLinks.get(w.id) ?? [] }));
+  const scorecardLinks = grouped(
+    await tx
+      .select({ owner: workspaceScorecards.workspaceId, id: workspaceScorecards.scorecardId })
+      .from(workspaceScorecards),
+  );
+  return rows.map((w) => ({
+    ...w,
+    teamIds: teamLinks.get(w.id) ?? [],
+    staffIds: staffLinks.get(w.id) ?? [],
+    scorecardIds: scorecardLinks.get(w.id) ?? [],
+  }));
 }
 
 /** The workspaces a member is in: staff explicitly, agents through their team. */
@@ -211,6 +224,11 @@ export async function updateWorkspace(tx: Tx, id: string, workspace: WorkspaceCh
 async function setWorkspaceLinks(tx: Tx, workspaceId: string, w: WorkspaceChange): Promise<void> {
   await tx.delete(workspaceTeams).where(eq(workspaceTeams.workspaceId, workspaceId));
   await tx.delete(workspaceStaff).where(eq(workspaceStaff.workspaceId, workspaceId));
+  await tx.delete(workspaceScorecards).where(eq(workspaceScorecards.workspaceId, workspaceId));
+  if (w.scorecardIds.length)
+    await tx
+      .insert(workspaceScorecards)
+      .values(w.scorecardIds.map((scorecardId) => ({ companyId: thisCompany, workspaceId, scorecardId })));
   if (w.teamIds.length)
     await tx
       .insert(workspaceTeams)
