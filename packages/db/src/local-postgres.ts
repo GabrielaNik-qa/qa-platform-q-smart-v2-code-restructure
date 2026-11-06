@@ -71,6 +71,8 @@ export async function startLocalPostgres(
     authMethod: 'scram-sha-256',
     persistent: !throwAway,
     initdbFlags: ['--encoding=UTF8', '--locale=C'],
+    // no separate input/output helper processes (PostgreSQL 18), so nothing can be left behind if a run is cut short
+    postgresFlags: ['-c', 'io_method=sync'],
     onLog: () => {},
     onError: () => {},
   });

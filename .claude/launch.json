@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "qsmart-v2",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": ["/c", "set QSMART_NO_BROWSER=1&& npm.cmd run dev"],
+      "port": 5173
+    }
+  ]
+}

@@ -8,6 +8,7 @@
 - **Windows / PowerShell:** use `npm.cmd`. This folder is in OneDrive by Gabriela's choice; if OneDrive or the long path blocks a tool, say so.
 - **Roles:** admin, reviewer (called qa in today's app; renamed for v2 on 5 November), lead, trainer, agent. Everyone belongs to a team; staff are in Administration. Made-up test users have the password `password`.
 - **Stack (v2):** TypeScript everywhere · React + Vite pages · NestJS server · PostgreSQL on Neon (EU) · Firebase Authentication · Firebase Hosting + Cloud Run (europe-west1, when online).
+- **Working on v2:** `npm.cmd run check` runs everything (types, ESLint, Prettier, Vitest; tests start a real PostgreSQL themselves). `npm.cmd run dev` (or `Start Q-smart v2.cmd`) starts PostgreSQL (data in `%LOCALAPPDATA%\qsmart-v2`, outside OneDrive), the Firebase Auth emulator (`demo-qsmart`), the API on :3200 and the pages on :5173; demo accounts `*@demo.test`, password `password`. Layout: `packages/shared`, `packages/db` (Drizzle, migrations, the wall in `migrations/0001_company_wall.sql`), `apps/api` (NestJS 12, ESM, explicit `@Inject` tokens), `apps/web`. Release notes: `docs/RELEASE_NOTES_V2.md`.
 
 ## Rules that are never broken
 - **Company wall:** every company table has `company_id` (people are shared and reach companies through `memberships`); PostgreSQL row-level security, switched on for every table; the server connects as `qsmart_app` and never as the tables' owner (`qsmart_owner` only runs migrations); every route is permission-checked on the server; tests try to reach another company's data.

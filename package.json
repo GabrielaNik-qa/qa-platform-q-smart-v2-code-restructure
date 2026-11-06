@@ -13,7 +13,8 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "typecheck": "tsc -b && tsc -p packages/shared/tsconfig.test.json && tsc -p packages/db/tsconfig.test.json && tsc -p apps/api/tsconfig.test.json",
+    "dev": "tsc -b && node scripts/dev.ts",
+    "typecheck": "tsc -b && tsc -p packages/shared/tsconfig.test.json && tsc -p packages/db/tsconfig.test.json && tsc -p apps/api/tsconfig.test.json && tsc -p apps/web/tsconfig.json && tsc -p scripts/tsconfig.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -24,6 +25,7 @@
     "@eslint/js": "10.0.1",
     "@types/node": "24.19.2",
     "eslint": "10.14.0",
+    "firebase-admin": "14.5.0",
     "globals": "17.14.0",
     "prettier": "3.9.10",
     "typescript": "6.0.3",

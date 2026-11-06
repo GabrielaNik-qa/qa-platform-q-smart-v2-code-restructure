@@ -8,6 +8,18 @@ Customer-service quality platform (SaaS) for contact centres: quality reviews an
 - Today's app: `current-app/` (start it with `cd current-app`, then `node server.js`)
 - Branches: work happens on `qa-platform-q-smart-v2-code-restructure`; finished, tested work goes into `main`.
 
+## v2 on your PC
+
+Double-click **`Start Q-smart v2.cmd`**. It starts four things and then opens http://localhost:5173 in your browser:
+1. the database (a real PostgreSQL, kept outside OneDrive in `%LOCALAPPDATA%\qsmart-v2`),
+2. Firebase's local test version for sign-in (the first start downloads it once),
+3. the server (http://localhost:3200/api/health),
+4. the pages.
+
+Test accounts (made up, password `password`): `admin@demo.test`, `reviewer@demo.test`, `lead@demo.test`, `trainer@demo.test`, `agent@demo.test`. Close the window to stop everything. Today's app keeps running separately.
+
+All of v2's checks (types, code checks, format and tests): `npm.cmd run check`. What changed: `docs/RELEASE_NOTES_V2.md`.
+
 ## Today's app (the starting point)
 
 Since 6 November its files are in the `current-app/` folder. Run every command below from there (`cd current-app` first).
