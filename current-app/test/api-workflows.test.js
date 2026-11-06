@@ -19,7 +19,7 @@ const readDb = () => JSON.parse(fs.readFileSync(FILE, 'utf8'));
 
 let srv;
 test.before(async () => {
-  srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_FILE: FILE, AUDIT_FILE: path.join(DIR, 'audit.json'), RECORDINGS_DIR: path.join(DIR, 'rec'), BACKUPS_DIR: path.join(DIR, 'backups'), SMTP_HOST: '' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  srv = spawn(process.execPath, ['server.js'], { cwd: path.join(__dirname, '..'), env: { ...process.env, PORT, DATA_FILE: FILE, AUDIT_FILE: path.join(DIR, 'audit.json'), RECORDINGS_DIR: path.join(DIR, 'rec'), BACKUPS_DIR: path.join(DIR, 'backups'), SMTP_HOST: '', NO_SCHEDULE: '1' }, stdio: ['ignore', 'pipe', 'pipe'] });
   await new Promise((ok, no) => { srv.stdout.on('data', d => /Running on/.test(d) && ok()); srv.on('exit', c => no(new Error('server exited ' + c))); setTimeout(() => no(new Error('server did not start')), 15000); });
 });
 test.after(() => { srv && srv.kill(); fs.rmSync(DIR, { recursive: true, force: true }); });
