@@ -26,6 +26,8 @@ const PEOPLE: Record<string, VerifiedPerson> = {
   'token-unverified': { uid: 'google-unverified', email: 'invited@demo.test', emailVerified: false },
   'token-invited': { uid: 'google-invited', email: 'Invited@Demo.test', emailVerified: true },
   'token-second-claim': { uid: 'google-other', email: 'invited@demo.test', emailVerified: true },
+  'token-owner': { uid: 'owner-uid', email: 'owner@qsmart.test', emailVerified: true },
+  'token-new-admin': { uid: 'new-admin-uid', email: 'nora@newco.test', emailVerified: true },
 };
 const verifier: TokenVerifier = {
   async verify(idToken) {
@@ -47,6 +49,9 @@ beforeAll(async () => {
   owner = createDb(server.ownerUrl);
   await seedDemo(owner);
   await inviteToDemo(owner, { email: 'invited@demo.test', name: 'Ivo Invited', role: 'trainer' });
+  await owner
+    .insert(schema.users)
+    .values({ firebaseUid: 'owner-uid', email: 'owner@qsmart.test', name: 'Owner', isPlatformAdmin: true });
   for (const c of await owner.select().from(schema.companies)) companyIds[c.name] = c.id;
   db = createDb(server.appUrl);
   app = await createApp({ db, verifier });
@@ -111,6 +116,33 @@ describe('the server', () => {
     expect(await companiesOf('token-invited')).toEqual([[DEMO_COMPANY, 'trainer']]);
     expect(await companiesOf('token-second-claim')).toEqual([]);
     expect(await companiesOf('token-unverified')).toEqual([]);
+  });
+
+  it('opens the platform owner area to the owner of Q-smart only', async () => {
+    expect((await get('/api/me', 'token-owner')).json().platformAdmin).toBe(true);
+    expect((await get('/api/me', 'token-admin')).json().platformAdmin).toBe(false);
+    expect((await get('/api/platform/companies', 'token-admin')).statusCode).toBe(403);
+    const list = await get('/api/platform/companies', 'token-owner');
+    expect(list.statusCode).toBe(200);
+    expect(list.json().map((c: { name: string }) => c.name)).toEqual([DEMO_COMPANY, SECOND_COMPANY]);
+  });
+
+  it('creates a client company whose first admin gets it at their first sign-in', async () => {
+    const create = (token: string, payload: object) =>
+      app.inject({
+        method: 'POST',
+        url: '/api/platform/companies',
+        headers: { authorization: `Bearer ${token}` },
+        payload,
+      });
+    expect(
+      (await create('token-admin', { name: 'NewCo', adminEmail: 'nora@newco.test', adminName: 'Nora' })).statusCode,
+    ).toBe(403);
+    expect((await create('token-owner', { name: '', adminEmail: 'not-an-email', adminName: '' })).statusCode).toBe(400);
+    const made = await create('token-owner', { name: 'NewCo', adminEmail: 'nora@newco.test', adminName: 'Nora' });
+    expect(made.statusCode).toBe(201);
+    const nora = (await get('/api/me', 'token-new-admin')).json();
+    expect(nora.companies.map((c: { name: string; role: string }) => [c.name, c.role])).toEqual([['NewCo', 'admin']]);
   });
 
   it("refuses a company the person doesn't belong to", async () => {

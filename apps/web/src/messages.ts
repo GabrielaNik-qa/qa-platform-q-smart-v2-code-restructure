@@ -31,6 +31,19 @@ const en = {
     staffTeam: 'staff',
     signOut: 'Sign out',
   },
+  platform: {
+    title: 'Platform owner area',
+    intro: 'Only you, as the owner of Q-smart, see this: all client companies, and a new one with its first admin.',
+    company: 'Company',
+    people: 'People',
+    admins: 'Admins',
+    since: 'Since',
+    new: 'New client company',
+    adminName: 'First admin: name',
+    adminEmail: 'First admin: e-mail',
+    create: 'Create the company',
+    created: '{{company}} is created. {{email}} gets it at their first sign-in with this e-mail.',
+  },
 };
 
 export type Messages = typeof en;
@@ -64,6 +77,20 @@ const bg: Messages = {
     staffTeam: 'персонал',
     signOut: 'Изход',
   },
+  platform: {
+    title: 'Собственик на платформата',
+    intro:
+      'Само вие, като собственик на Q-smart, виждате това: всички клиентски компании и нова компания с първия ѝ администратор.',
+    company: 'Компания',
+    people: 'Хора',
+    admins: 'Администратори',
+    since: 'От',
+    new: 'Нова клиентска компания',
+    adminName: 'Първи администратор: име',
+    adminEmail: 'Първи администратор: имейл',
+    create: 'Създай компанията',
+    created: '{{company}} е създадена. {{email}} ще я получи при първия си вход с този имейл.',
+  },
 };
 
 const fr: Messages = {
@@ -94,6 +121,20 @@ const fr: Messages = {
     teams: 'Équipes de {{company}}',
     staffTeam: 'personnel',
     signOut: 'Se déconnecter',
+  },
+  platform: {
+    title: 'Espace propriétaire de la plateforme',
+    intro:
+      'Vous seul, propriétaire de Q-smart, voyez ceci : toutes les entreprises clientes, et une nouvelle avec son premier administrateur.',
+    company: 'Entreprise',
+    people: 'Personnes',
+    admins: 'Administrateurs',
+    since: 'Depuis',
+    new: 'Nouvelle entreprise cliente',
+    adminName: 'Premier administrateur : nom',
+    adminEmail: 'Premier administrateur : e-mail',
+    create: 'Créer l’entreprise',
+    created: '{{company}} est créée. {{email}} la recevra à sa première connexion avec cet e-mail.',
   },
 };
 

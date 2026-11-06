@@ -11,6 +11,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import {
   createDb,
+  DEMO_OWNER,
   DEMO_PEOPLE,
   inviteToDemo,
   type LocalPostgres,
@@ -96,8 +97,15 @@ async function readInvites() {
     .map((line) => line.trim())
     .filter((line) => line && !line.startsWith('#'))
     .map((line) => {
+      // "owner" = admin of the demo company and owner of Q-smart (the platform owner area)
       const [email = '', role = 'admin'] = line.split(/\s+/);
-      return { email, name: email.split('@')[0] ?? email, role: roleSchema.parse(role) };
+      const platformAdmin = role === 'owner';
+      return {
+        email,
+        name: email.split('@')[0] ?? email,
+        role: roleSchema.parse(platformAdmin ? 'admin' : role),
+        platformAdmin,
+      };
     });
 }
 
@@ -106,7 +114,7 @@ async function startLocalSignIn(): Promise<void> {
   await waitFor(`http://${AUTH_HOST}/`, "Firebase's local sign-in", 900); // the first start downloads it
   process.env.FIREBASE_AUTH_EMULATOR_HOST = AUTH_HOST;
   const auth = getAuth(initializeApp({ projectId: PROJECT }, 'qsmart-dev'));
-  for (const person of DEMO_PEOPLE) {
+  for (const person of [...DEMO_PEOPLE, DEMO_OWNER]) {
     await auth.getUser(person.firebaseUid).catch(() =>
       auth.createUser({
         uid: person.firebaseUid,
@@ -141,7 +149,7 @@ async function main(): Promise<void> {
   if (REAL) {
     for (const person of await readInvites()) {
       await inviteToDemo(owner, person);
-      console.log(`  invited ${person.email} as ${person.role}`);
+      console.log(`  invited ${person.email} as ${person.platformAdmin ? 'owner of Q-smart and admin' : person.role}`);
     }
   }
   await owner.$client.end();

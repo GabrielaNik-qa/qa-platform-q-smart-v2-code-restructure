@@ -2,7 +2,8 @@
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './client.js';
-import { membershipsFor, withCompany } from './company.js';
+import { claimInvitation, membershipsFor, withCompany } from './company.js';
+import { isPlatformAdmin, platformCompanies, platformCreateCompany } from './platform.js';
 import { startLocalPostgres, type LocalPostgres } from './local-postgres.js';
 import { runMigrations } from './migrate.js';
 import { companies, memberships, teams, users } from './schema.js';
@@ -156,5 +157,54 @@ describe('the company wall', () => {
 
   it('accepts only a real company id', () => {
     expect(() => withCompany(app, "x' or 1=1 --", async () => 1)).toThrow();
+  });
+
+  it("lets nobody make themselves platform owner, or take another person's account", async () => {
+    const promote = withCompany(app, A, (tx) =>
+      tx.update(users).set({ isPlatformAdmin: true }).where(eq(users.id, sam)),
+    );
+    expect(await refusal(promote)).toBe('42501');
+    const steal = withCompany(app, A, (tx) =>
+      tx.update(users).set({ firebaseUid: 'uid-thief' }).where(eq(users.id, sam)),
+    );
+    expect(await refusal(steal)).toBe('42501');
+    const rename = await withCompany(app, A, (tx) =>
+      tx.update(users).set({ name: 'Sam S.' }).where(eq(users.id, sam)).returning({ name: users.name }),
+    );
+    expect(rename).toEqual([{ name: 'Sam S.' }]);
+  });
+});
+
+describe('the platform owner area', () => {
+  beforeAll(async () => {
+    await owner.insert(users).values({ firebaseUid: 'uid-owner', email: 'owner@qsmart.test', name: 'Owner' });
+    await owner.update(users).set({ isPlatformAdmin: true }).where(eq(users.firebaseUid, 'uid-owner'));
+  });
+
+  it('shows all companies to the platform owner, and nothing to anyone else', async () => {
+    const list = await platformCompanies(app, 'uid-owner');
+    expect(list.map((c) => [c.name, c.people, c.admins])).toEqual([
+      ['Company A', 2, 1],
+      ['Company B', 2, 1],
+    ]);
+    expect(await platformCompanies(app, 'uid-ann')).toEqual([]);
+    expect(await isPlatformAdmin(app, 'uid-owner')).toBe(true);
+    expect(await isPlatformAdmin(app, 'uid-ann')).toBe(false);
+  });
+
+  it('creates a client company with its Administration team and first admin, for the owner only', async () => {
+    expect(
+      await refusal(platformCreateCompany(app, 'uid-ann', { name: 'Sneaky', adminEmail: 'x@x.test', adminName: 'X' })),
+    ).toBe('42501');
+    const id = await platformCreateCompany(app, 'uid-owner', {
+      name: 'Company C',
+      adminEmail: 'Carla@C.test',
+      adminName: 'Carla',
+    });
+    expect(await teamNames(id)).toEqual(['Administration']);
+    expect(await claimInvitation(app, 'uid-carla', 'carla@c.test')).toBe(true);
+    expect((await membershipsFor(app, 'uid-carla')).map((m) => [m.companyName, m.role])).toEqual([
+      ['Company C', 'admin'],
+    ]);
   });
 });

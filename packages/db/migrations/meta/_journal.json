@@ -29,6 +29,20 @@
       "when": 1793932238679,
       "tag": "0003_claim_invitation",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793933992158,
+      "tag": "0004_platform_admin",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793933995201,
+      "tag": "0005_platform_functions",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,7 @@ import { api } from './api';
 import { Logo, Settings } from './chrome';
 import { auth } from './firebase';
 import { currentLanguage } from './i18n';
+import { Platform } from './Platform';
 
 interface Company {
   id: string;
@@ -15,6 +16,7 @@ interface Company {
 interface Me {
   email: string | null;
   name: string | null;
+  platformAdmin: boolean;
   companies: Company[];
 }
 interface Team {
@@ -68,6 +70,8 @@ export function Home({ user }: { user: User }) {
             {t('common.error', { message: error })}
           </p>
         )}
+
+        {me?.platformAdmin && <Platform />}
 
         <section className="bg-pn border border-bd rounded-m p-5" aria-labelledby="companies-title">
           <h2 id="companies-title" className="font-display text-xl font-bold mb-3">

@@ -5,7 +5,9 @@ import type { Db } from '@qsmart/db';
 import { SignedInGuard } from './auth/signed-in.guard.js';
 import type { TokenVerifier } from './auth/token-verifier.js';
 import { CompanyMemberGuard } from './company/company-member.guard.js';
-import { HealthController, MeController, TeamsController } from './controllers.js';
+import { PermissionGuard } from './auth/permission.guard.js';
+import { PlatformGuard } from './auth/platform.guard.js';
+import { HealthController, MeController, PlatformController, TeamsController } from './controllers.js';
 import { DB, TOKEN_VERIFIER } from './tokens.js';
 
 /** The parts the server is built from: the real ones in main.ts, test ones in the tests. */
@@ -19,12 +21,14 @@ export class AppModule {
   static with(parts: AppParts): DynamicModule {
     return {
       module: AppModule,
-      controllers: [HealthController, MeController, TeamsController],
+      controllers: [HealthController, MeController, TeamsController, PlatformController],
       providers: [
         { provide: DB, useValue: parts.db },
         { provide: TOKEN_VERIFIER, useValue: parts.verifier },
         SignedInGuard,
         CompanyMemberGuard,
+        PermissionGuard,
+        PlatformGuard,
       ],
     };
   }

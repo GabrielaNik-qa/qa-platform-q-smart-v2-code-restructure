@@ -3,5 +3,6 @@ export * from './client.js';
 export * from './company.js';
 export * from './local-postgres.js';
 export * from './migrate.js';
+export * from './platform.js';
 export * from './seed.js';
 export * as schema from './schema.js';

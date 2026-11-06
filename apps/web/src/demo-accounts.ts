@@ -5,4 +5,5 @@ export const DEMO_ACCOUNTS = [
   'lead@demo.test',
   'trainer@demo.test',
   'agent@demo.test',
+  'owner@demo.test', // the owner of Q-smart: the platform owner area
 ] as const;

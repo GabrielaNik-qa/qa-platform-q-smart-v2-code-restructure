@@ -32,6 +32,8 @@ export const users = pgTable('users', {
   firebaseUid: text('firebase_uid').unique(),
   email: text('email').notNull().unique(),
   name: text('name').notNull(),
+  /** the owner of Q-smart (you): creates and manages client companies; belongs to no company because of it */
+  isPlatformAdmin: boolean('is_platform_admin').notNull().default(false),
   createdAt: createdAt(),
 });
 

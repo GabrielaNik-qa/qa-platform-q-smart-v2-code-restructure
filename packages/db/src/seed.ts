@@ -19,6 +19,9 @@ export const DEMO_PEOPLE: readonly DemoPerson[] = [
   { firebaseUid: 'demo-agent', email: 'agent@demo.test', name: 'Alex Agent', role: 'agent' },
 ];
 
+/** A made-up owner of Q-smart, for trying the platform owner area with Firebase's local test version. */
+export const DEMO_OWNER = { firebaseUid: 'demo-owner', email: 'owner@demo.test', name: 'Olga Owner' } as const;
+
 export const DEMO_COMPANY = 'Q-smart Demo';
 export const SECOND_COMPANY = 'Second Demo Company';
 
@@ -28,6 +31,10 @@ export const SECOND_COMPANY = 'Second Demo Company';
  * Runs as qsmart_owner: the wall doesn't apply to the tables' owner.
  */
 export async function seedDemo(owner: Db): Promise<void> {
+  await owner
+    .insert(users)
+    .values({ ...DEMO_OWNER, isPlatformAdmin: true })
+    .onConflictDoNothing({ target: users.email });
   const existing = await owner.select({ id: companies.id }).from(companies).where(eq(companies.name, DEMO_COMPANY));
   if (existing.length) return;
   await owner.transaction(async (tx) => {
@@ -86,7 +93,10 @@ export async function seedDemo(owner: Db): Promise<void> {
  * Invites a person into the demo company by e-mail (used on your PC with the real Firebase project). They get the
  * company the first time they sign in with that e-mail, verified by Firebase. Safe to run again.
  */
-export async function inviteToDemo(owner: Db, person: { email: string; name: string; role: Role }): Promise<void> {
+export async function inviteToDemo(
+  owner: Db,
+  person: { email: string; name: string; role: Role; platformAdmin?: boolean },
+): Promise<void> {
   const email = person.email.trim().toLowerCase();
   await owner.transaction(async (tx) => {
     const [demo] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.name, DEMO_COMPANY));
@@ -103,6 +113,7 @@ export async function inviteToDemo(owner: Db, person: { email: string; name: str
     const userId =
       existing?.id ?? (await tx.insert(users).values({ email, name: person.name }).returning({ id: users.id }))[0]?.id;
     if (!userId) throw new Error('The invitation could not be saved.');
+    if (person.platformAdmin) await tx.update(users).set({ isPlatformAdmin: true }).where(eq(users.id, userId));
     await tx
       .insert(memberships)
       .values({ companyId: demo.id, userId, role: person.role, teamId: team?.id ?? null })
