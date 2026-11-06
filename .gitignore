@@ -7,9 +7,10 @@ coverage/
 .firebase/
 playwright-report/
 test-results/
+*.tsbuildinfo
 
 # Gabriela's decision (5 November 2026): everything else is kept in this public repository,
-# including data.json, audit.json, .qsmart-key, docs/patent/ and the notes in notes/.
+# including current-app/data.json, audit.json and .qsmart-key, docs/patent/ and the notes in notes/.
 # New v2 secrets (.env: database and Firebase keys) stay local, because they will protect clients' data.
 .env
 .env.*

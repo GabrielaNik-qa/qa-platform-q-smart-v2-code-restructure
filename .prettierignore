@@ -1,0 +1,8 @@
+# Today's app keeps its own style; documents and notes are written by hand
+current-app/
+docs/
+notes/
+**/*.md
+**/dist/
+**/coverage/
+package-lock.json
