@@ -51,6 +51,14 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - **Three views:** Cards, Compact (every card folded to its key numbers; the ⌄ unfolds one) and Table (one row per team). Your choice is saved with your account, so it's the same on every computer.
   - **Every agent ranked:** reviews, average, pass rate, trend, red flags and Pass or Fail against their team's target. This list can be folded too.
   - Rolling periods as today (last 7 days, 30 days, 12 months, all time), a type filter and a team filter. Each review counts for the team the agent was in when it was reviewed.
+- **No long dashes (your rule of 10 November):** every long and medium dash became a short dash or a colon, in v2's texts (English, Bulgarian, French), tables ("-" for no value), code, plan and docs, and in today's app too (its pages and translations alike, so each text still finds its translation; all 253 of today's tests pass). A test checks that no text of v2 has one again.
+- **Step 4: Quality › Analytics › Category Stats**, as today:
+  - Filters for scorecard, type, team and period (last 7 days, 30 days, 12 months, all time), then four numbers: reviews, average score, pass rate and fail rate.
+  - The 3 strongest and 3 weakest categories, and a tile per category: its average, the trend against the period before, the share below target, its last 8 weeks and a bar.
+  - The most common mistakes (questions answered No, with their top root causes and their share of the answers), the root causes, the root causes chosen per week and who chose them for whom (by reviewer, by agent), and the categories by team.
+  - **Click a category, a mistake or a root cause** to see where it comes from: by team, the questions answered No, the best agents and those who need support, and the reviews. From there you can click further, as today.
+  - Checked against today's demo data over all time: the same top mistakes (43, 42 and 39 times, 8%, 8% and 7% of the answers) and root causes (87, 85, 82, 79).
+- **Step 4: Quality › Analytics › Topic dashboards**, as today: one block per topic with a link to its page. Disputes (waiting, resolved, days to resolve), Calibration (sessions, this month, open), Reviewer QA (checks, average) and Coaching (pins to talk about). Each person sees only the numbers they may read (a team lead: their workspaces). Assignments, coaching sessions and surveys join with their own phases.
 - **Agent and team names are now links**: on the Dashboard widgets, Team Review and the Agents page, an agent's name opens their profile and a team's name opens it on Team Review. For anyone who doesn't see those pages they stay plain text, as today.
 
 ## 10 November 2026: Phase 2 (Quality), finished (tag `v2-phase-2`)

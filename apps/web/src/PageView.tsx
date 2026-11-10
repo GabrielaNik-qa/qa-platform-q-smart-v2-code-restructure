@@ -7,6 +7,7 @@ import { Activity } from './Activity';
 import { Agents } from './Agents';
 import { findPage, isBuilt, menuOf } from './menu';
 import { Calibrations } from './Calibration';
+import { CategoryStats } from './CategoryStats';
 import { Dashboard } from './Dashboard';
 import { Disputes } from './Disputes';
 import { People } from './People';
@@ -23,6 +24,7 @@ import { Scorecards } from './Scorecards';
 import { useSession } from './session';
 import { Skills } from './Skills';
 import { TeamReview } from './TeamReview';
+import { TopicDashboards } from './TopicDashboards';
 import { Teams } from './Teams';
 import type { CompanyRef } from './ui';
 import { Workspaces } from './Workspaces';
@@ -49,6 +51,8 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'quality/pins': (company) => <Pins company={company} />,
   'quality/agents': (company) => <Agents company={company} />,
   'quality/team-review': (company) => <TeamReview company={company} />,
+  'quality/category-stats': (company) => <CategoryStats company={company} />,
+  'quality/topic-dashboards': (company) => <TopicDashboards company={company} />,
   'admin/categories': (company) => <Library company={company} />,
   'admin/root-causes': (company) => <RootCauses company={company} />,
   'admin/system-settings': (company) => <SystemSettings company={company} />,

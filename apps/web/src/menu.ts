@@ -28,6 +28,8 @@ export const BUILT = new Set([
   'quality/pins',
   'quality/agents',
   'quality/team-review',
+  'quality/category-stats',
+  'quality/topic-dashboards',
   'admin/categories',
   'admin/root-causes',
   'admin/system-settings',
