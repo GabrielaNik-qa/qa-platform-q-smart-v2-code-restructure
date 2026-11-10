@@ -306,7 +306,7 @@ function CheckWindow({
               <option value="">{t('revqa.pickReview')}</option>
               {reviews.slice(0, 80).map((r) => (
                 <option key={r.id} value={r.id}>
-                  {`${r.leadId} · ${r.reviewedOn} · ${r.agentName} · ${r.reviewerName} · ${r.notScored ? '—' : `${r.score}%`}`}
+                  {`${r.leadId} · ${r.reviewedOn} · ${r.agentName} · ${r.reviewerName} · ${r.notScored ? '-' : `${r.score}%`}`}
                 </option>
               ))}
             </select>

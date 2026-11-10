@@ -60,7 +60,7 @@ export function ReviewView() {
   const answer = (a: string) => t(`reviews.${a === 'y' ? 'yes' : a === 'n' ? 'no' : 'na'}`);
   const facts: [string, string][] = [
     [t('reviews.agent'), review.agentName],
-    [t('reviews.team'), review.teamName || '—'],
+    [t('reviews.team'), review.teamName || '-'],
     [t('reviews.date'), review.reviewedOn],
     [
       t('reviews.reviewType'),
@@ -68,7 +68,7 @@ export function ReviewView() {
     ],
     [t('reviews.scorecard'), review.scorecardName],
     [t('reviews.reviewer'), review.reviewerName],
-    [t('reviews.campaign'), review.campaign || '—'],
+    [t('reviews.campaign'), review.campaign || '-'],
     [t('reviews.seen'), review.seenAt ? when(review.seenAt, lang) : t('reviews.notSeen')],
   ];
   const links: [string, string][] = (
@@ -134,7 +134,7 @@ export function ReviewView() {
         <div className={`${card} text-center grid gap-1`}>
           <div className="text-sm text-mu">{t('reviews.score')}</div>
           <div className={`font-display text-5xl font-bold ${review.notScored ? '' : passed ? 'text-ok' : 'text-bad'}`}>
-            {review.notScored ? '—' : `${review.score}%`}
+            {review.notScored ? '-' : `${review.score}%`}
           </div>
           {!review.notScored && (
             <div className="font-semibold">{passed ? t('reviews.passed') : t('reviews.failed')}</div>

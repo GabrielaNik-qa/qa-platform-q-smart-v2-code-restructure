@@ -297,7 +297,7 @@ export function QuickFlags({ company }: { company: CompanyRef }) {
     type: (r) => t(`reviews.channels.${r.channel}`),
     date: (r) => <span className="whitespace-nowrap">{r.day}</span>,
     agent: (r) => r.agentName,
-    team: (r) => r.teamName || '—',
+    team: (r) => r.teamName || '-',
     campaign: (r) => r.campaign,
     score: (r) =>
       !r.review ? (
@@ -332,15 +332,15 @@ export function QuickFlags({ company }: { company: CompanyRef }) {
           ))}
         </div>
       ) : (
-        <span className="text-mu">—</span>
+        <span className="text-mu">-</span>
       );
     },
     comments: (r) =>
       r.flags
         .map((f) => f.comment)
         .filter(Boolean)
-        .join(' | ') || '—',
-    by: (r) => [...new Set(r.flags.map((f) => f.byName))].join(', ') || '—',
+        .join(' | ') || '-',
+    by: (r) => [...new Set(r.flags.map((f) => f.byName))].join(', ') || '-',
   };
   const tile = (key: FlagFilter, label: string, value: number, color: string) => (
     <button

@@ -106,7 +106,7 @@ const groupBy = <T,>(list: T[], key: (item: T) => string) => {
   return m;
 };
 const duration = (s: number | null) =>
-  s === null ? '—' : `${Math.floor(s / 60)}m ${String(Math.round(s % 60)).padStart(2, '0')}s`;
+  s === null ? '-' : `${Math.floor(s / 60)}m ${String(Math.round(s % 60)).padStart(2, '0')}s`;
 /** A category's score in a list of reviews (the reviews that scored it). */
 const categoryOf = (list: ReviewRow[], name: string) =>
   average(list.map((r) => categoryValue(r, name)).filter((v): v is number => v !== null));
@@ -303,7 +303,7 @@ function Teams({ c }: { c: WidgetContext }) {
                 <small className="text-mu">{t('widgets.common.reviews', { count: l.length })}</small>
               </span>
               <b className={`font-mono ${a === null ? 'text-mu' : BAND_TEXT[band(a, c.rates, team.id)]}`}>
-                {a === null ? '—' : pct1(a)}
+                {a === null ? '-' : pct1(a)}
               </b>
             </div>
             <Bar value={a ?? 0} tone={tone} />
@@ -484,7 +484,7 @@ function CategoryInsights({ c }: { c: WidgetContext }) {
               </b>,
               d === null ? (
                 <small key="t" className="text-mu">
-                  —
+                  -
                 </small>
               ) : (
                 <span
@@ -623,7 +623,7 @@ function Reviewers({ c }: { c: WidgetContext }) {
             t('widgets.h.withComments'),
           ]}
           rows={rows.map(([name, l]) => [
-            <b key="n">{name || '—'}</b>,
+            <b key="n">{name || '-'}</b>,
             <Versus key="a" value={averageScore(l)} target={c.target} />,
             before.has(name) ? (
               <Change key="c" cur={averageScore(l)} prev={averageScore(before.get(name) ?? [])} />
@@ -850,7 +850,7 @@ function HeatMap({ c, span }: { c: WidgetContext; span: number }) {
                   );
                   return z === null ? (
                     <i key={n} className="text-center not-italic text-mu">
-                      —
+                      -
                     </i>
                   ) : (
                     <span

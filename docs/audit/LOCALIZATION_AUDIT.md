@@ -1,4 +1,4 @@
-# Q-SMART – Localization audit (English, Bulgarian, French)
+# Q-SMART - Localization audit (English, Bulgarian, French)
 
 Round 4 · 28 October 2026 · Branch `q-smart-v1-audit` · Rules: `docs/i18n-glossary.md`.
 
@@ -16,11 +16,11 @@ Round 4 · 28 October 2026 · Branch `q-smart-v1-audit` · Rules: `docs/i18n-glo
 | Finding | Before | After |
 |---|---|---|
 | Server messages without a translation | **96** (of 438 server messages found) | **0**. Added: 78 fixed texts and 18 texts with values (kudos, flags, signed one-to-ones, chat / e-mail / conversation reviews, "partly changed" disputes, the employee ID and username messages…) |
-| Screen-reader names of the check boxes in tables (Roles & permissions, Notification rules…) | **258** names such as "A new review – Admin" stayed English in Bulgarian and French | **0**. The name is now built from the translated row and column ("Нова оценка – Администратор", "Tableau de bord – Administrateur") |
+| Screen-reader names of the check boxes in tables (Roles & permissions, Notification rules…) | **258** names such as "A new review - Admin" stayed English in Bulgarian and French | **0**. The name is now built from the translated row and column ("Нова оценка - Администратор", "Tableau de bord - Administrateur") |
 | AutoQA subtitle | The text was reworded and its old translation no longer matched, so it showed in English | Translated |
-| The theme button's tooltip ("System mode — click to change") | English | Translated (Light, Dark and System) |
+| The theme button's tooltip ("System mode - click to change") | English | Translated (Light, Dark and System) |
 | The same English key twice in a language file (the second one is the one used) | 8 in `bg.js`, 7 in `fr.js` | 0. The first copy was removed, so nothing changed on screen |
-| New messages of this round (security fixes) | – | Translated: links must be https, not a real recording, Word file too large or damaged, developer tools off, requests from other websites, AI answer unreadable |
+| New messages of this round (security fixes) | - | Translated: links must be https, not a real recording, Word file too large or damaged, developer tools off, requests from other websites, AI answer unreadable |
 | The example texts, tooltips and screen-reader names of the **24 multi-line text boxes** (for example "Explain why you want to dispute this review…") | Always English: the language layer skipped these boxes completely, to protect what people type in them, and that also skipped their labels. Their translations existed but were never shown | Translated now; the box's contents are never touched ("Yes" typed in a box stays "Yes" in Bulgarian). Browser test: `signin-pages` › screen-reader names. (F-20, found on 28 October while doing V4) |
 | The language test missed texts containing ";" or "&amp;" | The old AutoQA subtitle slipped through this way | **Fixed:** the test now reads sentences that go on after a ";" and reads `&amp;` as "&". It found one more untranslated heading, "Coaching & training" (Agents page), now translated |
 
@@ -38,7 +38,7 @@ These had **two different translations** for the same English text. The one show
 
 | English | Bulgarian in use | Bulgarian removed | French in use | French removed |
 |---|---|---|---|---|
-| Yes, delete it | Да, изтрий я | Да, изтрий го | — | — |
+| Yes, delete it | Да, изтрий я | Да, изтрий го | - | - |
 | all time | за цялото време | за целия период | depuis le début | (same) |
 | Still to do | Остава за изпълнение | Остават | Reste à faire | (same) |
 | Required reading | Задължително четиво | Задължително четене | Lecture obligatoire | Lectures obligatoires |

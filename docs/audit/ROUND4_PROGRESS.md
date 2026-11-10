@@ -1,4 +1,4 @@
-# Round 4 – running log
+# Round 4 - running log
 
 Started 2026-10-28. Branch `q-smart-v1-audit`, made from `q-smart-v1` at `3440283` (2026-10-27 22:34, "Remove every company mention…").
 If this session stops, the next one continues from this file.
@@ -22,7 +22,7 @@ If this session stops, the next one continues from this file.
   `.claude/launch.json`: new entries `q-smart-round4` and `fake-ai`; `q-smart` and the old `q-smart-audit` untouched.
 - Checked before testing: the server writes only to `DATA_FILE`, `AUDIT_FILE`, `REC_DIR`, `BACKUPS_DIR` and the folder of `DATA_FILE`
   (`.qsmart-key`, `ai-usage.json`). "Reset data" runs `seed.js` with the same `DATA_FILE`; "Refresh seed.js" refuses on a copy (S-28).
-  `adduser.js` and `seed.js` run by hand would use the real file unless `DATA_FILE` is set – never run in this round.
+  `adduser.js` and `seed.js` run by hand would use the real file unless `DATA_FILE` is set - never run in this round.
 
 ## Git (§2)
 
@@ -81,7 +81,7 @@ If this session stops, the next one continues from this file.
 | 2. `npm.cmd run test:e2e`, three times in a row | **14 passed** each time (59.1 s, 58.9 s, 57.6 s) |
 | 3. `npm.cmd run lint` | 0 problems |
 | 4. `npm.cmd audit` | 2 moderate (`uuid` through `exceljs`, R-19), as before; nothing new |
-| 5. Speed on the large data, against the baseline | PERFORMANCE_AUDIT.md: the same seconds (the JSON file), 40–70 times smaller answers |
+| 5. Speed on the large data, against the baseline | PERFORMANCE_AUDIT.md: the same seconds (the JSON file), 40-70 times smaller answers |
 | 6. Every page × role × language in the browser | English: the browser tests (every role, every page). Bulgarian and French: every page of admin (68), QA (49), lead (45), trainer (44) and agent (25), with **0 blank pages and 0 errors** |
 | 7. The real files | **Unchanged** (same size and SHA-256 as at the start): `data.json` 4,557,295 B `67C759EF…`, `seed.js` 2,274,036 B `70AC11D1…`, `audit.json` 8,452 B `28F93FB5…`, `.qsmart-key` 64 B `044ECC8A…` |
 | 8. The whole change against `q-smart-v1` | 2,470 added lines read by a script: no secret, no personal data, no folder path of this computer, no leftover debugging. 85 new development packages, all from registry.npmjs.org with integrity hashes; one install script (`fsevents`, Mac only, never installed on Windows). No design change. |
@@ -127,4 +127,4 @@ If this session stops, the next one continues from this file.
 
 - Read this file, then `docs/audit/DECISIONS_FOR_YOU.md` (section V) for the questions waiting for Gabriela.
 - Start the copy with the launch entries `fake-ai` and `q-smart-round4` (ports 3298 and 3200).
-- Automate the BAU steps marked "—" in BAU_SCENARIOS.md.
+- Automate the BAU steps marked "-" in BAU_SCENARIOS.md.

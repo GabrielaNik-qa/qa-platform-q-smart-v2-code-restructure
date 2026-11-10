@@ -228,9 +228,9 @@ export function Reviews({ company }: { company: CompanyRef }) {
     type: (r) => t(`reviews.channels.${r.channel}`),
     date: (r) => <span className="whitespace-nowrap">{r.reviewedOn}</span>,
     agent: (r) => r.agentName,
-    team: (r) => r.teamName || '—',
+    team: (r) => r.teamName || '-',
     campaign: (r) => campaignOf(r),
-    reviewer: (r) => r.reviewerName || '—',
+    reviewer: (r) => r.reviewerName || '-',
     score: (r) =>
       r.notScored ? (
         <span className="text-mu" title={t('list.notScoredHelp')}>
@@ -246,7 +246,7 @@ export function Reviews({ company }: { company: CompanyRef }) {
       ),
     result: (r) =>
       r.notScored ? (
-        '—'
+        '-'
       ) : (
         <span className={passed(r) ? 'text-ok font-semibold' : 'text-bad font-semibold'}>
           {passed(r) ? t('reviews.passed') : t('reviews.failed')}
@@ -259,7 +259,7 @@ export function Reviews({ company }: { company: CompanyRef }) {
         </span>
       ) : (
         <span className="text-mu" title={t('list.flags.none')}>
-          —
+          -
         </span>
       ),
     status: (r) => (
@@ -275,7 +275,7 @@ export function Reviews({ company }: { company: CompanyRef }) {
       </span>
     ),
     scorecard: (r) => r.scorecardName,
-    subject: (r) => r.emailSubject || '—',
+    subject: (r) => r.emailSubject || '-',
   };
 
   return (

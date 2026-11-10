@@ -21,7 +21,7 @@ const pct1 = (v: number) => `${v.toFixed(1)}%`;
 
 /** today's ↗ 1.2 / ↘ 0.8 pill: the period's average against the period before */
 function TrendPill({ value }: { value: number | null }) {
-  if (value === null) return <small className="text-mu">—</small>;
+  if (value === null) return <small className="text-mu">-</small>;
   return (
     <span
       className={`rounded-full px-2 text-xs font-semibold whitespace-nowrap ${BAND_SOFT[value >= 0 ? 'ok' : 'bad']}`}
@@ -197,7 +197,7 @@ export function TeamReview({ company }: { company: CompanyRef }) {
         </div>
         <small className="text-mu">
           {t('team.cardLine', {
-            lead: x.leadName ?? '—',
+            lead: x.leadName ?? '-',
             count: rows.filter((r) => r.p.teamId === x.id).length,
             target: target(x.id),
           })}
@@ -210,12 +210,12 @@ export function TeamReview({ company }: { company: CompanyRef }) {
           <div className="rounded-s bg-pn2 p-2">
             <small className="block text-xs text-mu">{t('team.avgScore')}</small>
             <b className={`font-mono text-lg ${a === null ? 'text-mu' : BAND_TEXT[band(a, rates, x.id)]}`}>
-              {a === null ? '—' : pct1(a)}
+              {a === null ? '-' : pct1(a)}
             </b>
           </div>
           <div className="rounded-s bg-pn2 p-2">
             <small className="block text-xs text-mu">{t('team.passRate')}</small>
-            <b className="font-mono text-lg">{p === null ? '—' : pct1(p)}</b>
+            <b className="font-mono text-lg">{p === null ? '-' : pct1(p)}</b>
           </div>
         </div>
         {open && (
@@ -340,17 +340,17 @@ export function TeamReview({ company }: { company: CompanyRef }) {
               <i className="inline-block size-2.5 rounded-full" style={{ background: x.color }} aria-hidden="true" />
               {x.name}
             </span>,
-            x.leadName ?? '—',
+            x.leadName ?? '-',
             rows.filter((r) => r.p.teamId === x.id).length,
             l.length,
             a === null ? (
-              '—'
+              '-'
             ) : (
               <b key="a" className={`font-mono ${BAND_TEXT[band(a, rates, x.id)]}`}>
                 {pct1(a)}
               </b>
             ),
-            p === null ? '—' : pct1(p),
+            p === null ? '-' : pct1(p),
             <TrendPill key="tr" value={change(l, prev(x.id))} />,
             best ? (
               <span key="b">
@@ -358,7 +358,7 @@ export function TeamReview({ company }: { company: CompanyRef }) {
                 <small className="font-mono">{pct1(best.av)}</small>
               </span>
             ) : (
-              '—'
+              '-'
             ),
             worst ? (
               <span key="w">
@@ -463,13 +463,13 @@ export function TeamReview({ company }: { company: CompanyRef }) {
             {kpi(reviewsWord, everything.length, t('team.kpi.teams', { count: shownTeams.length }))}
             {kpi(
               t('team.kpi.average'),
-              aa === null ? '—' : pct1(aa),
+              aa === null ? '-' : pct1(aa),
               t('team.kpi.target', { value: passRateOf(rates, null) }),
               aa === null ? '' : BAND_TEXT[band(aa, rates, null)],
             )}
             {kpi(
               t('team.kpi.pass'),
-              ap === null ? '—' : pct1(ap),
+              ap === null ? '-' : pct1(ap),
               t('team.kpi.passed', { count: everything.filter((r) => isPass(r, rates)).length }),
               'text-ok',
             )}
@@ -529,11 +529,11 @@ export function TeamReview({ company }: { company: CompanyRef }) {
                         {pct1(r.av)}
                       </b>
                     ) : (
-                      '—'
+                      '-'
                     ),
-                    r.n ? `${r.pc.toFixed(0)}%` : '—',
+                    r.n ? `${r.pc.toFixed(0)}%` : '-',
                     <TrendPill key="tr" value={r.tr} />,
-                    r.red || '—',
+                    r.red || '-',
                     <div key="b" className="w-28">
                       <Bar value={r.av} tone={r.n ? tone : 'mu'} />
                     </div>,

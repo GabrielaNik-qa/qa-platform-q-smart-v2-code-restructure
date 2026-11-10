@@ -17,5 +17,6 @@
 - **Call recordings are never stored.** Only transcripts, which are deleted after the number of days the company chose.
 - **AI:** only AI plans marked `no-train-dpa`, for the demo and for clients alike (Gabriela's decision, 5 November). AI reviews count on their own, without a person checking each one. They are marked as AI, their accuracy against reviewers' scores is measured and shown, agents can dispute them (a person then decides), and pay, bonuses, warnings or dismissal never rest on AI reviews alone.
 - **Languages:** every text in English, Bulgarian and French.
+- **No long dashes:** never write the long dash (—) or the medium dash (–) in the app's texts, code, docs, commit messages or replies; use a short - or a colon : instead (Gabriela's decision, 10 November: long dashes make text look written by AI). A test checks the app's texts.
 - **Costs:** €0 until the first paying client. Ask before anything that costs money.
 - **No employer name:** the name of the company Gabriela works for never appears in the app, the sites or this repository (her boss's wish, 5 November). The brand is Q-smart, and demo companies are made up.

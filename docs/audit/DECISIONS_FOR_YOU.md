@@ -7,7 +7,7 @@ Nothing was merged into `main` and nothing was pushed.
 
 ## A. Things that need your OK (I did not do them)
 
-### A1. The side menu: separate panels with a "Back" button (your points 2 and 10) — ✅ BUILT after your yes
+### A1. The side menu: separate panels with a "Back" button (your points 2 and 10) - ✅ BUILT after your yes
 
 Built on 26 October as proposed. "Admin ›" reads **"Set-up ›"** for QA, team leads and trainers, because they only have the scorecard pages in it. The sections inside both panels fold and unfold like the main menu, and in the icons-only menu resting the mouse on an icon opens its list. The proposal was:
 
@@ -103,7 +103,7 @@ These come after SQLite, as your CLAUDE.md says. My recommendation is in **C4**.
 | 15 | The Administration team is hidden from analytics, filters and reviews. It is built in for every future company | Done (earlier) |
 | 16 | **Team Review**: ⌄ folds a team card to its key numbers (team lead, reviews, average, pass rate). The "All agents" table folds too. Views: Cards, Compact or Table | Done |
 | 17 | **Category Stats**: one modern tile per category. **Click a tile** to open a pop-up with:<br>• the score by team<br>• the items answered "No"<br>• the best agents and those who need support<br>• the lowest reviews<br>Mistakes and root causes open their own pop-ups too | Done |
-| — | Demo reviews of every type in seed.js and data.json (3 per agent, per type, per month). Free **tags** on scorecards, so any scorecard works for any conversation | Done (earlier) |
+| - | Demo reviews of every type in seed.js and data.json (3 per agent, per type, per month). Free **tags** on scorecards, so any scorecard works for any conversation | Done (earlier) |
 
 Every change was tested in the browser on a copy of your data, never on your real data.json. All automated tests pass (135).
 
@@ -184,14 +184,14 @@ See the proposal in **A1**.
 | Action | Haiku 5.5 | Sonnet 5.5 | Opus 5.5 |
 |---|---|---|---|
 | AI scoring of one 10-minute call transcript (about 4,000 tokens in, 1,500 out) | about $0.001 | about $0.02 | about $0.05 |
-| One typed role-play coaching exercise (about 20 turns plus final feedback) | under $0.01 | about $0.05–0.15 | about $0.15–0.30 |
+| One typed role-play coaching exercise (about 20 turns plus final feedback) | under $0.01 | about $0.05-0.15 | about $0.15-0.30 |
 
-So **testing 100 exercises with Sonnet costs about $5–15**. Set a monthly spending limit on the key in the Anthropic Console while testing. "Prompt caching" (re-using the unchanged start of each message) makes long exercises cheaper.
+So **testing 100 exercises with Sonnet costs about $5-15**. Set a monthly spending limit on the key in the Anthropic Console while testing. "Prompt caching" (re-using the unchanged start of each message) makes long exercises cheaper.
 
 **Voice.** Claude works with text. A spoken simulator needs speech-to-text plus a voice. These are third-party estimates, so check each pricing page before you buy:
-- **ElevenLabs voices:** about $0.04–0.10 per 1,000 characters, roughly $0.03–0.08 per minute of speech. A complete ElevenLabs voice agent is about $0.08 per minute, plus the AI model ([devtoollab](https://devtoollab.com/blog/elevenlabs-alternatives), [ModelsLab](https://modelslab.com/elevenlabs-api-pricing.md), [HappyRobot](https://www.happyrobot.ai/hub/elevenlabs-pricing), [getmacha](https://www.getmacha.com/blog/elevenlabs-agents-pricing-explained)).
-- **OpenAI Realtime voice:** about $32 / $64 per million audio tokens, roughly $0.06–0.11 per minute. The "mini" model is about $0.02–0.05 per minute ([Fora Soft](https://www.forasoft.com/article/openai-realtime-api-pricing), [eesel](https://www.eesel.ai/blog/gpt-realtime-mini-pricing)).
-- **Google Gemini Live voice:** about $3 / $12 per million audio tokens, roughly $0.02–0.03 per minute ([Fora Soft](https://www.forasoft.com/learn/ai-for-video-engineering/articles-ai/real-cost-of-ai-in-video-products-gemini-openai-pricing), [Bifrost calculator](https://www.getmaxim.ai/bifrost/llm-cost-calculator/provider/gemini/model/gemini-live-2.5-flash-preview-native-audio-09-2025)).
+- **ElevenLabs voices:** about $0.04-0.10 per 1,000 characters, roughly $0.03-0.08 per minute of speech. A complete ElevenLabs voice agent is about $0.08 per minute, plus the AI model ([devtoollab](https://devtoollab.com/blog/elevenlabs-alternatives), [ModelsLab](https://modelslab.com/elevenlabs-api-pricing.md), [HappyRobot](https://www.happyrobot.ai/hub/elevenlabs-pricing), [getmacha](https://www.getmacha.com/blog/elevenlabs-agents-pricing-explained)).
+- **OpenAI Realtime voice:** about $32 / $64 per million audio tokens, roughly $0.06-0.11 per minute. The "mini" model is about $0.02-0.05 per minute ([Fora Soft](https://www.forasoft.com/article/openai-realtime-api-pricing), [eesel](https://www.eesel.ai/blog/gpt-realtime-mini-pricing)).
+- **Google Gemini Live voice:** about $3 / $12 per million audio tokens, roughly $0.02-0.03 per minute ([Fora Soft](https://www.forasoft.com/learn/ai-for-video-engineering/articles-ai/real-cost-of-ai-in-video-products-gemini-openai-pricing), [Bifrost calculator](https://www.getmaxim.ai/bifrost/llm-cost-calculator/provider/gemini/model/gemini-live-2.5-flash-preview-native-audio-09-2025)).
 - **Free, for testing:**
   - The speech built into Chrome and Edge (the "Web Speech API"). It turns speech into text and reads text aloud, with no key and no cost; the quality is fine for tests.
   - Free open-source models you run yourself: **Whisper** turns speech into text; **Piper** or **Kokoro** read text aloud. You only pay for the computer that runs them.
@@ -205,7 +205,7 @@ So **testing 100 exercises with Sonnet costs about $5–15**. Set a monthly spen
 
 ## D. Suggested order of work
 
-1. **Now:** your answers to A1–A7, then merge into `main`.
+1. **Now:** your answers to A1-A7, then merge into `main`.
 2. **Before SQLite:**
    - the same Filters and Columns on the other tables
    - the Admin and Learning panels (if you say yes)
@@ -235,7 +235,7 @@ So **testing 100 exercises with Sonnet costs about $5–15**. Set a monthly spen
 | API keys and settings | Make sure they exist and nothing breaks | ✅ Admin › Integrations › **AI and voice**: Claude key, model, monthly budget with usage, "Test the connection", voice provider, ElevenLabs and OpenAI keys. Keys are stored encrypted and never shown again in full. Tested with a fake AI service: a wrong key, a busy service and an empty budget give clear messages, and nothing crashes |
 | A6 One database per company | Explain the steps; do it after the app set-up | See **G** below |
 
-## F. The new dashboard and the AI team — waiting for your yes
+## F. The new dashboard and the AI team - waiting for your yes
 
 The three pictures in the chat show:
 1. **Team pulse**, the new "Overall" dashboard, which answers three questions at a glance:
@@ -285,7 +285,7 @@ The three pictures in the chat show:
    4. AI trainer: quizzes (already possible with AI) and role-plays.
    5. Voice simulator: free browser voice first, ElevenLabs later.
 
-## G. One database per company — the steps (after you finish the app set-up)
+## G. One database per company - the steps (after you finish the app set-up)
 
 1. **Finish the set-up** with your own company, as now.
 2. **Move to SQLite.**
@@ -401,7 +401,7 @@ Where: **AutoQA › AI analyst** (admin, QA, team leads and trainers; agents nev
 **To decide (no rush):**
 1. Do you want the more natural ElevenLabs voices next? Each call would then cost a little.
 
-## L. Proposal: Workforce (like Zoho People) and Capacity planning (fair split) — 26 October, waiting for your yes
+## L. Proposal: Workforce (like Zoho People) and Capacity planning (fair split) - 26 October, waiting for your yes
 
 ### What I studied in the Zoho People help (the links you sent, 4.0 and 5.0)
 - **Employee handbook:**
@@ -426,7 +426,7 @@ Name, e-mail, role, team, title, languages, skills, phone, start date and team h
 
 ### What we take from Zoho, and what we leave out
 
-**Phase 1 — People and calendar (the base everything else needs)**
+**Phase 1 - People and calendar (the base everything else needs)**
 - **Employee record, new fields:**
   - employee ID
   - employment type (full time, part time, contract, intern)
@@ -449,7 +449,7 @@ Name, e-mail, role, team, title, languages, skills, phone, start date and team h
   - A **weekly rota per team** (a grid of people × days) with "copy last week".
   - Repeating patterns, for example two-week cycles or "4 on, 4 off".
 
-**Phase 2 — Attendance and time off**
+**Phase 2 - Attendance and time off**
 - **Check in / check out / break** button in the app. Telephony logins (Voiso, Ringover) can be imported later.
 - **The status is worked out by itself, every day:**
   - on time
@@ -478,7 +478,7 @@ Name, e-mail, role, team, title, languages, skills, phone, start date and team h
   - a warning when too many people of a team are off on the same day
   - an optional "sandwich rule" (whether weekends inside a leave count)
 
-**Phase 3 — Team today, with the AI touch**
+**Phase 3 - Team today, with the AI touch**
 - **"Team today" panel per team:**
   - planned and available now
   - on time, late, not checked in yet, on break, off and sick
@@ -497,9 +497,9 @@ Name, e-mail, role, team, title, languages, skills, phone, start date and team h
   - Bradford score
   - attendance by team
 
-**Phase 4 — Capacity planning (the fair split)**
+**Phase 4 - Capacity planning (the fair split)**
 - Import each month: campaign, brand, segment (0-30, 30-60 …, each company can name its own) and number of leads.
-- The agents and their working days come from phases 1–2 (rota, leave, part time).
+- The agents and their working days come from phases 1-2 (rota, leave, part time).
 - **The formula:** each agent gets the same share of **every** campaign, sized by the days and hours they can work.
   - Whole leads only. The leftover leads go to whoever is furthest below their fair total.
   - Result: everyone has the same mix of segments, and no agent is more than 1 lead away from their exact fair share.
@@ -724,7 +724,7 @@ Nobody is planned before their start date or after their last working day.
 **Please decide when you are ready**
 1. **Self-reviews:** your screenshot has a "Self-reviews" option. I left it out, because in Q-smart reviewers are never the agents being reviewed. Tell me if you want agents to review themselves one day.
 2. **"Category group performance"** from Zendesk became **"Scorecard performance"**, because we group categories by scorecard. Tell me if you want real category groups.
-3. **Review time and review date** exist only for reviews made from today. Older reviews show "—" for review time and use their conversation date. If you want, I can fill the review date of old reviews with their conversation date.
+3. **Review time and review date** exist only for reviews made from today. Older reviews show "-" for review time and use their conversation date. If you want, I can fill the review date of old reviews with their conversation date.
 4. **The order of the widgets** is fixed (numbers first, then charts, categories, people and lists). Tell me if you want a different order.
 
 **Good to know**
@@ -836,7 +836,7 @@ I looked at Kainami's One-to-One page, its "New One-to-One" form and its Form Te
   - Checklist: ticks, each with a note
   - Yes / No / N.A.
   - Objectives: with deadlines
-  - Rating: 1–5 stars, for the whole section or per item
+  - Rating: 1-5 stars, for the whole section or per item
   - Numbers: with label and unit
   - Table: your own columns and rows
   - Agreement: statements the agent agrees to by signing
@@ -858,7 +858,7 @@ I read Zendesk's help pages for their Assignments, Coaching, Surveys, Disputes, 
   - The page filters apply to all of them.
 - **Category Stats:** a new **Root causes** card: root causes chosen per week, and tables **by reviewer** and **by agent** (the 6 most used root causes).
 - **Calibration:**
-  - **Score the same reviews.** Every participant gives the reviews in the session a score (0–100) on their own, and sees the others' scores only after saving their own; the owner and admins always see everything, and everybody does once the session is closed.
+  - **Score the same reviews.** Every participant gives the reviews in the session a score (0-100) on their own, and sees the others' scores only after saving their own; the owner and admins always see everything, and everybody does once the session is closed.
   - The **reference** is the review's own score; the owner can make one participant's score the reference instead.
   - Every score shows its difference from the reference, and a table shows each person's average difference (Aligned, Close, Calibrate).
   - Participants can now also add reviews to the session.
@@ -916,7 +916,7 @@ This branch starts at commit bfb48ed (everything above). I read every page of Mo
 
 All 167 automatic tests pass (one new: organization settings, automatic deletion, a person's data). Translated into Bulgarian and French.
 
-## V. Round 4 audit (28 October) — decisions waiting for you
+## V. Round 4 audit (28 October) - decisions waiting for you
 
 Everything below is on the branch `q-smart-v1-audit`. Nothing is merged or pushed. Recommended choice first.
 
@@ -929,7 +929,7 @@ Everything below is on the branch `q-smart-v1-audit`. Nothing is merged or pushe
 1. **(recommended now)** When you host the app, start it with the setting `TZ=Europe/Sofia`. One line in the hosting set-up, no code change.
 2. Later, with the move to separate companies: each company's time zone from Admin › Organization › Company is used in the calculations.
 
-### V2. Agents on phones — ✅ DONE (28 October, your answer)
+### V2. Agents on phones - ✅ DONE (28 October, your answer)
 **Your answer:** keep the pages for computers and tablets; on a phone, show a screen that asks people to use the Q-SMART mobile app, which you will build later. The screen now says "Use the Q-SMART mobile app … The mobile app is coming soon", in all three languages. A tablet in landscape mode still shows the pages.
 
 The question as it was asked:
@@ -937,7 +937,7 @@ The question as it was asked:
 - **(recommended)** Keep it as it is for now, and later make only the agent pages work on phones: Attendance (check in / out), Time off, Reviews and Tasks. That is a design change, so it waits for your yes.
 - Or make every page work on phones (a much bigger change).
 
-### V3. Google Fonts served by the app itself (R-24) — ✅ DONE (28 October, your yes)
+### V3. Google Fonts served by the app itself (R-24) - ✅ DONE (28 October, your yes)
 **What was done:**
 - The 66 font files (the same families, weights and character sets) and the 5 licences are in `public/fonts`.
 - The pages no longer contact Google, and the security policy now allows fonts from the app only.
@@ -949,7 +949,7 @@ Today every visitor's browser asks Google for the fonts, so Google sees each vis
 - **(recommended)** I download the font files once (Barlow, Barlow Condensed, Fira Sans, Fira Sans Extra Condensed, JetBrains Mono; all free to use under the SIL Open Font License) into `public/fonts`. The look stays the same, and the policy then blocks Google Fonts.
 - Or keep Google Fonts.
 
-### V4. Example texts that look like real companies — ✅ DONE (28 October, your yes)
+### V4. Example texts that look like real companies - ✅ DONE (28 October, your yes)
 **What was done:**
 - **Admin › Integrations:** the CRM example is `https://crm.example.com/leads/{id}`, the recording example `https://recordings.example.com/calls?search={id}`, and the Voiso example `https://yourcompany.voiso.com`.
 - **Business words:** "Competitors | brand A, brand B, another site" and "AcmeBank | Acme Bank, Akme Bank, Acme Bang", with their Bulgarian and French.
@@ -963,7 +963,7 @@ Two places show real-looking company examples:
 - **(recommended)** Replace them with neutral examples (`https://crm.example.com/leads/{id}`, "Competitors | brand A, brand B"), like the earlier clean-up.
 - Or keep them.
 
-### V5. Translations to check — ✅ DONE (28 October, your answers)
+### V5. Translations to check - ✅ DONE (28 October, your answers)
 **Now in use:**
 - "Yes, delete it": **Да, изтрий**. It fits both "го" and "я", so one text works everywhere.
 - "all time": **за целия период**, and in French **pour toute la période** (your "pour le péridot entier", with the spelling fixed).
@@ -983,7 +983,7 @@ E-mails (welcome, password reset, reminders, reports) are always in English, eve
 - **(recommended)** Translate the e-mail templates and send each e-mail in the language of the person who receives it.
 - Or keep English.
 
-### V7. Excel dates — ✅ DONE (28 October, your answer: exports always in English)
+### V7. Excel dates - ✅ DONE (28 October, your answer: exports always in English)
 Excel exports are now always in English, whatever the screen language: the column titles, the values (Red Flag, Completed, Yes / No) and the US date format. Until now, the Reviews export translated its titles. Note: "Copy for Excel" copies the table as it is on the screen, so in Bulgarian it copies Bulgarian titles.
 
 The question as it was asked:
@@ -1048,7 +1048,7 @@ Details in `REMAINING_ISSUES.md`.
 |---|---|---|---|
 | 1 | Merge `q-smart-v1-audit` into `q-smart-v1` | **No** (not now) | Everything stays on `q-smart-v1-audit` |
 | 2 | Database | **Firebase** (free of charge) | CLAUDE.md corrected (it still said SQLite) |
-| 3 | Rename the GitHub repository | **Leave it** | — |
+| 3 | Rename the GitHub repository | **Leave it** | - |
 | 4 | Payments | ~~Paddle~~ → **Stripe** (changed on 4 November) | Built: Admin › Billing (see "Stripe" below) |
 | 5 | Single sign-on, automatic users, password rules | ~~With Firebase, not before~~ → **Google and Microsoft sign-in now** (changed on 4 November) | When the two app registrations are given, and a sign-in design is chosen |
 | 6 | E-mail sending | **Brevo** (answer of 3 November) | Ready: see "E-mails with Brevo" below |

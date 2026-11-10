@@ -118,7 +118,7 @@ export const isPass = (review: StatReview, rates: PassRates | null): boolean =>
 
 export const averageScore = (reviews: StatReview[]): number | null => average(reviews.map((r) => r.score ?? 0));
 
-/** The share (0–100) of reviews that match, or null when there are none. */
+/** The share (0-100) of reviews that match, or null when there are none. */
 export const share = <T>(list: T[], test: (item: T) => boolean): number | null =>
   list.length ? (list.filter(test).length / list.length) * 100 : null;
 
@@ -257,12 +257,12 @@ export function calendarWindow(
   return shift ? null : [-Infinity, Infinity];
 }
 
-/** One column of the Agents page's score chart: a day, a week of the month (1–7, 8–14, 15–21, 22 to the end), a week, or a month. */
+/** One column of the Agents page's score chart: a day, a week of the month (1-7, 8-14, 15-21, 22 to the end), a week, or a month. */
 export interface Bucket {
   from: number;
   to: number;
   unit: 'day' | 'monthWeek' | 'week' | 'month';
-  /** 1–4 for the weeks of a month */
+  /** 1-4 for the weeks of a month */
   week?: number;
 }
 

@@ -327,7 +327,7 @@ export function Board({
   };
   const percent = (v: number | null) =>
     v === null ? (
-      '—'
+      '-'
     ) : (
       <>
         {v.toFixed(1)}
@@ -335,7 +335,7 @@ export function Board({
       </>
     );
   const duration = (s: number | null) =>
-    s === null ? '—' : `${Math.floor(s / 60)}m ${String(Math.round(s % 60)).padStart(2, '0')}s`;
+    s === null ? '-' : `${Math.floor(s / 60)}m ${String(Math.round(s % 60)).padStart(2, '0')}s`;
   const avgOf = (l: ReviewRow[]) => averageScore(l);
   const passOf = (l: ReviewRow[]) => share(l, (r) => isPass(r, rates));
   const n = ctx.d.length;
@@ -414,7 +414,7 @@ export function Board({
       case 'kpi_avg':
         return tile(
           id,
-          n ? percent(average) : '—',
+          n ? percent(average) : '-',
           changeOf(avgOf, 1),
           goReviews,
           n ? ((average ?? 0) >= ctx.target ? 'ok' : 'bad') : '',

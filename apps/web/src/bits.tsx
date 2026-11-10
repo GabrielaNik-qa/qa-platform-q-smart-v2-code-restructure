@@ -35,7 +35,7 @@ export function ScorePill({ value, rates, teamId }: { value: number; rates: Pass
 }
 /** A value against the target, as today's tinted cell (green at the target or above, red below). */
 export function Versus({ value, target }: { value: number | null; target: number }) {
-  if (value === null) return <span className="text-mu">—</span>;
+  if (value === null) return <span className="text-mu">-</span>;
   return (
     <span
       className={`inline-block min-w-16 rounded-[6px] px-2 py-0.5 text-right font-mono tabular-nums ${value >= target ? 'bg-ok/12' : 'bg-bad/12'}`}

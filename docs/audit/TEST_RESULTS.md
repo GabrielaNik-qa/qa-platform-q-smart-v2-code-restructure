@@ -1,4 +1,4 @@
-# Q-SMART – Test results
+# Q-SMART - Test results
 
 Audit dates: 2026-10-24 (round 1 and round 2, maximum depth) · Branch: `q-smart-full-audit`
 
@@ -168,7 +168,7 @@ The tests of **S-29, S-30, S-31 and S-37 were seen failing before their fixes** 
 | The new Content-Security-Policy on every page | 0 violations |
 | The Bulgarian walk with `?i18n=debug` | 932 entries before the fixes (307 that look like the interface, 258 of them screen-reader names); after the fixes, 46, all of them data people typed |
 | Accessibility scan (controls without a name) | 2 pages; one real gap fixed (the Business words boxes) |
-| Colour contrast | Buttons: dark text on orange 6.3–6.6:1 ✓. Body text 16.7–17.4:1 ✓. Orange and yellow text appear on dark backgrounds only ✓ |
+| Colour contrast | Buttons: dark text on orange 6.3-6.6:1 ✓. Body text 16.7-17.4:1 ✓. Orange and yellow text appear on dark backgrounds only ✓ |
 | Phone width (375 px) | "Your screen is too narrow" (by design) |
 
 ### Final check (§18)

@@ -26,7 +26,7 @@
   --ring: rgb(255 107 0 / 0.28);
   --sh-2: 0 6px 18px rgb(23 23 23 / 0.1);
   /* the charts (Phase 3): the eight category colours, in this fixed order, checked for colour blindness on this
-     surface (light and dark each its own steps); the line of the average score as today; "hot" = a low score (50–69) */
+     surface (light and dark each its own steps); the line of the average score as today; "hot" = a low score (50-69) */
   --series-1: #2a78d6;
   --series-2: #eb6834;
   --series-3: #1baf7a;

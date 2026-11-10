@@ -25,7 +25,7 @@ const LOCALES: Record<Language, string> = { en: 'en-GB', bg: 'bg-BG', fr: 'fr-FR
 export const when = (at: string, lang: Language) =>
   new Intl.DateTimeFormat(LOCALES[lang], { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(at));
 const isRole = (value: string | null | undefined): value is Role => ROLES.includes(value as Role);
-const roleName = (value: string | null | undefined, lang: Language) => (isRole(value) ? ROLE_LABELS[lang][value] : '—');
+const roleName = (value: string | null | undefined, lang: Language) => (isRole(value) ? ROLE_LABELS[lang][value] : '-');
 
 /** The entry as a sentence in the person's language (roles and "skill"/"language" translated too). */
 export function describe(entry: Entry, t: TFunction, lang: Language): string {
@@ -160,7 +160,7 @@ export function Activity({ kind, company }: { kind: ActivityKind; company: Compa
                     <td className="py-2 pr-3 font-semibold">{e.actorName || t('activity.owner')}</td>
                     {kind === 'all' && <td className="py-2 pr-3">{roleName(e.actorRole, lang)}</td>}
                     <td className="py-2 pr-3">{describe(e, t, lang)}</td>
-                    {kind === 'signins' && <td className="py-2 pr-3 font-mono text-xs">{e.ip ?? '—'}</td>}
+                    {kind === 'signins' && <td className="py-2 pr-3 font-mono text-xs">{e.ip ?? '-'}</td>}
                   </tr>
                 ))}
               </tbody>

@@ -571,7 +571,7 @@ export function QAEntry({
                 live && !live.notScored ? (passes(live.score, passRate) ? 'text-ok' : 'text-bad') : ''
               }`}
             >
-              {live?.notScored ? '—' : `${live?.score ?? 0}%`}
+              {live?.notScored ? '-' : `${live?.score ?? 0}%`}
             </div>
             {live && !live.notScored && (
               <div className="text-sm font-semibold">

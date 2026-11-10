@@ -1,4 +1,4 @@
-# Q-SMART – Remaining issues
+# Q-SMART - Remaining issues
 
 Audit dates: 2026-10-24 (round 1 and round 2) · Ordered by severity. "Block launch" means a launch as a commercial product for several customer companies.
 None of these block today's use as a personal portfolio project with test data. (R-12 from round 1 was fixed in round 2, see S-26.)
@@ -156,10 +156,10 @@ None of these block today's use as a personal portfolio project with test data. 
 ### R-26 · Developer tools in a SaaS version
 "Reset to the seed data" (`POST /api/demo/reset`) and "Refresh seed.js" (`POST /api/seed/refresh`) are useful while building, but a customer's admin must never reset the whole database or write a file in the app folder. Before selling, switch them off in production (an environment setting), or keep them only for the platform owner.
 
-### R-27 · Same Filters / Columns on the other tables — done
+### R-27 · Same Filters / Columns on the other tables - done
 The kit is ready (`public/js/tablekit.js`); only the Reviews table uses it so far. Waiting for the go-ahead (DECISIONS_FOR_YOU.md, A4).
 
-### R-28 · Sidebar panels (Admin, Learning, Back) — done
+### R-28 · Sidebar panels (Admin, Learning, Back) - done
 Built after Gabriela's yes (DECISIONS_FOR_YOU.md, A1), with foldable panel sections and hover-to-open in the icons-only menu.
 
 ## Round 4 (28 October 2026)
@@ -172,12 +172,12 @@ Built after Gabriela's yes (DECISIONS_FOR_YOU.md, A1), with foldable panel secti
 |---|---|---|
 | R-1 No tenants | **Open** (launch blocker) | Unchanged in the code. |
 | R-2 Default password `password` | **Open** (launch blocker, your decision) | `DEFAULT_PASSWORD` unchanged. |
-| R-3 JSON file database | **Open** (launch blocker), measured again | PERFORMANCE_AUDIT.md. At one year of 500 agents (449 MB): every request takes 2–5 s and a save 6–9 s. The file is close to Node's limit of 536,870,888 characters, so a slightly bigger organisation could not save at all. |
+| R-3 JSON file database | **Open** (launch blocker), measured again | PERFORMANCE_AUDIT.md. At one year of 500 agents (449 MB): every request takes 2-5 s and a save 6-9 s. The file is close to Node's limit of 536,870,888 characters, so a slightly bigger organisation could not save at all. |
 | R-4 Sessions in memory | **Open** (with R-3) | Unchanged. |
 | R-5 Real data in `seed.js` | **Open** | The password hashes are still there (secret scan, 6 commits of `seed.js`). One registration still has a real-looking personal e-mail address. |
 | R-6 Workspace rules | **Partly fixed** | Q-Intelligence and the AI trainer now follow workspaces (S-29, S-30). Still organisation-wide: knowledge files and knowledge base, quizzes, newsletters, scenarios, goals, improvement plans, recognition, risks, complaints, surveys, calibrations, task templates, and the Administration team's rota and attendance. |
 | R-7 No CSP / HSTS | **Partly fixed** | A CSP and a Permissions-Policy on every answer, 0 violations on every page. Still needs `'unsafe-inline'` (989 inline handlers). HSTS belongs to the tunnel. |
-| R-8 Password rules, no MFA | **Open** (your decision) | The sign-in rules of Admin › Organization allow 8–32 characters. |
+| R-8 Password rules, no MFA | **Open** (your decision) | The sign-in rules of Admin › Organization allow 8-32 characters. |
 | R-9 Retention, deletion, personal data | **Mostly fixed** | Retention and purge (27 October). The personal data download is now complete (F-14), and e-mails are never printed on a production server (S-38). Still open: the audit log keeps IP addresses; recordings and backups are not encrypted. |
 | R-10 Scoring rules | **Open** (business rule, kept as is) | `scorecard-rules.test.js`: CURRENT BEHAVIOUR tests. |
 | R-11 Quiz answers and retakes | **Open** (business rule) | Unchanged. |
@@ -195,29 +195,29 @@ Built after Gabriela's yes (DECISIONS_FOR_YOU.md, A1), with foldable panel secti
 | R-24 Google Fonts | **Fixed** (your yes, V3) | The fonts are served from `public/fonts`; the CSP allows fonts from the app only (`font-src 'self'`). `fonts.test.js` and the browser tests fail if a page asks another site for anything. |
 | R-25 Password in the audit log | **Fixed** (S-32) | `pentest-round4b.test.js` › R-25. |
 | R-26 Developer tools in a SaaS version | **Fixed for production** (S-38) | Off with `NODE_ENV=production` unless `DEV_TOOLS=1`. On this computer unchanged. |
-| R-27, R-28 | Done (round 3) | — |
-| S-1 to S-28 (rounds 1–3) | **Still fixed** | Their tests in `security.test.js`, `workflows-more.test.js` and `role-matrix.test.js` all pass (209 tests). S-28: the role matrix now also checks that `audit.json` and `.qsmart-key` stay untouched. |
-| F-1 to F-13 (rounds 1–3) | **Still fixed** | Their tests pass. F-12 (two page scripts with the same top-level name) now has its own test, `shared-names.test.js`, and ESLint. |
+| R-27, R-28 | Done (round 3) | - |
+| S-1 to S-28 (rounds 1-3) | **Still fixed** | Their tests in `security.test.js`, `workflows-more.test.js` and `role-matrix.test.js` all pass (209 tests). S-28: the role matrix now also checks that `audit.json` and `.qsmart-key` stay untouched. |
+| F-1 to F-13 (rounds 1-3) | **Still fixed** | Their tests pass. F-12 (two page scripts with the same top-level name) now has its own test, `shared-names.test.js`, and ESLint. |
 
 ### New in round 4
 
 | ID | Severity | Status | Blocks launch? |
 |---|---|---|---|
-| S-29 to S-38 | Medium / Low | **Fixed** (SECURITY_AUDIT.md, round 4) | – |
-| F-14 Personal data download incomplete | Medium (privacy) | **Fixed** | – |
-| F-15 Server messages and screen-reader names not translated (96 + 258) | Medium (localization) | **Fixed** | – |
+| S-29 to S-38 | Medium / Low | **Fixed** (SECURITY_AUDIT.md, round 4) | - |
+| F-14 Personal data download incomplete | Medium (privacy) | **Fixed** | - |
+| F-15 Server messages and screen-reader names not translated (96 + 258) | Medium (localization) | **Fixed** | - |
 | F-16 Workforce dates follow the server's time zone | **High for hosting** | **Open**: your decision (V1) | **Yes**, if the server is not set to Sofia time |
 | F-17 Phones show "screen too narrow" | Medium (product) | **Open**: by design, your decision (V2) | No (decide before selling to agents on phones) |
-| F-18 The role-matrix test skipped about 30 routes | Medium (test gap) | **Fixed** | – |
+| F-18 The role-matrix test skipped about 30 routes | Medium (test gap) | **Fixed** | - |
 | F-19 Saves take ~0.3 s on this computer because of the virus scanner | Low | **Open**: information (V11) | No |
-| F-20 The example texts and screen-reader names of the 24 multi-line text boxes stayed English in Bulgarian and French | Medium (localization, accessibility) | **Fixed** (found while doing V4) | – |
+| F-20 The example texts and screen-reader names of the 24 multi-line text boxes stayed English in Bulgarian and French | Medium (localization, accessibility) | **Fixed** (found while doing V4) | - |
 
 #### F-16 · Dates follow the time zone of the server
 - **Evidence:** the same code run with three time zones (round 4):
   - `Europe/Sofia`: a 09:00 shift = 07:00 UTC, and 23:30 UTC on 31 December is already 1 January.
   - `UTC`: 09:00 = 09:00 UTC (11:00 in Sofia), and the year changes 2 hours later.
   - `America/New_York`: 09:00 = 13:00 UTC.
-- **Impact on a hosted server in UTC:** lateness, absences, "today", the morning brief time and the leave year are all shifted by 2–3 hours.
+- **Impact on a hosted server in UTC:** lateness, absences, "today", the morning brief time and the leave year are all shifted by 2-3 hours.
 - **Next step:** `TZ=Europe/Sofia` in the hosting set-up now; the company's time zone in the calculations with tenants.
 
 #### F-17 · Phones

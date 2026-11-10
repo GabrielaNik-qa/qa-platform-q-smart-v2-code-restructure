@@ -1,4 +1,4 @@
-# Q-SMART – Functional audit
+# Q-SMART - Functional audit
 
 Audit dates: 2026-10-24 (round 1 and round 2, maximum depth) · Branch: `q-smart-full-audit`
 
@@ -71,7 +71,7 @@ Rules confirmed by tests:
   - A review passes when its score is **equal to or above** the pass mark.
   - The pass mark is the team's own value if it has one, otherwise the global value.
 - **Custom periods** include their first and last day completely and nothing outside.
-- **An empty period** shows "—", not 0%.
+- **An empty period** shows "-", not 0%.
 
 ## Defects found and fixed
 
@@ -188,7 +188,7 @@ Security fixes S-1 to S-27 are in SECURITY_AUDIT.md.
 
 | Case | Expected (by hand) | Result |
 |---|---|---|
-| Time off 30 Dec 2026 (Wed) – 4 Jan 2027 (Mon): 30 and 31 Dec working, 1 Jan New Year, 2–3 Jan weekend, 4 Jan working | 3 days: 2 in 2026, 1 in 2027 | 3 (2 + 1) ✓ |
+| Time off 30 Dec 2026 (Wed) - 4 Jan 2027 (Mon): 30 and 31 Dec working, 1 Jan New Year, 2-3 Jan weekend, 4 Jan working | 3 days: 2 in 2026, 1 in 2027 | 3 (2 + 1) ✓ |
 | A half day on 31 December | 0.5 | 0.5 ✓ |
 | February 2028 / 2027 / 2100 | 29 / 28 / 28 days | ✓ |
 | The nights the clocks change (25 Oct and 29 Mar 2026) | no day skipped or repeated | ✓ |

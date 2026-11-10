@@ -1,11 +1,11 @@
-# Q-SMART – SaaS readiness
+# Q-SMART - SaaS readiness
 
-Audit date: 2026-10-24 (rounds 1 and 2) · Target: contact centres with 50–500 agents, several independent customer companies
+Audit date: 2026-10-24 (rounds 1 and 2) · Target: contact centres with 50-500 agents, several independent customer companies
 
 **Verdict: not ready for paying customers yet.** The app works well for one organisation on one computer.
 Selling it to independent companies needs the four blockers below fixed first. All of them are architecture work, not bug fixes.
 
-## 1. Multi-tenancy (separate customer companies) – BLOCKER
+## 1. Multi-tenancy (separate customer companies) - BLOCKER
 
 - **Today:** there is one organisation per server. There is no company or "tenant" concept anywhere in the data, the routes or the sign-in.
   - **Workspaces** split teams *inside* one company, and admins always see all of them.
@@ -49,7 +49,7 @@ The app processes **employee performance data**: scores, disputes, improvement p
 
 This list is a technical view only. It is **not** legal advice and does not prove GDPR compliance.
 
-## 4. Deployment and infrastructure – BLOCKER (database)
+## 4. Deployment and infrastructure - BLOCKER (database)
 
 | Item | Today | Needed |
 |---|---|---|
@@ -142,8 +142,8 @@ Not implemented: no plans, seat counts, billing or usage limits. No payment prov
   - `npm.cmd run test:e2e`: 14 browser tests.
   - `npm.cmd run lint`.
 - **Measured at the target size** (PERFORMANCE_AUDIT.md), one year of 500 agents (449 MB):
-  - 2–5 s per request
-  - 6–9 s per save
+  - 2-5 s per request
+  - 6-9 s per save
   - up to 2.5 min when 20 people save at once
   - the file is close to the largest text Node.js can build
 

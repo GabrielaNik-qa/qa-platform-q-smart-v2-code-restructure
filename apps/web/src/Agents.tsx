@@ -199,7 +199,7 @@ export function Agents({ company }: { company: CompanyRef }) {
     if (period === 'month') return `${month(a)} ${new Date(a).getFullYear()}`;
     if (period === 'quarter') return `${quarter(a)} ${new Date(a).getFullYear()}`;
     if (period === 'year') return String(new Date(a).getFullYear());
-    if (period === 'custom' && Number.isFinite(a)) return `${date(a)} – ${date(b - DAY)}`;
+    if (period === 'custom' && Number.isFinite(a)) return `${date(a)} - ${date(b - DAY)}`;
     return t('agents.allTime');
   })();
   const prevLabel = (() => {
@@ -295,10 +295,10 @@ export function Agents({ company }: { company: CompanyRef }) {
       `<!doctype html><meta charset=utf-8><title>${esc(t('agents.report.title', { name: u.name }))}</title>` +
       '<style>body{font:14px/1.5 system-ui,sans-serif;max-width:780px;margin:30px auto;color:#0f1b2d;padding:0 20px}h1{margin:0}h2{margin:26px 0 8px;font-size:16px;border-bottom:1px solid #e3e8ef;padding-bottom:4px}.k{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.k div{border:1px solid #e3e8ef;border-radius:10px;padding:10px}.k b{display:block;font-size:22px}table{width:100%;border-collapse:collapse}td,th{text-align:left;padding:5px 6px;border-bottom:1px solid #e3e8ef}small{color:#5f6f86}</style>' +
       `<h1>${esc(u.name)}</h1><small>${esc(u.teamName ?? '')} · ${esc(label)} · ${esc(t('agents.report.created', { date: new Date().toLocaleString(locale) }))}</small>` +
-      `<h2>${esc(t('agents.report.summary'))}</h2><div class=k><div><small>${esc(t('agents.report.average'))}</small><b>${a !== null ? `${Math.round(a)}%` : '—'}</b></div><div><small>${esc(t('agents.report.pass'))}</small><b>${pc !== null ? `${Math.round(pc)}%` : '—'}</b></div><div><small>${esc(t('agents.report.reviews'))}</small><b>${n}</b></div><div><small>${esc(t('agents.report.flags'))}</small><b>${red} / ${green}</b></div></div>` +
+      `<h2>${esc(t('agents.report.summary'))}</h2><div class=k><div><small>${esc(t('agents.report.average'))}</small><b>${a !== null ? `${Math.round(a)}%` : '-'}</b></div><div><small>${esc(t('agents.report.pass'))}</small><b>${pc !== null ? `${Math.round(pc)}%` : '-'}</b></div><div><small>${esc(t('agents.report.reviews'))}</small><b>${n}</b></div><div><small>${esc(t('agents.report.flags'))}</small><b>${red} / ${green}</b></div></div>` +
       `<h2>${esc(t('agents.report.strengths'))}</h2><ul>${strong.map(li).join('') || `<li>${esc(t('agents.report.noData'))}</li>`}</ul>` +
       `<h2>${esc(t('agents.report.focus'))}</h2><ul>${weak.map(li).join('') || `<li>${esc(t('agents.report.allAbove'))}</li>`}</ul>` +
-      `<h2>${esc(t('agents.report.categories'))}</h2><table><tr><th>${esc(t('agents.report.category'))}</th><th>${esc(t('agents.report.agent'))}</th><th>${esc(t('agents.report.team'))}</th></tr>${sorted.map((r) => `<tr><td>${esc(r.name)}</td><td>${Math.round(r.a)}%</td><td>${r.t === null ? '—' : `${Math.round(r.t)}%`}</td></tr>`).join('')}</table>` +
+      `<h2>${esc(t('agents.report.categories'))}</h2><table><tr><th>${esc(t('agents.report.category'))}</th><th>${esc(t('agents.report.agent'))}</th><th>${esc(t('agents.report.team'))}</th></tr>${sorted.map((r) => `<tr><td>${esc(r.name)}</td><td>${Math.round(r.a)}%</td><td>${r.t === null ? '-' : `${Math.round(r.t)}%`}</td></tr>`).join('')}</table>` +
       `<h2>${esc(t('agents.report.disputesTitle'))}</h2><p>${esc(t('agents.report.disputes', { count: disputed.length }))}</p>` +
       `<h2>${esc(t('agents.report.recent'))}</h2><table><tr><th>${esc(t('agents.report.lead'))}</th><th>${esc(t('agents.report.date'))}</th><th>${esc(t('agents.report.score'))}</th></tr>${recent.map((r) => `<tr><td>${esc(r.leadId)}</td><td>${esc(r.reviewedOn)}</td><td>${r.score ?? 0}%</td></tr>`).join('')}</table>` +
       `<p><small>${esc(t('agents.report.note'))}</small></p>`;
@@ -556,16 +556,16 @@ export function Agents({ company }: { company: CompanyRef }) {
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
       {kpi(
         t('agents.kpi.avg'),
-        a !== null ? `${Math.round(a)}%` : '—',
+        a !== null ? `${Math.round(a)}%` : '-',
         a !== null ? colourOf(a) : '',
         label,
         a !== null && pa !== null ? delta(a - pa, t('agents.pts')) : null,
       )}
       {kpi(
         t('agents.kpi.teamAvg'),
-        teamAvg !== null ? `${Math.round(teamAvg)}%` : '—',
+        teamAvg !== null ? `${Math.round(teamAvg)}%` : '-',
         '',
-        u.teamName ?? '—',
+        u.teamName ?? '-',
         diff === null ? (
           agentView && serverTeam && serverTeam.average === null ? (
             <small className="text-xs text-mu">{t('agents.kpi.teamFew')}</small>
@@ -582,7 +582,7 @@ export function Agents({ company }: { company: CompanyRef }) {
       )}
       {kpi(
         t('agents.kpi.pass'),
-        pc !== null ? `${Math.round(pc)}%` : '—',
+        pc !== null ? `${Math.round(pc)}%` : '-',
         pc !== null ? colourOf(pc) : '',
         t('agents.kpi.passedFailed', { passed, failed: n - passed }),
         pc !== null && pp !== null ? delta(pc - pp, '%') : null,
@@ -768,7 +768,7 @@ function Performance({
                     {t('agents.perf.agent')}: <b className="font-mono">{Math.round(r.a)}%</b>
                   </small>
                   <small>
-                    {t('agents.perf.team')}: <b className="font-mono">{r.t === null ? '—' : `${Math.round(r.t)}%`}</b>
+                    {t('agents.perf.team')}: <b className="font-mono">{r.t === null ? '-' : `${Math.round(r.t)}%`}</b>
                   </small>
                   {d !== null && (
                     <span className={`rounded-full px-2 text-xs font-semibold ${BAND_SOFT[d >= 0 ? 'ok' : 'bad']}`}>
@@ -851,7 +851,7 @@ function ReviewsTab(props: {
       ? new Date(b.from).toLocaleString(locale, { month: 'long', year: 'numeric' })
       : b.unit === 'day'
         ? new Date(b.from).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' })
-        : `${dm(b.from)} – ${dm(b.to - DAY)}`;
+        : `${dm(b.from)} - ${dm(b.to - DAY)}`;
   const columns: ScoreColumn[] = buckets.map((b) => ({
     key: String(b.from),
     label:
@@ -1030,7 +1030,7 @@ function ReviewsTab(props: {
                       ⚑
                     </span>
                   ) : (
-                    <span className="text-mu">—</span>
+                    <span className="text-mu">-</span>
                   )}
                 </td>
                 <td className="py-2 pr-3">

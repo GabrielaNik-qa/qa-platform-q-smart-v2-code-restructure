@@ -1,4 +1,4 @@
-# Q-SMART – Business-as-usual routines
+# Q-SMART - Business-as-usual routines
 
 Round 4 · 28 October 2026 · Branch `q-smart-v1-audit`. Made-up people only (`test/fixture-round4.js` or the seed copy on port 3200).
 
@@ -10,7 +10,7 @@ Each step says how it was checked:
 
 **Honest summary:** the routines below were **not** all clicked through by hand from start to finish in the browser. The main steps of each routine are covered by browser or API tests that check the results. The steps marked "Page only" or "Not run" are the next ones to automate.
 
-## Agent – a normal day
+## Agent - a normal day
 
 | # | Step | Expected | How it was checked | Result |
 |---|---|---|---|---|
@@ -28,7 +28,7 @@ Each step says how it was checked:
 | 12 | Check out | "Out" shows the time | Browser (`workflows` › attendance) | PASS |
 | 13 | Sign out | Back to the sign-in screen | Browser (`signin-pages` › language) | PASS |
 
-## Team lead – the morning
+## Team lead - the morning
 
 | # | Step | Expected | How it was checked | Result |
 |---|---|---|---|---|
@@ -43,19 +43,19 @@ Each step says how it was checked:
 | 9 | Set a goal | The goal is saved; the agent is told; only that agent (and the team, for a team goal) sees it | API (`workflows-round4.test.js` › goals) | PASS |
 | 10 | Recognition (kudos) | Saved as the lead; the person is told | API (`pentest-round4b.test.js`) | PASS |
 
-## QA specialist – a review day
+## QA specialist - a review day
 
 | # | Step | Expected | How it was checked | Result |
 |---|---|---|---|---|
 | 1 | Review planner, QA workload | The pages open | Page only | PASS (opens) |
-| 2 | QA Entry on a call, a chat and an e-mail | Saved with the right score | API (`workflows-more.test.js` scores; the browser test saves a call). Chat and e-mail: Page only in round 4 | PASS / — |
+| 2 | QA Entry on a call, a chat and an e-mail | Saved with the right score | API (`workflows-more.test.js` scores; the browser test saves a call). Chat and e-mail: Page only in round 4 | PASS / - |
 | 3 | Upload a recording | Real audio only; played to allowed people only | API (`pentest-round4b.test.js`, `security.test.js`) | PASS |
 | 4 | Quick flag | Saved; the agent is told | API (`api-workflows.test.js`) | PASS |
 | 5 | Remind the agent | A reminder notification | API (`api.test.js`) | PASS |
 | 6 | Resolve a dispute with a score change | Resolved as "changed"; the agent is told | Browser (`workflows` › review) | PASS |
 | 7 | A calibration session | Saved for its participants | API (`api-workflows.test.js`) | PASS |
 | 8 | An Auto QA review | Scored by the categories | API (`autoqa.test.js`, `api-workflows.test.js`) | PASS |
-| 9 | A report, exported to Excel | The file holds the rows shown | Browser (`workflows` › Excel export, reviews list); report builder: Page only | PASS / — |
+| 9 | A report, exported to Excel | The file holds the rows shown | Browser (`workflows` › Excel export, reviews list); report builder: Page only | PASS / - |
 
 ## Trainer
 
@@ -69,7 +69,7 @@ Each step says how it was checked:
 | 6 | An AI scenario | Saved; agents can practise it | API (`api-workflows.test.js`) | PASS |
 | 7 | Learning progress | Per workspace | API (`security.test.js`, earlier rounds) | PASS |
 
-## Admin – set-up and month end
+## Admin - set-up and month end
 
 | # | Step | Expected | How it was checked | Result |
 |---|---|---|---|---|
@@ -94,13 +94,13 @@ Each step says how it was checked:
 |---|---|---|---|---|
 | 1 | Month change: capacity plans | A month that is over cannot be split again | API (`capacity.test.js`) | PASS |
 | 2 | Year change (31 Dec → 1 Jan): balances | Each year pays for its own days | API (`calc-round4.test.js`, `attendance.test.js` › carry-over) | PASS |
-| 3 | The scheduled-report e-mailer (every 10 minutes) | Sends due reports once a day | Not run with a fake clock ("send now" is tested; the timer is inside the server and cannot be reached by a test without changing the code) | — |
+| 3 | The scheduled-report e-mailer (every 10 minutes) | Sends due reports once a day | Not run with a fake clock ("send now" is tested; the timer is inside the server and cannot be reached by a test without changing the code) | - |
 | 4 | Retention purge on the copy | Deletes what it says | API (`api-workflows.test.js`) | PASS |
 
 ## Next steps
 
 Done since round 4: seen, goals, newsletters and notification rules (`workflows-round4.test.js`). Still to automate:
 
-Automate the "—" steps above in the browser tests:
+Automate the "-" steps above in the browser tests:
 - the report builder
 - the scheduler, with a fake clock

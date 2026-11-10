@@ -1,4 +1,4 @@
-# Q-SMART – Project inventory
+# Q-SMART - Project inventory
 
 Audit date: 2026-10-24 (round 1, and round 2 at maximum depth) · Branch: `q-smart-full-audit` · Starting commit: `a1da4aa` ("Translate the new sections into Bulgarian and French")
 
@@ -153,9 +153,9 @@ Odd addresses (`#constructor`, `#__proto__`, `#toString`, `#`, `#%00`) show the 
 
 | File | Tests | What it covers |
 |---|---|---|
-| `fixture-round4.js` | – | The made-up people of round 4, and the start helper |
-| `fake-ai.js` | – | The fake AI service |
-| `gen-large.js`, `measure.js` | – | Large made-up data; speed measurement |
+| `fixture-round4.js` | - | The made-up people of round 4, and the start helper |
+| `fake-ai.js` | - | The fake AI service |
+| `gen-large.js`, `measure.js` | - | Large made-up data; speed measurement |
 | `pentest-round4.test.js` | 11 | AI and Q-Intelligence across workspaces, hostile AI, AI errors, the key, the simulator, knowledge files, no key |
 | `pentest-round4b.test.js` | 19 | Sign-in and sessions, creating people, headers, CSRF, files, exports, odd input, mass assignment, IDOR (time off, attendance, capacity), the personal data download, links, production mode |
 | `reliability.test.js` | 3 | Health check, a hard stop while saving, orphan records |
@@ -218,7 +218,7 @@ The last column lists the other test files that call the route by its address (t
 | GET `/api/leave/calendar` | routes-att.js | signed in | attendance, pentest-round4b, reliability |
 | GET `/api/autoqa` | routes-autoqa.js | signed in | api-workflows, security |
 | POST `/api/autoqa/conversations` | routes-autoqa.js | admin, qa | api-workflows, security |
-| POST `/api/autoqa/run` | routes-autoqa.js | admin, qa | — (role matrix only) |
+| POST `/api/autoqa/run` | routes-autoqa.js | admin, qa | - (role matrix only) |
 | PUT `/api/autoqa/conversations/:id/edit` | routes-autoqa.js | admin, qa | api-workflows, security |
 | PUT `/api/autoqa/conversations/:id/link` | routes-autoqa.js | admin, qa | api-workflows, security |
 | DELETE `/api/autoqa/conversations/:id` | routes-autoqa.js | admin, qa | api-workflows, security |
@@ -235,7 +235,7 @@ The last column lists the other test files that call the route by its address (t
 | PUT `/api/kb/articles/:id` | routes-learning.js | admin, qa, lead, trainer | workflows-more |
 | DELETE `/api/kb/articles/:id` | routes-learning.js | admin, qa, lead, trainer | workflows-more |
 | POST `/api/kb/read` | routes-learning.js | signed in | workflows-more |
-| POST `/api/kb/read-folder` | routes-learning.js | signed in | — (role matrix only) |
+| POST `/api/kb/read-folder` | routes-learning.js | signed in | - (role matrix only) |
 | POST `/api/kb/articles/:id/test` | routes-learning.js | signed in | workflows-more |
 | GET `/api/quizzes` | routes-learning.js | signed in | ai-settings, workflows-more |
 | POST `/api/quizzes` | routes-learning.js | admin, qa, lead, trainer | ai-settings, workflows-more |
@@ -243,13 +243,13 @@ The last column lists the other test files that call the route by its address (t
 | DELETE `/api/quizzes/:id` | routes-learning.js | admin, qa, lead, trainer | ai-settings, workflows-more |
 | POST `/api/quizzes/:id/attempt` | routes-learning.js | signed in | ai-settings, workflows-more |
 | GET `/api/kb/progress` | routes-learning.js | admin, qa, lead, trainer | security |
-| POST `/api/kb/newsletters` | routes-learning.js | admin, qa, lead, trainer | — (role matrix only) |
-| PUT `/api/kb/newsletters/:id` | routes-learning.js | admin, qa, lead, trainer | — (role matrix only) |
-| DELETE `/api/kb/newsletters/:id` | routes-learning.js | admin, qa, lead, trainer | — (role matrix only) |
-| GET `/api/ai/status` | routes-learning.js | signed in | — (role matrix only) |
+| POST `/api/kb/newsletters` | routes-learning.js | admin, qa, lead, trainer | - (role matrix only) |
+| PUT `/api/kb/newsletters/:id` | routes-learning.js | admin, qa, lead, trainer | - (role matrix only) |
+| DELETE `/api/kb/newsletters/:id` | routes-learning.js | admin, qa, lead, trainer | - (role matrix only) |
+| GET `/api/ai/status` | routes-learning.js | signed in | - (role matrix only) |
 | POST `/api/kb/import` | routes-learning.js | admin, qa, lead, trainer | api-workflows, pentest-round4b, security |
-| POST `/api/kb/import/save` | routes-learning.js | admin, qa, lead, trainer | — (role matrix only) |
-| POST `/api/ai/quiz` | routes-learning.js | admin, qa, lead, trainer | — (role matrix only) |
+| POST `/api/kb/import/save` | routes-learning.js | admin, qa, lead, trainer | - (role matrix only) |
+| POST `/api/ai/quiz` | routes-learning.js | admin, qa, lead, trainer | - (role matrix only) |
 | GET `/api/kb/articles/:id/export` | routes-learning.js | signed in | workflows-more |
 | GET `/api/kb/folders/:id/export` | routes-learning.js | signed in | workflows-more |
 | GET `/api/c/:col` | routes-more.js | signed in | api-workflows, pentest-round4b, reliability, security |
@@ -283,22 +283,22 @@ The last column lists the other test files that call the route by its address (t
 | POST `/api/skills` | routes-setup.js | admin | pentest-round4b |
 | PUT `/api/skills` | routes-setup.js | admin | pentest-round4b |
 | DELETE `/api/skills` | routes-setup.js | admin | pentest-round4b |
-| GET `/api/workspaces` | routes-setup.js | signed in | — (role matrix only) |
-| POST `/api/workspaces` | routes-setup.js | admin | — (role matrix only) |
-| PUT `/api/workspaces/:id` | routes-setup.js | admin | — (role matrix only) |
-| DELETE `/api/workspaces/:id` | routes-setup.js | admin | — (role matrix only) |
-| GET `/api/root-causes` | routes-setup.js | signed in | — (role matrix only) |
-| POST `/api/root-causes` | routes-setup.js | admin, qa | — (role matrix only) |
-| PUT `/api/root-causes/:id` | routes-setup.js | admin, qa | — (role matrix only) |
-| DELETE `/api/root-causes/:id` | routes-setup.js | admin, qa | — (role matrix only) |
+| GET `/api/workspaces` | routes-setup.js | signed in | - (role matrix only) |
+| POST `/api/workspaces` | routes-setup.js | admin | - (role matrix only) |
+| PUT `/api/workspaces/:id` | routes-setup.js | admin | - (role matrix only) |
+| DELETE `/api/workspaces/:id` | routes-setup.js | admin | - (role matrix only) |
+| GET `/api/root-causes` | routes-setup.js | signed in | - (role matrix only) |
+| POST `/api/root-causes` | routes-setup.js | admin, qa | - (role matrix only) |
+| PUT `/api/root-causes/:id` | routes-setup.js | admin, qa | - (role matrix only) |
+| DELETE `/api/root-causes/:id` | routes-setup.js | admin, qa | - (role matrix only) |
 | GET `/api/categories` | routes-setup.js | signed in | workflows-more |
 | POST `/api/categories` | routes-setup.js | admin | workflows-more |
 | PUT `/api/categories/:id` | routes-setup.js | admin | workflows-more |
 | DELETE `/api/categories/:id` | routes-setup.js | admin | workflows-more |
-| GET `/api/auto-cats` | routes-setup.js | signed in | — (role matrix only) |
-| POST `/api/auto-cats` | routes-setup.js | admin | — (role matrix only) |
-| PUT `/api/auto-cats/:id` | routes-setup.js | admin | — (role matrix only) |
-| DELETE `/api/auto-cats/:id` | routes-setup.js | admin | — (role matrix only) |
+| GET `/api/auto-cats` | routes-setup.js | signed in | - (role matrix only) |
+| POST `/api/auto-cats` | routes-setup.js | admin | - (role matrix only) |
+| PUT `/api/auto-cats/:id` | routes-setup.js | admin | - (role matrix only) |
+| DELETE `/api/auto-cats/:id` | routes-setup.js | admin | - (role matrix only) |
 | GET `/api/wf/today` | routes-today.js | admin, qa, lead, trainer | pentest-round4b, reliability, today |
 | POST `/api/wf/brief` | routes-today.js | admin, qa, lead, trainer | ai-settings, pentest-round4, today |
 | GET `/api/att/report` | routes-today.js | admin, qa, lead, trainer | reliability, today |
@@ -321,7 +321,7 @@ The last column lists the other test files that call the route by its address (t
 | PUT `/api/task-seqs/:id` | routes-work.js | admin, qa, lead, trainer | api-workflows |
 | DELETE `/api/task-seqs/:id` | routes-work.js | admin, qa, lead, trainer | api-workflows |
 | POST `/api/task-seqs/:id/give` | routes-work.js | admin, qa, lead, trainer | api-workflows |
-| PUT `/api/task-runs/:id` | routes-work.js | admin, qa, lead, trainer | — (role matrix only) |
+| PUT `/api/task-runs/:id` | routes-work.js | admin, qa, lead, trainer | - (role matrix only) |
 | GET `/api/sessions` | routes-work.js | signed in | ai-settings, api-workflows, reliability, security, workflows-more |
 | POST `/api/sessions` | routes-work.js | admin, qa, lead, trainer | ai-settings, api-workflows, reliability, security, workflows-more |
 | POST `/api/sessions/:id/sign` | routes-work.js | signed in | ai-settings, api-workflows, reliability, security, workflows-more |
@@ -371,16 +371,16 @@ The last column lists the other test files that call the route by its address (t
 | GET `/api/health` | server.js | public | reliability |
 | GET `/api/notice` | server.js | public | api-workflows, pentest-round4b |
 | GET `/api/settings` | server.js | signed in | api-workflows, pentest-round4, pentest-round4b, reliability |
-| PUT `/api/settings` | server.js | admin | — (role matrix only) |
+| PUT `/api/settings` | server.js | admin | - (role matrix only) |
 | GET `/api/notifications` | server.js | signed in | ai-settings, capacity, security, workflows-more |
-| POST `/api/notifications/read` | server.js | signed in | — (role matrix only) |
+| POST `/api/notifications/read` | server.js | signed in | - (role matrix only) |
 | DELETE `/api/notifications/:id` | server.js | signed in | ai-settings, capacity, security, workflows-more |
 | POST `/api/notifications/sample` | server.js | signed in | security |
 | GET `/api/evaluations` | server.js | signed in | api-workflows, api, pentest-round4b, reliability, e2e |
 | POST `/api/evaluations` | server.js | admin, qa | api-workflows, api, workflows-more, e2e |
 | PUT `/api/evaluations/:rid` | server.js | admin, qa | api, workflows-more |
 | DELETE `/api/evaluations/:rid` | server.js | admin, qa | api |
-| POST `/api/evaluations/:rid/seen` | server.js | agent | — (address shared with the reviews list; not called directly in round 4) |
+| POST `/api/evaluations/:rid/seen` | server.js | agent | - (address shared with the reviews list; not called directly in round 4) |
 | POST `/api/evaluations/:rid/remind` | server.js | admin, qa | api |
 | POST `/api/evaluations/:rid/dispute` | server.js | agent | api, e2e |
 | POST `/api/evaluations/:rid/dispute/msg` | server.js | signed in | api, workflows-more |

@@ -28,4 +28,11 @@ describe('the texts of the pages', () => {
       }
     }
   });
+
+  it('never use the long or medium dash, only - or : (your rule of 10 November)', () => {
+    for (const lang of LANGUAGES) {
+      const found = JSON.stringify(messages[lang]).match(/.{0,30}[–—].{0,30}/g) ?? [];
+      expect(found, lang).toEqual([]);
+    }
+  });
 });

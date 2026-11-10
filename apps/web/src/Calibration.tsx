@@ -232,7 +232,7 @@ function ReviewerConsistency({ reviews, disputes }: { reviews: ReviewRow[]; disp
                     </td>
                     <td className={td}>{r.disputed}</td>
                     <td className={td}>
-                      {r.disputed ? `${r.changed} (${Math.round((r.changed / r.disputed) * 100)}%)` : '—'}
+                      {r.disputed ? `${r.changed} (${Math.round((r.changed / r.disputed) * 100)}%)` : '-'}
                     </td>
                     <td className={td}>
                       <span className={`${pill} ${look}`}>{t(`calibration.${label}`)}</span>
@@ -485,7 +485,7 @@ export function CalibrationView() {
         <ReviewsDiscussed session={session} reviews={reviews} member={member} send={send} />
         <section className={`${card} grid gap-2 content-start`}>
           <h2 className="font-semibold">{t('calibration.notes')}</h2>
-          <p className="text-sm whitespace-pre-wrap">{session.notes || '—'}</p>
+          <p className="text-sm whitespace-pre-wrap">{session.notes || '-'}</p>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <b>{t('calibration.teams')}</b>
             <Chips items={session.teamNames} />
@@ -548,7 +548,7 @@ function ReviewsDiscussed({
               <b className="font-mono text-ac">{r.leadId}</b> <small>{r.agentName}</small>
             </Link>
             <span className="flex items-center gap-2">
-              <b className="font-mono">{r.notScored ? '—' : `${r.score}%`}</b>
+              <b className="font-mono">{r.notScored ? '-' : `${r.score}%`}</b>
               {session.owner && (
                 <button
                   type="button"
@@ -652,11 +652,11 @@ function Parts({ session, send }: { session: Session; send: Send }) {
               <>
                 <p className="text-sm">
                   <small className="text-mu block">{t('calibration.impressions')}</small>
-                  <span className="whitespace-pre-wrap">{p.impression || '—'}</span>
+                  <span className="whitespace-pre-wrap">{p.impression || '-'}</span>
                 </p>
                 <p className="text-sm">
                   <small className="text-mu block">{t('calibration.hasDone')}</small>
-                  <span className="whitespace-pre-wrap">{p.done || '—'}</span>
+                  <span className="whitespace-pre-wrap">{p.done || '-'}</span>
                 </p>
               </>
             )}
@@ -770,8 +770,8 @@ function BlindScores({ session, member, send }: { session: Session; member: bool
                 <td className={td}>
                   <b>{t('calibration.theReview')}</b> <small className="text-mu">{r.reviewerName}</small>
                 </td>
-                <td className={`${td} font-mono font-bold`}>{r.notScored ? '—' : `${r.score}%`}</td>
-                <td className={td}>{who === 'review' ? referencePill : '—'}</td>
+                <td className={`${td} font-mono font-bold`}>{r.notScored ? '-' : `${r.score}%`}</td>
+                <td className={td}>{who === 'review' ? referencePill : '-'}</td>
                 <td className={td} />
                 <td className={td}>{who !== 'review' && referenceButton(r.id, 'review')}</td>
               </tr>
@@ -785,7 +785,7 @@ function BlindScores({ session, member, send }: { session: Session; member: bool
                       {who === s.participantId ? (
                         referencePill
                       ) : d === null ? (
-                        '—'
+                        '-'
                       ) : (
                         <b className={color(d)}>{t('calibration.pts', { n: `${d > 0 ? '+' : ''}${Math.round(d)}` })}</b>
                       )}
@@ -874,7 +874,7 @@ function Decisions({ session, member, send }: { session: Session; member: boolea
               <span className={d.done ? 'line-through opacity-60' : ''}>
                 {d.text}{' '}
                 <small className="text-mu">
-                  {d.ownerId && `— ${nameOf(d.ownerId) ?? ''}`} {d.due}
+                  {d.ownerId && `- ${nameOf(d.ownerId) ?? ''}`} {d.due}
                 </small>
               </span>
             </label>

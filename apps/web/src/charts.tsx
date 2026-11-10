@@ -24,7 +24,7 @@ export function Sparkline({
   height?: number;
 }) {
   const known = values.filter((v): v is number => v !== null);
-  if (known.length < 2) return <small className="text-mu">—</small>;
+  if (known.length < 2) return <small className="text-mu">-</small>;
   const lo = Math.min(...known);
   const range = Math.max(...known) - lo || 1;
   const points = values
@@ -139,7 +139,7 @@ const th = 'py-1 pr-3 text-left font-semibold uppercase text-xs tracking-wide te
 const td = 'py-1 pr-3 font-mono';
 
 /**
- * Quality scores over time (today's "qtime"): the average score as a line on its own 0–100% scale, and the number of
+ * Quality scores over time (today's "qtime"): the average score as a line on its own 0-100% scale, and the number of
  * reviews as columns in their own strip underneath (today drew both on one chart with two scales).
  */
 export function ScoresOverTime({ points, title }: { points: TimePoint[]; title: string }) {
@@ -184,7 +184,7 @@ export function ScoresOverTime({ points, title }: { points: TimePoint[]; title: 
             {points.map((p) => (
               <tr key={p.key} className="border-t border-bd">
                 <td className="py-1 pr-3">{p.label}</td>
-                <td className={td}>{p.average === null ? '—' : pct(p.average)}</td>
+                <td className={td}>{p.average === null ? '-' : pct(p.average)}</td>
                 <td className={td}>{p.count}</td>
               </tr>
             ))}
@@ -264,14 +264,14 @@ export function ScoresOverTime({ points, title }: { points: TimePoint[]; title: 
             )}
           </svg>
           <p id={id} className="sr-only">
-            {points.map((p) => `${p.label}: ${p.average === null ? '—' : pct(p.average)}, ${p.count}`).join('; ')}
+            {points.map((p) => `${p.label}: ${p.average === null ? '-' : pct(p.average)}, ${p.count}`).join('; ')}
           </p>
           {hovered && index !== null && (
             <Tooltip left={(xAt(index, n, W) / W) * 100}>
               <div className="text-mu text-xs">{hovered.label}</div>
               <div className="flex items-center gap-2">
                 <i className="inline-block h-0.5 w-3 bg-[var(--score-line)]" aria-hidden="true" />
-                <b className="font-mono">{hovered.average === null ? '—' : pct(hovered.average)}</b>
+                <b className="font-mono">{hovered.average === null ? '-' : pct(hovered.average)}</b>
                 <span className="text-mu">{t('dash.charts.average')}</span>
               </div>
               <div className="flex items-center gap-2">
@@ -348,7 +348,7 @@ export function CategoriesOverTime({
                     const v = p.values[c];
                     return (
                       <td key={c} className={td}>
-                        {v === null || v === undefined ? '—' : pct(v)}
+                        {v === null || v === undefined ? '-' : pct(v)}
                       </td>
                     );
                   })}
@@ -440,7 +440,7 @@ export function CategoriesOverTime({
                       style={{ background: seriesColor(ci) }}
                       aria-hidden="true"
                     />
-                    <b className="font-mono">{v === null || v === undefined ? '—' : pct(v)}</b>
+                    <b className="font-mono">{v === null || v === undefined ? '-' : pct(v)}</b>
                     <span className="text-mu">{c}</span>
                   </div>
                 ))}
@@ -607,7 +607,7 @@ export function CategoryDots({
 }
 
 /**
- * Agent against team, category by category (today's Agents › Performance radar): one shape per series on one 0–100%
+ * Agent against team, category by category (today's Agents › Performance radar): one shape per series on one 0-100%
  * scale with a ring every 20%. Pointing at (or arrowing to) a category shows both values; "Table" has the same numbers.
  */
 export function Radar({
@@ -651,7 +651,7 @@ export function Radar({
           .join(','),
       )
       .join(' ');
-  const value = (v: number | null | undefined) => (v === null || v === undefined ? '—' : `${Math.round(v)}%`);
+  const value = (v: number | null | undefined) => (v === null || v === undefined ? '-' : `${Math.round(v)}%`);
   const onPointerMove = (e: PointerEvent<SVGSVGElement>) => {
     const box = svg.current?.getBoundingClientRect();
     if (!box || !n) return;
@@ -908,7 +908,7 @@ export function ScoreColumns({
             {columns.map((c) => (
               <tr key={c.key} className="border-t border-bd">
                 <td className="py-1 pr-3">{c.long}</td>
-                <td className={td}>{c.average === null ? '—' : pct(c.average)}</td>
+                <td className={td}>{c.average === null ? '-' : pct(c.average)}</td>
                 <td className={td}>{c.count}</td>
               </tr>
             ))}

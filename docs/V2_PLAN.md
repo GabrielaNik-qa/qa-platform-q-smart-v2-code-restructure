@@ -1,6 +1,6 @@
 # Q-smart v2: the plan and the architecture
 
-Written on 5 November 2026 by Claude, from our talks of 3–5 November (including your chat with GPT), with all your answers of the same day.
+Written on 5 November 2026 by Claude, from our talks of 3-5 November (including your chat with GPT), with all your answers of the same day.
 **Status: final. Reviewed once more on 5 November 2026, updated that evening with the answers to your 18 questions and your decisions (marked "5 Nov, evening"), and given a last check on 6 November (my improvements are marked "6 Nov"). Phase 0 starts next.** Prices were checked on 5 November 2026 (sources at the end).
 
 > **Today's app is the starting point.** Its files are in this repository, and it keeps running on your Cloudflare link until v2 replaces it. What it does, and its ~250 tests, are the checklist for v2. While v2 is being built, the running app gets only urgent fixes and new ideas go on v2's list, so v2 isn't chasing a moving target.
@@ -135,7 +135,7 @@ Size: S = small, M = medium, L = large, XL = very large.
 | **1. Foundation** | Companies and the **platform owner area** (you create and manage client companies) · sign-in (e-mail + password, Google, forgot password, invitation links) · the menu as **apps** with an app switcher (Quality, Workforce, Learning, Q Trainer, AI, Admin; your yes of 5 November), menu search, light/dark, themes and three languages · only the browser storage that sign-in and settings need, cleared at sign-out (section 13) · **My account** (profile, password, appearance, language, notifications & confirmations) · **Users, Teams, Workspaces, Skills & languages** · **Roles & permissions** · **Activity log** (all activity, my activity, sign-ins, exports) · the notification bell | Sign in as every role; manage users and teams | L |
 | **2. Quality** | **Quality set-up** (scorecards, categories, root causes, system settings and pass rates) · **QA Entry** · **Reviews** (filters, columns, Excel export) · **Quick Flags** · **Disputes** · **Calibration** · **Reviewer QA** · **Pins** | Score a call, flag it and dispute it, as today | L |
 | **3. Home & Analytics** | **Dashboard** with widgets and **Personalize** (a view per role) · Getting started · **Agents** (personal dashboards) · **Team Review** · **Category Stats** · Topic dashboards · **Performance** (goals & KPIs, improvement plans, recognition) · **Planning** (review planner, QA workload, calendar) · **Reports** (report builder, saved & scheduled, export centre). The dashboard widgets for tasks, coaching, workforce and AI join in their own phases. | The same numbers as today's app, side by side | XL |
-| **3b. AutoQA, first version** *(moved forward, 6 Nov)* | The AI engine's core: one or two free AI plans that don't train on our data, the choice of model, the cost of every call and the monthly limit · **AutoQA** on today's demo conversations and on transcripts you paste or upload: AI reviews, marked as AI, that count on their own · the **accuracy score** against your reviewers' scores (like Zendesk's), the automatic brake, and disputes on AI reviews · the AutoQA test set you score (30–50 conversations) | AutoQA reviews a conversation by itself, and the accuracy score shows how close it is to you | M |
+| **3b. AutoQA, first version** *(moved forward, 6 Nov)* | The AI engine's core: one or two free AI plans that don't train on our data, the choice of model, the cost of every call and the monthly limit · **AutoQA** on today's demo conversations and on transcripts you paste or upload: AI reviews, marked as AI, that count on their own · the **accuracy score** against your reviewers' scores (like Zendesk's), the automatic brake, and disputes on AI reviews · the AutoQA test set you score (30-50 conversations) | AutoQA reviews a conversation by itself, and the accuracy score shows how close it is to you | M |
 | **4. Coaching & Tasks** | **Coaching** · **One-to-One** · **Tasks** (kanban, timeline, library, sequences) | Plan a coaching session and follow it | M |
 | **5. Learning & Tools** | **My Learning** · **Knowledge Base** (like Confluence, folders per team) · **Quizzes** · **Newsletter** · help inside the app (FAQ, videos, tours, glossary) · **Tools** (redaction, translator, sample calculator, score simulator, script builder) | Write an article, take a quiz | L |
 | **6. Workforce** | Its own app (your yes of 5 November): **Team today** · **Attendance** · **Time off** · **Shifts & rota** · **Capacity planning** · **Workforce set-up** (work calendars, shift templates, leave types, attendance rules) · each person's time zone | A day of check-ins and a fair split | L |
@@ -185,7 +185,7 @@ If you want v2 online earlier for demos, the hosting part of Phase 10 can move u
 4. **Reusing and capping.** Long instructions that repeat (a scorecard, Quinn's rules) are sent at a discount where the AI company allows it (prompt caching). Each team has a monthly limit, and admins get alerts.
 
 **The quality check (QA for the AI itself).** For every task we keep a test set, in English, Bulgarian and French. For example:
-- sample conversations scored by you, the QA expert (for AutoQA): I prepare 30–50 made-up calls and chats, you score them once, and your scores become the yardstick,
+- sample conversations scored by you, the QA expert (for AutoQA): I prepare 30-50 made-up calls and chats, you score them once, and your scores become the yardstick,
 - typical Quinn questions with good answers,
 - Q Trainer scenarios with the expected behaviour.
 
@@ -217,8 +217,8 @@ The rule for clients costs little: a small paid model costs well under one cent 
 | **Google (Gemini)** | The paid Gemini API, or Gemini on Google Cloud (Vertex AI) in Belgium | The free Gemini API: people may read what is sent, and Google may use it to improve its products |
 | **OpenAI (GPT)** | The API: no training unless we opt in, and a data agreement is available. A Europe region with nothing stored is available for eligible customers | Personal ChatGPT chats |
 | **Mistral** (France) | Paid plans (no training by default). The free plan only with training switched off, once Mistral confirms its data agreement covers it | The free plan with training on |
-| **Groq** | Its standard terms forbid training and include a data agreement (it runs in the USA; to confirm for the free plan) | — |
-| **Cloudflare Workers AI** | It says it never trains on customer content (to confirm the data agreement and where it runs) | — |
+| **Groq** | Its standard terms forbid training and include a data agreement (it runs in the USA; to confirm for the free plan) | - |
+| **Cloudflare Workers AI** | It says it never trains on customer content (to confirm the data agreement and where it runs) | - |
 | **ElevenLabs** (voices) | Q Trainer's customer voice: it only reads lines the AI made up, so no client data is involved and any plan is fine | Agents' real voices or clients' recordings, unless on its business plan with training off and a data agreement (voices can count as sensitive "biometric" data) |
 
 **The AI companies at the start:**
@@ -242,7 +242,7 @@ The rule for clients costs little: a small paid model costs well under one cent 
 
 **AI reviews that count on their own: how it stays legal (your decision of 5 November, evening).** No person checks each AI review. Instead:
 - **Marked as AI:** every AI review shows that it was made by AI (and by which model). Dashboards can show the AI, human and combined averages.
-- **The accuracy score**, like Zendesk's: on conversations scored by both the AI and a reviewer, Q-smart shows how often they agree, overall, per category and per AI model, over time. 75–100% is high, 25–74% medium, 0–24% low. Reviewers score only a sample for this (calibration), not every conversation.
+- **The accuracy score**, like Zendesk's: on conversations scored by both the AI and a reviewer, Q-smart shows how often they agree, overall, per category and per AI model, over time. 75-100% is high, 25-74% medium, 0-24% low. Reviewers score only a sample for this (calibration), not every conversation.
 - **An automatic brake:** if a category falls below the company's bar (75% by default), its AI reviews are flagged, the admin is told, and the company can let AI scoring pause for that category until it's fixed.
 - **Disputes:** an agent can dispute any AI review, and then a person decides. That's the human check the law asks for (GDPR art. 22(3)), and only where someone asks for it.
 - **Big decisions:** pay, bonuses, warnings, improvement plans and dismissal never rest on AI reviews alone. The EU's top court ruled in 2023 (the SCHUFA case) that a score can itself count as an automated decision when others rely on it heavily. So in Q-smart a person always creates improvement plans and warnings, and reports used for pay show which scores came from the AI.
@@ -278,7 +278,7 @@ This is also how Zendesk QA's AutoQA works: it scores conversations by itself an
 - Its reviews **count on their own**, like AutoQA's: marked with the AI agent's name, measured by the same accuracy score, and open to disputes (section 7).
 - **What clients get:** less manual work. The AI reviews; the reviewers score a sample for the accuracy score and handle disputes.
 - **Our own AI does the same with buttons** (AutoQA, Phase 8), for companies that don't want to write prompts.
-- **Price:** MCP and API access are part of the higher plans; the company's own AI pays for its own AI use. Storage is small: a transcript is text, about 10–30 KB, so 1 GB holds tens of thousands, and they're deleted after the company's chosen number of days.
+- **Price:** MCP and API access are part of the higher plans; the company's own AI pays for its own AI use. Storage is small: a transcript is text, about 10-30 KB, so 1 GB holds tens of thousands, and they're deleted after the company's chosen number of days.
 
 ## 9. Q Trainer: the AI call simulator
 
@@ -296,8 +296,8 @@ Built as decided on 4 November, and as you asked in your notes: **it works only 
 - **Suggestions:** the AI trainer suggests a scenario to an agent who is weak in a category, based on their real reviews.
 - **In Q-smart's own look and colours.**
 - **How clients pay (your idea of 5 November, evening):** Q Trainer is an **add-on to the basic plan**, in a few sizes by **practice minutes a month**. Text practice is included. Every size has the same natural voice. At 80% of the minutes the admin is warned; at 100% voice practice stops until next month, unless the admin buys an extra pack. Nothing per voice or per use.
-- **What a minute costs us** (corrected on 5 November, evening; measured for real in Phase 9): about **$0.02–0.03 a minute** with our own set-up. The customer's voice is ElevenLabs at $0.04 per 1,000 characters (the customer speaks about half the time, roughly 450 characters a minute). Speech-to-text costs $0.002–0.007 a minute, a small AI writes the customer's lines for a fraction of a cent, and the score at the end costs about a cent. **A 4-minute practice call costs about €0.08–0.10**, less than your friend's €0.20–0.30 for 3–5 minutes. ElevenLabs' ready-made voice agents ($0.08 a minute plus the AI) are used only if they're clearly better, and cheaper voices (Google, Microsoft, OpenAI) are tried with the same listening test. The add-on's sizes and prices are set in Phase 10 with a margin.
-- **The demo, free:** ElevenLabs' free plan gives 10,000 credits a month (about 10–20 minutes of speech, Bulgarian included) and 15 minutes of its voice agents, with no card. It has **no commercial licence**: fine for building and testing. Before showing Q Trainer to clients, the Starter plan is needed ($6 a month: 30,000 credits and the commercial licence). That's your decision when the time comes.
+- **What a minute costs us** (corrected on 5 November, evening; measured for real in Phase 9): about **$0.02-0.03 a minute** with our own set-up. The customer's voice is ElevenLabs at $0.04 per 1,000 characters (the customer speaks about half the time, roughly 450 characters a minute). Speech-to-text costs $0.002-0.007 a minute, a small AI writes the customer's lines for a fraction of a cent, and the score at the end costs about a cent. **A 4-minute practice call costs about €0.08-0.10**, less than your friend's €0.20-0.30 for 3-5 minutes. ElevenLabs' ready-made voice agents ($0.08 a minute plus the AI) are used only if they're clearly better, and cheaper voices (Google, Microsoft, OpenAI) are tried with the same listening test. The add-on's sizes and prices are set in Phase 10 with a margin.
+- **The demo, free:** ElevenLabs' free plan gives 10,000 credits a month (about 10-20 minutes of speech, Bulgarian included) and 15 minutes of its voice agents, with no card. It has **no commercial licence**: fine for building and testing. Before showing Q Trainer to clients, the Starter plan is needed ($6 a month: 30,000 credits and the commercial licence). That's your decision when the time comes.
 - Today's simulator rules (segments, levels, customer types, indicators, the score) come over and are checked by tests.
 
 ## 10. Integrations (later)
@@ -307,7 +307,7 @@ Built as decided on 4 November, and as you asked in your notes: **it works only 
 **How it works:**
 - Each company connects its own accounts. The keys are stored encrypted, and nobody pastes keys into chats or files.
 - New conversations arrive by themselves (webhooks), and sampling rules decide which ones get a transcript and an AutoQA score.
-- When there's no ready transcript, a speech-to-text service (about $0.10–$0.40 per hour of audio) transcribes the recording from its link, without the audio passing through our storage.
+- When there's no ready transcript, a speech-to-text service (about $0.10-$0.40 per hour of audio) transcribes the recording from its link, without the audio passing through our storage.
 
 **Transcripts: the cheapest source first (your idea of 5 November, evening):**
 1. **The platform's own transcript**, when the company has one and its language is supported. It costs us nothing. Voiso has them (18 languages, not Bulgarian), Ringover has them (whether its API gives them is to check), and Modjo's can be read through its API with a key from Modjo's *Settings › Integrations › API* (other tools already take Modjo's transcripts this way, without the audio).
@@ -406,7 +406,7 @@ Zendesk's tickets, chats and e-mails are text already.
 
 | Stage | You pay |
 |---|---|
-| **Building (phases 0–9)** | **€0, no card.** The demo's AI runs on free plans that don't train on our data, and its natural voice on ElevenLabs' free plan. Paid models (Claude, GPT…) only if you want to compare them, per use. GitHub is free too: the repository is public, so its automatic tests have no minutes limit. |
+| **Building (phases 0-9)** | **€0, no card.** The demo's AI runs on free plans that don't train on our data, and its natural voice on ElevenLabs' free plan. Paid models (Claude, GPT…) only if you want to compare them, per use. GitHub is free too: the repository is public, so its automatic tests have no minutes limit. |
 | **Online demo (phase 10)** | **€0 a month** within Google's free allowances: a card on file, at most one server, an alert at €1, and **an automatic stop** (6 Nov): if spending ever reaches about €5, Google's billing is switched off by itself (Google's documented method). The demo then goes offline until you switch it back on (soon: Google may delete stopped resources after a while; the database is at Neon and isn't affected), but a bug or an attack can't run up a bill. Stripe stays in free test mode. If you show Q Trainer to clients: ElevenLabs Starter, $6 a month (your decision). |
 | **First clients** | Stripe's share of each payment, the AI used for their data (free where the AI company's terms allow it, otherwise the cheapest paid model that passes), a paid database plan once the free one is too small, a paid e-mail plan if needed. All of this grows with your clients and is covered by their subscriptions. |
 | **Always** | AI, voices and speech-to-text for clients: they cost us per use, and clients pay for them as add-ons with monthly allowances that stop at the limit (section 6) |
@@ -432,7 +432,7 @@ Sign-in is set up the same way: one free Firebase project for the demo and one f
 |---|---|
 | **Phase 0** | ✓ The repository `qa-platform-q-smart-v2-code-restructure` exists, public by your choice · create a free Firebase project with your Google account (no card; I'll guide you click by click) · create a free Neon account (no card) |
 | **Every phase** | Try what was built and tell me what to change |
-| **Phase 3b** | Free accounts with Groq and Cloudflare (no card). Their keys go into Q-smart's AI settings (never into the chat or a file). · Score the 30–50 sample conversations for the AutoQA test set (I prepare them). |
+| **Phase 3b** | Free accounts with Groq and Cloudflare (no card). Their keys go into Q-smart's AI settings (never into the chat or a file). · Score the 30-50 sample conversations for the AutoQA test set (I prepare them). |
 | **Phase 8** | A free Mistral account (it asks for a phone number, not a card; switch training off under Admin Console › Privacy); its key goes into Q-smart's AI settings. Optional: your Claude and OpenAI keys, to compare paid models. |
 | **Phase 9** | A free ElevenLabs account (no card); its key goes into Q-smart's AI settings. Before showing Q Trainer to clients: decide on ElevenLabs Starter ($6 a month, commercial licence) |
 | **Phase 10** | A card on the Google Cloud account (an alert at €1 and the automatic stop at about €5; I'll guide you) · a Stripe account (test mode) · a free Microsoft app registration for Microsoft sign-in (I'll guide you) · before the first client: a lawyer checks the AI companies list, the DPA and the AI Act paperwork |
@@ -544,7 +544,7 @@ qa-platform-q-smart-v2-code-restructure/     this folder = the public GitHub rep
 - Answers are validated against zod schemas. An invalid answer is retried once, then sent to the next model.
 - When every provider is unavailable, that feature says so and everything else keeps working.
 - The "Python door": a job type can be routed to an OpenAI-compatible endpoint on our own server later.
-- The accuracy score: for conversations scored by both the AI and a reviewer, the agreement per category (the same answer, or partial credit by distance on point scales; N/A left out), averaged per category, scorecard, AI model and period. Bands as in Zendesk QA: high 75–100%, medium 25–74%, low 0–24%. A category under the company's bar is flagged and can pause AI scoring by itself. The sample is random and stratified (agent, channel, language), and the brake needs at least 20 compared conversations per category.
+- The accuracy score: for conversations scored by both the AI and a reviewer, the agreement per category (the same answer, or partial credit by distance on point scales; N/A left out), averaged per category, scorecard, AI model and period. Bands as in Zendesk QA: high 75-100%, medium 25-74%, low 0-24%. A category under the company's bar is flagged and can pause AI scoring by itself. The sample is random and stratified (agent, channel, language), and the brake needs at least 20 compared conversations per category.
 - AI reviews (6 Nov): a fixed model version and settings (temperature 0), structured output with a quote for every answer, and the prompt and scorecard versions stored with each review. The conversation is wrapped as data, never as instructions, and checked for injection attempts before scoring.
 - The AI Act high-risk file (section 7): risk management, technical documentation (annex IV), the logs above, human oversight in the pages (the accuracy score, samples, disputes, the off switch), accuracy figures from the test sets and the accuracy score, instructions for clients, registration in the EU database, and monitoring after launch. Ready before 2 December 2027.
 

@@ -1,4 +1,4 @@
-# Q-SMART – Security audit
+# Q-SMART - Security audit
 
 Audit dates: 2026-10-24 (round 1 and round 2, maximum depth) · Branch: `q-smart-full-audit` · Base commit `a1da4aa`
 
@@ -19,7 +19,7 @@ Audit dates: 2026-10-24 (round 1 and round 2, maximum depth) · Branch: `q-smart
   - Automated tests start the server on a random port with a temporary data file of invented people.
   - Browser tests used a throw-away copy of the data on port 3199, with separate recordings, backups and audit-log folders.
   - The real `data.json` was only read (to make that copy). It was never changed.
-- **References:** OWASP Top 10 (2021) and OWASP ASVS 4.0 levels 1–2, used as checklists.
+- **References:** OWASP Top 10 (2021) and OWASP ASVS 4.0 levels 1-2, used as checklists.
 - **Tools that were really run:**
   - `node:test`: `test/security.test.js` with 36 tests, `test/workflows-more.test.js` with 14 tests, and the existing suites
   - `npm audit`
@@ -40,52 +40,52 @@ Audit dates: 2026-10-24 (round 1 and round 2, maximum depth) · Branch: `q-smart
 | Resource / action | admin | qa | lead | trainer | agent |
 |---|---|---|---|---|---|
 | Read reviews | all | ws | ws | ws | own |
-| Create / change / delete review, upload / delete recording, remind | ✓ | ws | – | – | – |
-| Open a dispute | – | – | – | – | own review |
-| Write in a dispute | ✓ | ws | – | – | own |
-| Resolve a dispute | ✓ | ws | – | – | – |
+| Create / change / delete review, upload / delete recording, remind | ✓ | ws | - | - | - |
+| Open a dispute | - | - | - | - | own review |
+| Write in a dispute | ✓ | ws | - | - | own |
+| Resolve a dispute | ✓ | ws | - | - | - |
 | Play a recording | if the review is visible | same | same | same | own |
 | Read scorecards | all | ws | ws | ws | ws |
-| Change scorecards, categories, Auto QA categories | ✓ | – | – | – | – |
-| Root causes | ✓ | ✓ | – | – | – |
-| Users, teams, workspaces, skills, registrations, backups, audit log, system settings, reset data, default layouts per role | ✓ | – | – | – | – |
-| Shared dashboard views | ✓ | ✓ | – | – | – |
-| Review planner setting | ✓ | ✓ | – | – | – |
+| Change scorecards, categories, Auto QA categories | ✓ | - | - | - | - |
+| Root causes | ✓ | ✓ | - | - | - |
+| Users, teams, workspaces, skills, registrations, backups, audit log, system settings, reset data, default layouts per role | ✓ | - | - | - | - |
+| Shared dashboard views | ✓ | ✓ | - | - | - |
+| Review planner setting | ✓ | ✓ | - | - | - |
 | Read settings | ✓ (all) | without e-mail templates and notification rules | same | same | same |
 | Quick flags: read | all | ws | ws | ws | own |
-| Quick flags: write | ✓ | ws | ws | ws | – |
+| Quick flags: write | ✓ | ws | ws | ws | - |
 | Tasks: read | all | ws | ws | ws | own |
-| Tasks: create, assign, edit, delete | ✓ | ws | ws | ws | – |
+| Tasks: create, assign, edit, delete | ✓ | ws | ws | ws | - |
 | Tasks: tick checklist, change status, pin | ✓ | ws | ws | ws | own |
 | Coaching sessions: read | all | ws | ws | ws | own |
-| One-to-ones: write (agents of the workspace only) | ✓ | ws | ws | – | – |
-| Coaching, group, training: write (agents of the workspace only) | ✓ | ws | – | ws | – |
-| Sign a session | – | – | – | – | own |
-| Calibrations | ✓ | participants | participants | participants | – |
+| One-to-ones: write (agents of the workspace only) | ✓ | ws | ws | - | - |
+| Coaching, group, training: write (agents of the workspace only) | ✓ | ws | - | ws | - |
+| Sign a session | - | - | - | - | own |
+| Calibrations | ✓ | participants | participants | participants | - |
 | Simulations: read | all | ws | ws | ws | own |
 | Simulations: save | for anyone | ws | ws | ws | own |
 | Knowledge base, quizzes, newsletter: read | ✓ | ✓ | ✓ | ✓ | ✓ (answers hidden) |
-| Knowledge base, quizzes, newsletter: write | ✓ | ✓ | ✓ | ✓ | – |
-| Learning progress | all | ws | ws | ws | – |
-| Reports (saved): read | all | own + shared | own + shared | own + shared | – |
-| Reports: change, send now | ✓ | own | own | own | – |
+| Knowledge base, quizzes, newsletter: write | ✓ | ✓ | ✓ | ✓ | - |
+| Learning progress | all | ws | ws | ws | - |
+| Reports (saved): read | all | own + shared | own + shared | own + shared | - |
+| Reports: change, send now | ✓ | own | own | own | - |
 | Goals: read | ✓ | ✓ | ✓ | ✓ | own / own team |
-| Goals: write | ✓ | ✓ | ✓ | – | – |
+| Goals: write | ✓ | ✓ | ✓ | - | - |
 | Improvement plans: read | ✓ | ✓ | ✓ | ✓ | own |
 | Improvement plans: write | ✓ | ✓ | ✓ | ✓ | acknowledge + note on own |
 | Recognition | ✓ | ✓ | ✓ | ✓ | ✓ (change own, one at a time) |
-| Risks, complaints | ✓ | ✓ | ✓ | ✓ | – |
+| Risks, complaints | ✓ | ✓ | ✓ | ✓ | - |
 | Surveys (CSAT): read | ✓ | ✓ | ✓ | ✓ | own |
-| Surveys (CSAT): write, list import | ✓ | ✓ | ✓ | – | – |
-| Export centre (kept copies) | all | own | own | own | – (no copy is kept) |
+| Surveys (CSAT): write, list import | ✓ | ✓ | ✓ | - | - |
+| Export centre (kept copies) | all | own | own | own | - (no copy is kept) |
 | Make an Excel file | ✓ | ✓ | ✓ | ✓ | ✓ (only from data they send) |
 | Auto QA: read | all | ws | ws | ws | own |
-| Auto QA: write | ✓ | ws | – | – | – |
-| AI import, AI quiz | ✓ | ✓ | ✓ | ✓ | – |
+| Auto QA: write | ✓ | ws | - | - | - |
+| AI import, AI quiz | ✓ | ✓ | ✓ | ✓ | - |
 
 Hiding pages in *Admin > Roles & permissions* only changes the menu, and the page itself says so. All the rules above are checked on the server.
 
-## Confirmed vulnerabilities – fixed
+## Confirmed vulnerabilities - fixed
 
 Severity is for the current single-organisation use. Every fix has a regression test in `test/security.test.js`, except S-23, which was checked by code review only. Each test failed before its fix and passes after it.
 
@@ -110,7 +110,7 @@ Severity is for the current single-organisation use. Every fix has a regression 
 
 | ID | Severity | Problem | Evidence (before the fix) | Fix |
 |---|---|---|---|---|
-| S-13 | **High** | **Stored XSS through shared dashboard views: a QA user could run code in an admin's session** (privilege escalation). Saved-view ids and widget keys were placed raw into `onclick="…"` and `data-wk="…"`. The server accepted any 20–40 characters for them. QA users may share views, and admins see every shared view. Team names were also shown unescaped in the widget filter label. | In the browser, with the old `widgets.js` and a hostile view in the data, 3 traps fired: the view id (click on the view tab), the widget key (**just moving the mouse over the widget**), and the team name (as soon as the dashboard drew it). With the fixed file and the same data, none fired. Through the API, a QA user saved the view id `');alert(1)//` unchanged. | The server keeps only letters, numbers, `-` and `_` in view ids, widget keys, widget kinds and filter ids. The page escapes them anyway (`jsq`/`esc`), so old stored data is safe too. Team names in the filter label are escaped. |
+| S-13 | **High** | **Stored XSS through shared dashboard views: a QA user could run code in an admin's session** (privilege escalation). Saved-view ids and widget keys were placed raw into `onclick="…"` and `data-wk="…"`. The server accepted any 20-40 characters for them. QA users may share views, and admins see every shared view. Team names were also shown unescaped in the widget filter label. | In the browser, with the old `widgets.js` and a hostile view in the data, 3 traps fired: the view id (click on the view tab), the widget key (**just moving the mouse over the widget**), and the team name (as soon as the dashboard drew it). With the fixed file and the same data, none fired. Through the API, a QA user saved the view id `');alert(1)//` unchanged. | The server keeps only letters, numbers, `-` and `_` in view ids, widget keys, widget kinds and filter ids. The page escapes them anyway (`jsq`/`esc`), so old stored data is safe too. Team names in the filter label are escaped. |
 | S-14 | **Medium** | **Sign-ins survived password changes.** After changing your password, a session someone else had stolen went on working. After an admin reset, or a reset by e-mail link, every open session stayed. **After an admin reset, the open session could even choose the new password itself**, without knowing any password. That defeats a reset made because an account was taken over. | The other session still got 200 after the change, and after the reset by link. The existing test even documented that the open session sets the new password. | A password version on each account. Changing your own password ends your *other* sign-ins (the current one stays). A reset by link, an admin reset or `adduser.js` ends *all* of them. The forced "choose a new password" step now comes at the next sign-in. The existing test was changed to this stricter behaviour (see FUNCTIONAL_AUDIT.md). |
 | S-15 | **Medium** | **Denial of service with a crafted knowledge-base article (ReDoS).** The Markdown link pattern did work that grows with the square of the length on text with many `[`. Any signed-in user can ask for the ZIP export of an article, which runs it on the server. | `md("[".repeat(200000))` blocked for **17.5 seconds** per call. Every viewer's browser froze the same way. | Link text cannot contain `[`; the same input now takes **1 ms**. |
 | S-16 | **Medium** | **Denial of service with a crafted HTML import (ReDoS).** Staff only. | About 300 KB of `<h1<h1…<script<script…` blocked the server for **14 seconds** (a larger file: minutes). | Scripts and styles are removed by a single scan, and the tag patterns cannot run past the next `<`: **23 ms**. Normal HTML still splits at its headings (tested). |
@@ -124,7 +124,7 @@ Severity is for the current single-organisation use. Every fix has a regression 
 | S-24 | Low (admin only) | **Path traversal in recording file names.** A review id taken from a restored backup was used in the file name. | With the review id `..\escaped`, the file was written outside the recordings folder. | Only letters, numbers, `-` and `_` from the id are used. |
 | S-25 | Low | Staff could create tasks, coaching sessions and simulator results for agents of another workspace, or move a task to them (this sends them notifications). | 200 for all four. | Refused (400) unless the agent is in the person's workspace. |
 | S-26 | Low | E-mail templates and notification rules (admin settings) were sent to every role. | An agent's `/api/settings` contained `mailtpl`. | Only admins receive them. |
-| S-27 | Low (browser only) | On Bulgarian and French screens, a long crafted text (for example staff notes) was matched against all 245 translation patterns. | A crafted text cost **76–141 ms** per text on screen. | Texts over 1,000 characters are never pattern-matched (the longest real pattern label is under 400): under 40 ms. |
+| S-27 | Low (browser only) | On Bulgarian and French screens, a long crafted text (for example staff notes) was matched against all 245 translation patterns. | A crafted text cost **76-141 ms** per text on screen. | Texts over 1,000 characters are never pattern-matched (the longest real pattern label is under 400): under 40 ms. |
 
 ## Checked and found sound (with the test or evidence)
 
@@ -155,9 +155,9 @@ Details, impact and next steps are in REMAINING_ISSUES.md.
 
 | ID | Severity | Summary |
 |---|---|---|
-| R-1 | **High – launch blocker** | No separation between customer organisations (multi-tenancy). |
-| R-2 | **High – launch blocker** | Every new, approved or reset account starts with the password `password`, and it is e-mailed. Usernames are predictable, so an account can be taken over before its owner signs in. |
-| R-3 / R-4 | **High – launch blocker** | The JSON file database and the in-memory sessions are not safe for several processes or production load. Measured: about 1.7 s per saved change at one year of data. |
+| R-1 | **High - launch blocker** | No separation between customer organisations (multi-tenancy). |
+| R-2 | **High - launch blocker** | Every new, approved or reset account starts with the password `password`, and it is e-mailed. Usernames are predictable, so an account can be taken over before its owner signs in. |
+| R-3 / R-4 | **High - launch blocker** | The JSON file database and the in-memory sessions are not safe for several processes or production load. Measured: about 1.7 s per saved change at one year of data. |
 | R-5 | **Medium** | `seed.js` in Git contains the full data, including the password hashes of 2 accounts with real passwords and a registration with a real-looking personal e-mail. The repository's visibility could not be checked. |
 | R-6 | Medium | Workspace rules not applied to goals, plans, recognition, risks, complaints, surveys, calibrations, knowledge base and task templates. |
 | R-7 | Medium | No Content-Security-Policy (inline handlers everywhere), no HSTS. |
@@ -222,34 +222,34 @@ needed before a commercial launch.
 
 | Resource / action | admin | qa | lead | trainer | agent |
 |---|---|---|---|---|---|
-| Workforce set-up (calendars, shifts, patterns, leave types, attendance rules), public holidays | ✓ | – | – | – | – |
+| Workforce set-up (calendars, shifts, patterns, leave types, attendance rules), public holidays | ✓ | - | - | - | - |
 | Rota: read | all | ws | ws | ws | own team (others' leave type hidden) |
-| Rota: change, copy last week, assign shifts | ✓ | – | ws (not Administration) | – | – |
+| Rota: change, copy last week, assign shifts | ✓ | - | ws (not Administration) | - | - |
 | Own attendance: check in / break / out, ask a correction | ✓ | ✓ | ✓ | ✓ | ✓ (own) |
-| A team's day and month, Team today, morning brief, attendance report | all | ws | ws | ws | – |
-| Correct a day directly | ✓ | – | ws | – | – |
-| Decide a correction or time off | ✓ | the person's manager or team lead, or that person's deputy for the dates | same | same | – |
+| A team's day and month, Team today, morning brief, attendance report | all | ws | ws | ws | - |
+| Correct a day directly | ✓ | - | ws | - | - |
+| Decide a correction or time off | ✓ | the person's manager or team lead, or that person's deputy for the dates | same | same | - |
 | Ask for time off | self | self | self, or for people they plan (approved at once) | self | self |
 | Cancel time off | any day | the approver: any day | the approver: any day | the approver: any day | own: a pending request, or approved days still to come |
-| Adjust balances | ✓ | – | – | – | – |
-| Name a deputy | own | own | own | own | – |
-| Team balances | all | ws | ws | ws | – |
+| Adjust balances | ✓ | - | - | - | - |
+| Name a deputy | own | own | own | own | - |
+| Team balances | all | ws | ws | ws | - |
 | Team calendar | all | ws | ws | ws | own team (no leave types of others) |
 | Capacity plans: read | all | ws (look only) | ws | ws (look only) | own leads |
-| Capacity plans: create, change, publish, delete | ✓ | – | ws (every team of the plan) | – | – |
-| AI settings, key, budget, test | ✓ | – | – | – | – |
-| AI QA reviewer drafts | all | ws | – | – | – |
-| AI team lead (agents at risk, plans), AI analyst, AI trainer | all | ws | ws | ws | – |
-| AI weekly summary: write | all teams | ws | ws | – | – |
-| AI analyst "all teams" report | ✓ | only if they see every team | same | same | – |
-| AI Simulator scenarios: manage | ✓ | – | – | ✓ | – |
+| Capacity plans: create, change, publish, delete | ✓ | - | ws (every team of the plan) | - | - |
+| AI settings, key, budget, test | ✓ | - | - | - | - |
+| AI QA reviewer drafts | all | ws | - | - | - |
+| AI team lead (agents at risk, plans), AI analyst, AI trainer | all | ws | ws | ws | - |
+| AI weekly summary: write | all teams | ws | ws | - | - |
+| AI analyst "all teams" report | ✓ | only if they see every team | same | same | - |
+| AI Simulator scenarios: manage | ✓ | - | - | ✓ | - |
 | AI Simulator: practise | ✓ | ✓ | ✓ | ✓ | ✓ (when switched on; own results) |
-| Q-Intelligence: Ask Q agents, insights, topics | all | ws | ws | ws | – |
-| Q-Intelligence knowledge files: read | ✓ | ✓ | ✓ | ✓ | – |
-| Q-Intelligence knowledge files: add, delete | ✓ | ✓ | – | ✓ | – |
-| Organization (company, data protection, purge, sign-in rules, business words), personal data download | ✓ | – | – | – | – |
+| Q-Intelligence: Ask Q agents, insights, topics | all | ws | ws | ws | - |
+| Q-Intelligence knowledge files: read | ✓ | ✓ | ✓ | ✓ | - |
+| Q-Intelligence knowledge files: add, delete | ✓ | ✓ | - | ✓ | - |
+| Organization (company, data protection, purge, sign-in rules, business words), personal data download | ✓ | - | - | - | - |
 
-### Confirmed vulnerabilities – fixed in round 4
+### Confirmed vulnerabilities - fixed in round 4
 
 Every fix has a regression test that passes after it. The tests of S-29, S-30, S-31 and S-37 were seen failing before their fixes. The other defects were confirmed by reading the code, and their tests were written with the fix.
 

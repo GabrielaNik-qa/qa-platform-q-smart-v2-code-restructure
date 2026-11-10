@@ -112,11 +112,11 @@ function Profile({ company }: { company: CompanyRef }) {
         </div>
         <div>
           <dt className="text-mu">{t('people.team')}</dt>
-          <dd className="font-semibold">{mine?.teamName ?? '—'}</dd>
+          <dd className="font-semibold">{mine?.teamName ?? '-'}</dd>
         </div>
         <div>
           <dt className="text-mu">{t('teams.lead')}</dt>
-          <dd className="font-semibold">{team?.leadName ?? '—'}</dd>
+          <dd className="font-semibold">{team?.leadName ?? '-'}</dd>
         </div>
       </dl>
       <CheckList legend={t('fields.skills')} options={options('skill')} value={chosen} onChange={setChosen} />

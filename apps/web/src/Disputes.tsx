@@ -145,7 +145,7 @@ export function DisputeBox({
                 {m.authorName} · {when(m.at, lang)}
               </small>
               {t('disputes.closing', { outcome: outcomeText(m.text) })}
-              {dispute.note && ` — ${dispute.note}`}
+              {dispute.note && `: ${dispute.note}`}
             </li>
           ) : (
             <li
@@ -259,7 +259,7 @@ export function DisputeBox({
             date: dispute.resolvedAt ? when(dispute.resolvedAt, lang) : '',
             outcome: outcomeText(dispute.outcome),
           })}
-          {dispute.note && ` — ${dispute.note}`}
+          {dispute.note && `: ${dispute.note}`}
         </p>
       )}
     </section>
@@ -428,7 +428,7 @@ export function Disputes({ company }: { company: CompanyRef }) {
     type: ({ review }) => t(`reviews.channels.${review.channel}`),
     disputedOn: ({ dispute }) => <span className="whitespace-nowrap">{dayOf(dispute.openedAt)}</span>,
     agent: ({ review }) => review.agentName,
-    team: ({ review }) => review.teamName || '—',
+    team: ({ review }) => review.teamName || '-',
     score: ({ review }) =>
       review.notScored ? (
         <span className="text-mu">{t('list.notScored')}</span>
@@ -459,10 +459,10 @@ export function Disputes({ company }: { company: CompanyRef }) {
           {t(`disputes.outcomesShort.${dispute.outcome}`)}
         </span>
       ) : (
-        <span className="text-mu">—</span>
+        <span className="text-mu">-</span>
       ),
-    reviewer: ({ review }) => review.reviewerName || '—',
-    resolvedOn: ({ dispute }) => (dispute.resolvedAt ? dayOf(dispute.resolvedAt) : '—'),
+    reviewer: ({ review }) => review.reviewerName || '-',
+    resolvedOn: ({ dispute }) => (dispute.resolvedAt ? dayOf(dispute.resolvedAt) : '-'),
   };
   const tile = (key: '' | State, label: string, value: number, color: string) => (
     <button
@@ -775,7 +775,7 @@ function Insights({
                 <td className="py-1.5 pr-3">{name}</td>
                 {x.map((v, i) => (
                   <td key={i} className="py-1.5 pr-3 font-mono">
-                    {i === 2 ? <b>{v}</b> : i >= 3 ? v || '—' : v}
+                    {i === 2 ? <b>{v}</b> : i >= 3 ? v || '-' : v}
                   </td>
                 ))}
               </tr>
@@ -784,7 +784,7 @@ function Insights({
         </table>
       </div>
     ) : (
-      <p className="text-mu">—</p>
+      <p className="text-mu">-</p>
     );
   const heading = 'font-display text-lg font-bold';
 
@@ -798,7 +798,7 @@ function Insights({
               <div className="text-sm text-mu">{t('disputes.avgTime')}</div>
               <b className="font-display text-2xl">
                 {average === null
-                  ? '—'
+                  ? '-'
                   : average < 1
                     ? t('disputes.hours', { n: Math.round(average * 24) })
                     : t('disputes.days', { n: average.toFixed(1) })}
@@ -810,7 +810,7 @@ function Insights({
               <b className="font-display text-2xl">
                 {resolved.length
                   ? `${Math.round(((ended('changed') + ended('partly')) / resolved.length) * 100)}%`
-                  : '—'}
+                  : '-'}
               </b>
               <div className="text-xs text-mu">{t('disputes.agentRightHelp')}</div>
             </div>
@@ -846,8 +846,8 @@ function Insights({
                     <td className="py-1.5 pr-3 font-mono">
                       <b>{x.total}</b>
                     </td>
-                    <td className="py-1.5 pr-3 font-mono">{x.changed || '—'}</td>
-                    <td className="py-1.5 pr-3 font-mono">{x.kept || '—'}</td>
+                    <td className="py-1.5 pr-3 font-mono">{x.changed || '-'}</td>
+                    <td className="py-1.5 pr-3 font-mono">{x.kept || '-'}</td>
                   </tr>
                 ))}
               </tbody>
