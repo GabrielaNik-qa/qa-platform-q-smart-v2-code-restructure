@@ -2,6 +2,11 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
+## 10 November 2026: Phase 3 (Home & Analytics), in progress, on branch `v2-phase-3`
+
+- **Fixed from Phase 2:** GitHub's checks failed after the merge, although all 140 tests passed there. A test database was stopped a moment before its last connections had really closed, and the test tool counted the message they got as an error. The test database now waits until every connection has left before it stops (checked by stopping it right after closing ten connections, five times in a row).
+- **GitHub now also checks each phase's own branch** (`v2-phase-2`, `v2-phase-3` …), not only `main`, so a problem shows up before a phase is merged.
+
 ## 10 November 2026: Phase 2 (Quality), finished (tag `v2-phase-2`)
 
 Built from 6 to 10 November on branch `v2-phase-2`. Every step was checked in the browser as admin, reviewer, team lead, trainer and agent, and in English, Bulgarian and French. 140 automatic tests pass.

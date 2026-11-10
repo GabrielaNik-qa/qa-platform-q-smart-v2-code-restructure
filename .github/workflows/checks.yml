@@ -3,7 +3,8 @@ name: Checks
 
 on:
   push:
-    branches: [main, qa-platform-q-smart-v2-code-restructure]
+    # main, the branch of phases 0 and 1, and each phase's own branch (v2-phase-2, v2-phase-3 …)
+    branches: [main, qa-platform-q-smart-v2-code-restructure, 'v2-phase-*']
   pull_request:
 
 permissions:

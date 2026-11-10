@@ -53,6 +53,29 @@ export async function prepareDatabase(adminUrl: string, database: string): Promi
 }
 
 /**
+ * Waits (up to 3 seconds) until every other connection has really left. A connection pool says it is closed a moment
+ * before its connections are gone; stopping PostgreSQL in that moment ends them with "terminating connection due to
+ * administrator command", which nobody is listening for any more (GitHub's checks, 10 November).
+ */
+async function waitForClientsToLeave(adminUrl: string): Promise<void> {
+  const admin = new pg.Client({ connectionString: adminUrl });
+  try {
+    await admin.connect();
+    for (let i = 0; i < 60; i++) {
+      const { rows } = await admin.query<{ n: number }>(
+        `SELECT count(*)::int AS n FROM pg_stat_activity WHERE pid <> pg_backend_pid() AND backend_type = 'client backend'`,
+      );
+      if (!rows[0]?.n) return;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  } catch {
+    // PostgreSQL already stopped: nothing to wait for
+  } finally {
+    await admin.end().catch(() => undefined);
+  }
+}
+
+/**
  * Starts PostgreSQL. Without `dataDir` it's a throw-away copy in the temp folder, removed by stop().
  * With `dataDir` (outside OneDrive) the data stays between starts.
  */
@@ -92,6 +115,7 @@ export async function startLocalPostgres(
     ownerUrl: `postgres://qsmart_owner:qsmart_owner@${host}`,
     appUrl: `postgres://qsmart_app:qsmart_app@${host}`,
     async stop() {
+      await waitForClientsToLeave(adminUrl);
       await server.stop();
       // Windows (an antivirus, or a PostgreSQL helper that is slow to quit) can hold the
       // throw-away folder after PostgreSQL stops. It is only a temporary folder, so a
