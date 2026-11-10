@@ -17,6 +17,7 @@ import {
   type LocalPostgres,
   runMigrations,
   seedDemo,
+  seedDemoReviews,
   startLocalPostgres,
 } from '@qsmart/db';
 import { roleSchema } from '@qsmart/shared';
@@ -146,6 +147,8 @@ async function main(): Promise<void> {
   await runMigrations(database.ownerUrl);
   const owner = createDb(database.ownerUrl);
   await seedDemo(owner);
+  const added = await seedDemoReviews(owner);
+  if (added) console.log(`  today's demo reviews added to the demo company: ${added}`);
   if (REAL) {
     for (const person of await readInvites()) {
       await inviteToDemo(owner, person);

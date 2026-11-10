@@ -15,6 +15,7 @@ export * from './quality.js';
 export * from './reviewer-checks.js';
 export * from './reviews.js';
 export * from './seed.js';
+export * from './seed-reviews.js';
 export * from './teams.js';
 export type { PageRules, Prefs } from './schema.js';
 export * as schema from './schema.js';

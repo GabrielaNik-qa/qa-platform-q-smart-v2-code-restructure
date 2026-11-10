@@ -16,6 +16,12 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
     - "Quality scores over time" shows the number of reviews in its own strip under the line, instead of a second scale on the same chart, which is easy to misread.
     - The category lines use eight colours checked for colour blindness in both themes; today's colours failed that check (green against yellow, yellow against orange).
     - A review counts for the team the agent was in when it was reviewed (today: the agent's current team), the same team that decides who may see it. The Flags tile counts quick flags of the chosen period only (today: of all time).
+- **Step 2: today's demo reviews in v2's demo company:**
+  - The demo company now has today's 842 demo reviews (May to October 2026), with their answers, comments, root causes, flags, "seen" and 9 disputes, so the dashboards have six months to show and can be compared with today's side by side.
+  - **Only made-up people:** today's 10 agents became 10 made-up agents (Nina Rowe, Omar Haddad …), and today's reviewers became v2's demo reviewers (Ada Admin, Rita Reviewer, and the made-up Mila Novak and Theo Grant). The counts per person are unchanged. Links to recordings and the CRM are not copied.
+  - **Each review is scored again by v2**, and a test checks every one against today's score: all 842 match. 152 of them were made before today's scorecards changed their critical items, so they keep the critical settings they were scored with.
+  - Checked: v2's dashboard shows today's numbers (average 93.8%, 8 open disputes).
+  - Added once, when v2 starts (`Start Q-smart v2.cmd`); the automatic tests keep their own small demo company.
 
 ## 10 November 2026: Phase 2 (Quality), finished (tag `v2-phase-2`)
 
