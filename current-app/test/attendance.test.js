@@ -8,7 +8,7 @@ const { DEFAULT_SC } = require('../scorecard');
 const wf = require('../wf');
 
 const S = wf.settingsOf({ rules: { since: '2026-01-01', shortGrace: 15 } }, '2026-10-27');
-const at = (d, hm) => new Date(wf.atLocal(d, hm)).toISOString(), T27 = '2026-10-27', day = { v: 's-day' };   // Tuesday; the default shift is 09:00–18:00, grace 5 minutes
+const at = (d, hm) => new Date(wf.atLocal(d, hm)).toISOString(), T27 = '2026-10-27', day = { v: 's-day' };   // Tuesday; the default shift is 09:00-18:00, grace 5 minutes
 const st = (rec, now, lv, d = T27, plan = day) => wf.dayStatus(S, S.rules, d, plan, rec, lv || null, now || wf.atLocal('2026-10-28', '12:00'));
 
 // decision 7 (Gabriela, 4 November): each person their own time zone; a shift is in the person's local time

@@ -11,7 +11,7 @@
     surveys: { name: 'Surveys (CSAT)', metrics: { count: 'Number of answers', csat: 'Average CSAT (1-5)', happy: 'Satisfied (4-5) %' }, dims: ['agent', 'team', 'type'] },
     complaints: { name: 'Complaints', metrics: { count: 'Number of complaints', open: 'Still open', high: 'High or critical' }, dims: ['agent', 'team', 'type', 'category', 'status'] }
   };
-  const DIMN = { none: '— nothing —', agent: 'Agent', team: 'Team', reviewer: 'Reviewer', type: 'Review type', scorecard: 'Scorecard', category: 'Category', campaign: 'Campaign', flagger: 'Flagged by', kind: 'Task or target', status: 'Status', week: 'Week', month: 'Month', quarter: 'Quarter' };
+  const DIMN = { none: '- nothing -', agent: 'Agent', team: 'Team', reviewer: 'Reviewer', type: 'Review type', scorecard: 'Scorecard', category: 'Category', campaign: 'Campaign', flagger: 'Flagged by', kind: 'Task or target', status: 'Status', week: 'Week', month: 'Month', quarter: 'Quarter' };
   const CHN = { call: 'Calls', chat: 'Chats', email: 'Emails', other: 'Other' };
   const D = v => v instanceof Date ? v : new Date(v);
   const pad = n => String(n).padStart(2, '0'), ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
@@ -34,14 +34,14 @@
 
   // every source turned into simple records: { d: date, agent, team, keys: { dim: value }, vals }
   function records(src, data) {
-    const nm = u => ((data.users || []).find(x => x.username === u) || {}).name || u || '—';
+    const nm = u => ((data.users || []).find(x => x.username === u) || {}).name || u || '-';
     const tn = id => ((data.teams || []).find(x => x.id === id) || {}).name || id || 'No team';
     const teamOf = u => ((data.users || []).find(x => x.username === u) || {}).team || '';
-    if (src === 'reviews') return (data.ev || []).map(e => { const tm = e.tm || teamOf(e.agent) || e.tid; return { d: D(e.d), agent: e.agent, team: tm, ch: e.ch || 'call', sc: e.scid, e, keys: { agent: nm(e.agent), team: tn(tm), reviewer: e.rv || '—', type: CHN[e.ch || 'call'], scorecard: e.scn || '—', campaign: e.cp || 'general' } }; });
-    if (src === 'flags') return (data.qf || []).map(f => ({ d: new Date(f.date + 'T12:00:00'), agent: f.agent, team: teamOf(f.agent) || f.tid, ch: f.ch || 'call', f, keys: { agent: nm(f.agent), team: tn(teamOf(f.agent) || f.tid), type: CHN[f.ch || 'call'], flagger: f.byName || f.by || '—' } }));
+    if (src === 'reviews') return (data.ev || []).map(e => { const tm = e.tm || teamOf(e.agent) || e.tid; return { d: D(e.d), agent: e.agent, team: tm, ch: e.ch || 'call', sc: e.scid, e, keys: { agent: nm(e.agent), team: tn(tm), reviewer: e.rv || '-', type: CHN[e.ch || 'call'], scorecard: e.scn || '-', campaign: e.cp || 'general' } }; });
+    if (src === 'flags') return (data.qf || []).map(f => ({ d: new Date(f.date + 'T12:00:00'), agent: f.agent, team: teamOf(f.agent) || f.tid, ch: f.ch || 'call', f, keys: { agent: nm(f.agent), team: tn(teamOf(f.agent) || f.tid), type: CHN[f.ch || 'call'], flagger: f.byName || f.by || '-' } }));
     if (src === 'tasks') return (data.tasks || []).map(t => ({ d: D(t.created), agent: t.assignee, team: teamOf(t.assignee), t, keys: { agent: nm(t.assignee), team: tn(teamOf(t.assignee)), kind: t.type === 'mission' ? 'Target' : 'Task' } }));
     if (src === 'surveys') return (data.surveys || []).map(s => ({ d: new Date((s.date || '') + 'T12:00:00'), agent: s.agent, team: teamOf(s.agent), ch: s.ch || 'call', s, keys: { agent: nm(s.agent), team: tn(teamOf(s.agent)), type: CHN[s.ch || 'call'] } }));
-    if (src === 'complaints') return (data.complaints || []).map(c => ({ d: new Date((c.date || '') + 'T12:00:00'), agent: c.agent, team: teamOf(c.agent), ch: c.ch || 'call', c, keys: { agent: nm(c.agent), team: tn(teamOf(c.agent)), type: CHN[c.ch || 'call'], category: c.category || '—', status: c.status || 'new' } }));
+    if (src === 'complaints') return (data.complaints || []).map(c => ({ d: new Date((c.date || '') + 'T12:00:00'), agent: c.agent, team: teamOf(c.agent), ch: c.ch || 'call', c, keys: { agent: nm(c.agent), team: tn(teamOf(c.agent)), type: CHN[c.ch || 'call'], category: c.category || '-', status: c.status || 'new' } }));
     return [];
   }
   // the value of one metric for a group of records
@@ -65,7 +65,7 @@
     const [a, b] = range((cfg.period || {}).p || 'month', (cfg.period || {}).f, (cfg.period || {}).t), fl = cfg.filters || {};
     let l = records(src, data).filter(r => r.d >= a && r.d < b && (!fl.team || r.team === fl.team) && (!fl.agent || r.agent === fl.agent) && (!fl.ch || r.ch === fl.ch) && (!fl.sc || r.sc === fl.sc));
     const rowDim = cfg.rows || 'none', colDim = cfg.cols || 'none';
-    const keyOf = (r, dim) => dim === 'week' ? isoWeek(r.d) : dim === 'month' ? r.d.getFullYear() + '-' + pad(r.d.getMonth() + 1) : dim === 'quarter' ? r.d.getFullYear() + ' Q' + (Math.floor(r.d.getMonth() / 3) + 1) : dim === 'none' ? 'Total' : (r.keys[dim] || '—');
+    const keyOf = (r, dim) => dim === 'week' ? isoWeek(r.d) : dim === 'month' ? r.d.getFullYear() + '-' + pad(r.d.getMonth() + 1) : dim === 'quarter' ? r.d.getFullYear() + ' Q' + (Math.floor(r.d.getMonth() / 3) + 1) : dim === 'none' ? 'Total' : (r.keys[dim] || '-');
     // "category" splits every review into its categories
     const cats = src === 'reviews' && (rowDim === 'category' || colDim === 'category') ? [...new Set(l.flatMap(r => (r.e.cs || []).map(c => c.n)))] : null;
     const rowKeys = rowDim === 'category' ? cats : [...new Set(l.map(r => keyOf(r, rowDim)))];
@@ -82,7 +82,7 @@
   // a plain HTML table of a result (used in the scheduled emails and the PDF print); names and titles are typed by people, so they are escaped
   function toHtml(res, title) {
     const h = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
-    const fmt = v => v == null ? '—' : h(v);
+    const fmt = v => v == null ? '-' : h(v);
     const head = res.colDim === 'none' ? res.metricNames.map(n => `<th>${h(n)}</th>`).join('') : res.colKeys.map(c => `<th>${h(c)}</th>`).join('') + '<th>Total</th>';
     const body = res.rows.map(r => `<tr><td>${h(r.key)}</td>${res.colDim === 'none' ? res.metrics.map(m => `<td>${fmt(r.cells[0][m])}</td>`).join('') : r.cells.map(c => `<td>${fmt(c[res.metrics[0]])}</td>`).join('') + `<td>${fmt(r.total[res.metrics[0]])}</td>`}</tr>`).join('');
     return `<h2 style="font-family:sans-serif">${h(title)}</h2><p style="font-family:sans-serif;color:#555">${h(res.srcName)} · ${h(res.periodName)} · ${res.n} records${res.colDim === 'none' ? '' : ' · ' + h(res.metricNames[0])}</p><table border=1 cellpadding=6 style="border-collapse:collapse;font-family:sans-serif;font-size:13px"><tr><th>${h(res.rowName)}</th>${head}</tr>${body}</table>`;

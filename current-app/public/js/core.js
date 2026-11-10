@@ -8,7 +8,7 @@ const tcol = id => (TEAMS.find(x => x.id === id) || {}).color || '#64748b';
 const an = u => { const r = ROSTER.find(x => x.username === u); return r ? r.name : ''; };
 const teamOf = u => { const r = ROSTER.find(x => x.username === u); return r ? r.team : ''; };
 const AGENTS = () => ROSTER.filter(r => r.role === 'agent' && r.active).sort((a, b) => a.name.localeCompare(b.name));
-const agn = e => an(e.agent) || e.agn || e.agent || '—';
+const agn = e => an(e.agent) || e.agn || e.agent || '-';
 const LS = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }

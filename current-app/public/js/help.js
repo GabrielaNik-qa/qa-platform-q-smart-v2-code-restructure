@@ -30,17 +30,17 @@ Object.assign(GOVR, {
       { title: 'First day as QA', role: 'qa', steps: [['entry', 'Score a call here: choose the scorecard, then answer each question'], ['calls', 'All the reviews, with filters and the Excel export'], ['disputes', 'Disputes wait for your decision here'], ['cal', 'Calibration: score the same call with the other reviewers'], ['coach', 'Coaching: what each agent needs to work on']] }
     ].map(t => ({ ...t, title: tr(t.title), steps: t.steps.map(([pg, t2]) => ({ t: tr(t2), d: '', pg })) })) },   // saved in the language of the person who adds them
   cs_revqa: { c: 'revqa', what: 'check', t: 'Reviewer QA', s: 'Review the reviewers: check that reviews are fair and follow the scorecard', name: 'rid',
-    f: [{ k: 'rid', l: 'Review', t: 'select', req: 1, o: () => [['', '—'], ...EV.filter(e => e.by && e.by !== ME.username).slice(0, 80).map(e => [e.rid, `${e.d} · ${agn(e)} · ${e.rv || e.by} · ${Math.round(e.sc)}%`])] },
+    f: [{ k: 'rid', l: 'Review', t: 'select', req: 1, o: () => [['', '-'], ...EV.filter(e => e.by && e.by !== ME.username).slice(0, 80).map(e => [e.rid, `${e.d} · ${agn(e)} · ${e.rv || e.by} · ${Math.round(e.sc)}%`])] },
       { k: 'fair', l: 'The score is fair', t: 'select', o: YN.slice().reverse() }, { k: 'follows', l: 'It follows the scorecard', t: 'select', o: YN.slice().reverse() },
       { k: 'critical', l: 'The critical items are right', t: 'select', o: YN.slice().reverse() }, { k: 'useful', l: 'The comment helps the agent', t: 'select', o: YN.slice().reverse() }, { k: 'note', l: 'Note for the reviewer', t: 'textarea', rows: 3 }],
     before: d => ({ ...d, reviewer: (EVA.find(e => e.rid === d.rid) || {}).by || '' }) },
   cs_pins: { c: 'pins', what: 'pin', t: 'Pins', s: 'Moments of conversations saved to talk about in a coaching session', name: 'note',
-    f: [{ k: 'rid', l: 'Review', t: 'select', req: 1, o: () => [['', '—'], ...EV.slice(0, 120).map(e => [e.rid, `${e.d} · ${agn(e)} · ${tr('Lead')} ${e.id}`])] }, { k: 'when', l: 'Moment in the conversation (mm:ss)', ph: '02:15' },
+    f: [{ k: 'rid', l: 'Review', t: 'select', req: 1, o: () => [['', '-'], ...EV.slice(0, 120).map(e => [e.rid, `${e.d} · ${agn(e)} · ${tr('Lead')} ${e.id}`])] }, { k: 'when', l: 'Moment in the conversation (mm:ss)', ph: '02:15' },
       { k: 'note', l: 'What to talk about', t: 'textarea', rows: 3, req: 1 }, { k: 'status', l: 'Status', t: 'select', o: [['todo', 'To talk about'], ['done', 'Talked about']] }],
     before: d => ({ ...d, agent: (EVA.find(e => e.rid === d.rid) || {}).agent || '' }) }
 });
 // the pages a step or a question can point to: every page of the menu (not the coming-soon ones)
-const hpPages = req => [...(req ? [] : [['', '—']]), ...GROUPS.flatMap(g => g.items.filter(([k]) => !Object.hasOwn(SOON, k)).map(([k, n]) => [k, tr(g.name) + ' › ' + tr(n)]))];
+const hpPages = req => [...(req ? [] : [['', '-']]), ...GROUPS.flatMap(g => g.items.filter(([k]) => !Object.hasOwn(SOON, k)).map(([k, n]) => [k, tr(g.name) + ' › ' + tr(n)]))];
 const hpPageName = k => (hpPages(1).find(x => x[0] === k) || [k, ''])[1];
 const hpEd = (k, x) => canWriteHelp() ? `<span style="white-space:nowrap"><button class=ic title="Change" onclick="regForm('${k}','${x.id}')">${IC.pen}</button><button class=ic title="Delete" onclick="coDel('${GOVR[k].c}','${x.id}','${GOVR[k].what}')">${IC.bin}</button></span>` : '';
 const hpHead = (k, n) => head(GOVR[k].t, GOVR[k].s, `<div style="display:flex;gap:8px;flex-wrap:wrap">${bellBtn()}<a class=ib href="/hc/" target=_blank rel=noopener>${tr('Help Center website')} ↗</a>${canWriteHelp() && GOVR[k].seed && !n ? `<button class="ib ibx" onclick="regSeed('${k}')">${tr("Start from Q-smart's own list")}</button>` : ''}${canWriteHelp() ? `<button class="btn ibx" onclick="regForm('${k}')">${IC.plus} ${tr('Add')}</button>` : ''}</div>`);
@@ -78,14 +78,14 @@ const tourBar = () => { if (!TOUR) return ''; const n = TOUR.t.steps.length, s =
 let MYA = 'rrev';
 const myaTabs = [['Received', [['rrev', 'Reviews'], ['rcom', 'Comments'], ['rkud', 'Kudos'], ['rsur', 'Survey feedback']]], ['Given', [['grev', 'Reviews'], ['gcom', 'Comments'], ['gkud', 'Kudos']]], ['Disputes', [['dall', 'All'], ['drec', 'Received'], ['dsta', 'Started']]]];
 const myaRows = () => { const me = ME.username, mine = e => e.agent === me, msgs = EV.flatMap(e => ((e.dp || {}).msgs || []).map(m => ({ e, m })));
-  const evRow = e => ({ at: e.d, t: `${tr('Lead')} ${e.id} · ${Math.round(e.sc)}%`, s: `${agn(e)} · ${tr('reviewed by')} ${e.rv || e.by || '—'}`, go: `om('view','${e.rid}')` });
+  const evRow = e => ({ at: e.d, t: `${tr('Lead')} ${e.id} · ${Math.round(e.sc)}%`, s: `${agn(e)} · ${tr('reviewed by')} ${e.rv || e.by || '-'}`, go: `om('view','${e.rid}')` });
   const msgRow = ({ e, m }) => ({ at: String(m.at).slice(0, 10), t: m.t, s: `${m.n || m.u} · ${tr('Lead')} ${e.id}`, go: `om('view','${e.rid}')` });
   const dpRow = e => ({ at: String(e.dp.at).slice(0, 10), t: `${tr('Lead')} ${e.id} · ${agn(e)}`, s: e.dp.status === 'open' ? tr('Waiting for a decision') : tr('Resolved'), go: `om('view','${e.rid}')` });
   const inDp = e => e.dp && (mine(e) || e.by === me || (e.dp.msgs || []).some(m => m.u === me));
   return { rrev: EV.filter(mine).map(evRow), grev: EV.filter(e => e.by === me).map(evRow),
     rcom: msgs.filter(x => x.m.u !== me && (mine(x.e) || x.e.by === me || (x.e.dp.msgs || []).some(m => m.u === me))).map(msgRow), gcom: msgs.filter(x => x.m.u === me).map(msgRow),
     rkud: (CO.kudos || []).filter(k => k.to === me).map(k => ({ at: String(k.at).slice(0, 10), t: k.text || '', s: `${tr('From')} ${k.byName || k.by}` })), gkud: (CO.kudos || []).filter(k => k.by === me).map(k => ({ at: String(k.at).slice(0, 10), t: k.text || '', s: `${tr('To')} ${an(k.to) || k.to}` })),
-    rsur: (CO.surveys || []).filter(x => x.agent === me).map(x => ({ at: x.date, t: x.comment || '—', s: `${tr('Score')} ${x.score}/5` })),
+    rsur: (CO.surveys || []).filter(x => x.agent === me).map(x => ({ at: x.date, t: x.comment || '-', s: `${tr('Score')} ${x.score}/5` })),
     dall: EV.filter(inDp).map(dpRow), drec: EV.filter(e => e.dp && e.by === me).map(dpRow), dsta: EV.filter(e => e.dp && mine(e)).map(dpRow) }; };
 PG.cs_myact = function () {
   const R = myaRows(), l = (R[MYA] || []).slice().sort((a, b) => String(b.at).localeCompare(String(a.at)));
@@ -105,18 +105,18 @@ PG.cs_start = function () {
 // ---- Quality › Reviewer QA: checks on the reviews done by others (four yes / no questions); the score of a reviewer = the share of yes
 const rqScore = x => { const q = ['fair', 'follows', 'critical', 'useful'], y = q.filter(k => x[k] === 'yes').length; return Math.round(y / q.length * 100); };
 PG.cs_revqa = function () {
-  const all = CO.revqa || [], by = {}; all.forEach(x => { const e = EVA.find(v => v.rid === x.rid) || {}, r = e.by || x.reviewer || '—'; (by[r] = by[r] || []).push(rqScore(x)); });
+  const all = CO.revqa || [], by = {}; all.forEach(x => { const e = EVA.find(v => v.rid === x.rid) || {}, r = e.by || x.reviewer || '-'; (by[r] = by[r] || []).push(rqScore(x)); });
   const can = ['admin', 'qa', 'lead'].includes(ME.role);
   return head('Reviewer QA', 'Review the reviewers: check that reviews are fair and follow the scorecard', `<div style="display:flex;gap:8px">${bellBtn()}${can ? `<button class="btn ibx" onclick="regForm('cs_revqa')">${IC.plus} ${tr('Check a review')}</button>` : ''}</div>`)
     + `<div class="g g2">${card('Reviewers', Object.keys(by).length ? tbl(['Reviewer', 'Checks', 'Score'], Object.entries(by).sort((a, b) => avg(b[1]) - avg(a[1])).map(([r, s]) => [`<b>${esc(an(r) || r)}</b>`, s.length, `<b style="color:${avg(s) >= 80 ? 'var(--ok)' : avg(s) >= 60 ? 'var(--wn)' : 'var(--bad)'}">${Math.round(avg(s))}%</b>`])) : hpNone())}`
     + card('Latest checks', all.length ? tbl(['Review', 'Score', 'Note', ''], all.slice(0, 50).map(x => { const e = EVA.find(v => v.rid === x.rid);
-      return [e ? `<a href="javascript:void(0)" class=agl onclick="om('view','${e.rid}')">${tr('Lead')} ${esc(e.id)}</a><br><small class=mu>${esc(agn(e))} · ${esc(e.rv || e.by || '')}</small>` : '—', `${rqScore(x)}%`, `<small>${esc(x.note || '')}</small>`, can ? hpEd('cs_revqa', x) : '']; })) : hpNone()) + `</div>`;
+      return [e ? `<a href="javascript:void(0)" class=agl onclick="om('view','${e.rid}')">${tr('Lead')} ${esc(e.id)}</a><br><small class=mu>${esc(agn(e))} · ${esc(e.rv || e.by || '')}</small>` : '-', `${rqScore(x)}%`, `<small>${esc(x.note || '')}</small>`, can ? hpEd('cs_revqa', x) : '']; })) : hpNone()) + `</div>`;
 };
 
 // ---- Coaching › Pins: moments of conversations to talk about; agents see their own
 PG.cs_pins = function () {
   const all = CO.pins || [], ed = canWriteHelp();
-  const row = x => { const e = EVA.find(v => v.rid === x.rid); return `<div class=li><div class=row><span><b>${e ? esc(agn(e)) : '—'}</b> <small class=mu>${e ? `${tr('Lead')} ${esc(e.id)} · ${esc(e.d)}` : ''}${x.when ? ' · ' + esc(x.when) : ''}</small></span><span style="display:flex;gap:6px">${e ? `<button class=pb onclick="om('view','${e.rid}')">${tr('Open the review')}</button>` : ''}${ed ? `${x.status !== 'done' ? `<button class=ib onclick="coPatch('pins','${x.id}',{status:'done'},'${tr('Saved')}')">${tr('Talked about')}</button>` : ''}${hpEd('cs_pins', x)}` : ''}</span></div><div data-noi18n style="margin-top:4px">${esc(x.note)}</div></div>`; };
+  const row = x => { const e = EVA.find(v => v.rid === x.rid); return `<div class=li><div class=row><span><b>${e ? esc(agn(e)) : '-'}</b> <small class=mu>${e ? `${tr('Lead')} ${esc(e.id)} · ${esc(e.d)}` : ''}${x.when ? ' · ' + esc(x.when) : ''}</small></span><span style="display:flex;gap:6px">${e ? `<button class=pb onclick="om('view','${e.rid}')">${tr('Open the review')}</button>` : ''}${ed ? `${x.status !== 'done' ? `<button class=ib onclick="coPatch('pins','${x.id}',{status:'done'},'${tr('Saved')}')">${tr('Talked about')}</button>` : ''}${hpEd('cs_pins', x)}` : ''}</span></div><div data-noi18n style="margin-top:4px">${esc(x.note)}</div></div>`; };
   const todo = all.filter(x => x.status !== 'done'), done = all.filter(x => x.status === 'done');
   return head('Pins', 'Moments of conversations saved to talk about in a coaching session', `<div style="display:flex;gap:8px">${bellBtn()}${ed ? `<button class="btn ibx" onclick="regForm('cs_pins')">${IC.plus} ${tr('Pin a moment')}</button>` : ''}</div>`)
     + card(`${tr('To talk about')} <span class=bg>${todo.length}</span>`, todo.length ? todo.map(row).join('') : hpNone()) + (done.length ? card(`${tr('Talked about')} <span class=bg>${done.length}</span>`, done.slice(0, 40).map(row).join('')) : '');
@@ -131,8 +131,8 @@ PG.cs_dashes = function () {
   return head('Topic dashboards', 'One block per topic, from your real data', bellBtn()) + `<div class="g g2">`
     + blk('Assignments', [['Open tasks', tk.filter(t => t.status !== 'done').length], ['Done this month', tk.filter(t => t.status === 'done' && inM(t.completed)).length, 'var(--ok)'], ['Overdue', tk.filter(isOver).length, 'var(--bad)']], 'tasks')
     + blk('Coaching', [['Sessions this month', ses.filter(s => inM(s.date)).length], ['Planned', ses.filter(s => s.status === 'planned').length], ['Pins to talk about', (CO.pins || []).filter(x => x.status !== 'done').length]], 'coach')
-    + blk('Disputes', [['Waiting', dps.length - res.length, 'var(--wn)'], ['Resolved', res.length, 'var(--ok)'], ['Days to resolve', days.length ? avg(days).toFixed(1) : '—']], 'disputes')
+    + blk('Disputes', [['Waiting', dps.length - res.length, 'var(--wn)'], ['Resolved', res.length, 'var(--ok)'], ['Days to resolve', days.length ? avg(days).toFixed(1) : '-']], 'disputes')
     + blk('Calibration', [['Sessions', cal.length], ['This month', cal.filter(c => inM(c.date)).length], ['Open', cal.filter(c => c.status !== 'closed' && c.status !== 'done').length]], 'cal')
-    + blk('Surveys', [['Answers this month', sv.filter(x => inM(x.date)).length], ['Average', sv.length ? avg(sv.map(x => +x.score)).toFixed(1) + '/5' : '—'], ['Low (1–2)', sv.filter(x => +x.score <= 2).length, 'var(--bad)']], 'csat')
-    + blk('Reviewer QA', [['Checks', rq.length], ['Average', rq.length ? Math.round(avg(rq.map(rqScore))) + '%' : '—']], 'cs_revqa') + `</div>`;
+    + blk('Surveys', [['Answers this month', sv.filter(x => inM(x.date)).length], ['Average', sv.length ? avg(sv.map(x => +x.score)).toFixed(1) + '/5' : '-'], ['Low (1-2)', sv.filter(x => +x.score <= 2).length, 'var(--bad)']], 'csat')
+    + blk('Reviewer QA', [['Checks', rq.length], ['Average', rq.length ? Math.round(avg(rq.map(rqScore))) + '%' : '-']], 'cs_revqa') + `</div>`;
 };

@@ -23,14 +23,14 @@ const RCOLS = [
   { k: 'ag', t: 'AGENT', td: e => `<span class=av>${ini(agn(e))}</span>${e.agent && ME.role !== 'agent' ? agLink(e.agent, agn(e)) : esc(agn(e))}` },
   { k: 'tm', t: 'TEAM', td: e => teamLink(e.tm) },
   { k: 'cp', t: 'CAMPAIGN', td: e => esc(cpn(e)) },
-  { k: 'rv', t: 'REVIEWER', td: e => esc(e.rv || '—') },
+  { k: 'rv', t: 'REVIEWER', td: e => esc(e.rv || '-') },
   { k: 'sc', t: 'SCORE', td: e => e.ns ? `<span class=mu title="${esc(tr('Every question is N/A, so there is nothing to score. It is in no average.'))}">${tr('Not scored')}</span>` : `<div class=sv><b class=mono style="color:${scol(e.sc, e.tm)}">${e.sc}%</b>${bar(e.sc, scol(e.sc, e.tm))}</div>` },
   { k: 'res', t: 'RESULT', off: 1, td: e => isPass(e) ? pill('Passed', 'ok') : pill('Failed', 'bad') },
   { k: 'fl', t: 'FLAG', td: e => `<span class="fgv ${e.fl || ''}" title="${e.fl ? e.fl + ' flag' : 'No flag'}">${IC.flag}</span>` },
   { k: 'st', t: 'STATUS', td: e => e.st === 'disputed' ? pill('Disputed', 'wn') : pill('Completed', 'ok') },
   { k: 'sn', t: 'SEEN', td: e => e.seen ? `<span class="pill ok" title="Seen ${fdt(e.seen)}">Seen</span>` : `<span class="pill wn" title="The agent has not opened this review yet">Not seen</span>` },
-  { k: 'scn', t: 'SCORECARD', off: 1, td: e => esc(scnOf(e) || '—') },
-  { k: 'subj', t: 'SUBJECT', off: 1, td: e => `<div class=dsm title="${esc(e.subj || '')}">${esc(e.subj || '—')}</div>` }
+  { k: 'scn', t: 'SCORECARD', off: 1, td: e => esc(scnOf(e) || '-') },
+  { k: 'subj', t: 'SUBJECT', off: 1, td: e => `<div class=dsm title="${esc(e.subj || '')}">${esc(e.subj || '-')}</div>` }
 ];
 // every filter of the Reviews page, in the Filters panel (Date always shows; agents only see their own reviews, so no team / agent / reviewer)
 const RFL = () => [
@@ -40,7 +40,7 @@ const RFL = () => [
     { k: 'tm', n: 'Team', v: FT, o: () => TEAMS.filter(t => !t.system).map(t => [t.id, t.name]), set: v => { FT = v; if (FT && FA && teamOf(FA) !== FT) FA = ''; } },
     { k: 'ag', n: 'Agent', v: FA, o: () => AGENTS().filter(a => !FT || a.team === FT).map(a => [a.username, a.name]), set: v => { FA = v; if (FA) FT = teamOf(FA); } }]),
   { k: 'ch', n: 'Type', v: FC, o: () => CHS.map(k => [k, CHP[k]]), set: v => { FC = v; } },
-  { k: 'res', n: 'Result', v: FSC ? FSC.m || 'range' : '', o: () => [['pass', 'Passed'], ['fail', 'Failed'], ...(FSC && !FSC.m ? [['range', `Score ${FSC.a}% – ${FSC.b > 100 ? 100 : FSC.b - 1}%`]] : [])], set: v => { FSC = v === 'pass' || v === 'fail' ? { m: v } : v === 'range' ? FSC : null; } },
+  { k: 'res', n: 'Result', v: FSC ? FSC.m || 'range' : '', o: () => [['pass', 'Passed'], ['fail', 'Failed'], ...(FSC && !FSC.m ? [['range', `Score ${FSC.a}% - ${FSC.b > 100 ? 100 : FSC.b - 1}%`]] : [])], set: v => { FSC = v === 'pass' || v === 'fail' ? { m: v } : v === 'range' ? FSC : null; } },
   { k: 'st', n: 'Status', v: RF.st, o: () => [['disputed', 'Disputed'], ['done', 'Completed']], set: v => { RF.st = v; } },
   { k: 'fl', n: 'Flag', v: RF.fl, o: () => [['red', 'Red flag'], ['green', 'Green flag'], ['none', 'No flag']], set: v => { RF.fl = v; } },
   { k: 'sn', n: 'Viewed by agent', v: FS, o: () => [['seen', 'Seen'], ['unseen', 'Not seen']], set: v => { FS = v; } },

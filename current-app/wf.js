@@ -18,7 +18,7 @@ const tzOff = (t, tz) => { const p = tzParts(t, tz); return Date.UTC(+p.year, +p
 const localDay = tz => { if (tz) { const p = tzParts(Date.now(), tz); return p.year + '-' + p.month + '-' + p.day; } const n = new Date(); return n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(n.getDate()); };
 const mins = t => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
 
-// Orthodox Easter: the Julian computus, moved to the Gregorian calendar (+13 days, right for 1900–2099)
+// Orthodox Easter: the Julian computus, moved to the Gregorian calendar (+13 days, right for 1900-2099)
 function orthodoxEaster(y) {
   const a = y % 4, b = y % 7, c = y % 19, d = (19 * c + 15) % 30, e = (2 * a + 4 * b - d + 34) % 7, m = Math.floor((d + e + 114) / 31), day = ((d + e + 114) % 31) + 1;
   return addDays(y + '-' + pad(m) + '-' + pad(day), 13);

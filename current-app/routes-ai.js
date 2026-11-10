@@ -19,7 +19,7 @@ module.exports = ({ FILE, app, load, save, need, bad, newEval, scopeOf, limited,
   const unseal = s => { if (!s || !String(s).startsWith('v1:')) return ''; try { const b = Buffer.from(String(s).slice(3), 'base64'), d = crypto.createDecipheriv('aes-256-gcm', MASTER, b.subarray(0, 12)); d.setAuthTag(b.subarray(12, 28)); return Buffer.concat([d.update(b.subarray(28)), d.final()]).toString('utf8'); } catch (e) { return ''; } };
 
   app.locals.seal = seal; app.locals.unseal = unseal;   // the Stripe keys are kept the same way (routes-billing.js)
-  const MODELS = [['claude-opus-5-5', 'Claude Opus 5.5 — best quality'], ['claude-sonnet-5-5', 'Claude Sonnet 5.5 — balanced'], ['claude-haiku-5-5', 'Claude Haiku 5.5 — fastest and cheapest']];
+  const MODELS = [['claude-opus-5-5', 'Claude Opus 5.5 - best quality'], ['claude-sonnet-5-5', 'Claude Sonnet 5.5 - balanced'], ['claude-haiku-5-5', 'Claude Haiku 5.5 - fastest and cheapest']];
   const VOICES = ['browser', 'elevenlabs', 'openai'], KEYS = { anthropic: 'key', elevenlabs: 'elevenKey', openai: 'openaiKey' };
   const month = () => new Date().toISOString().slice(0, 7);
   const conf = db => (db.settings || {}).ai || {};
@@ -40,7 +40,7 @@ module.exports = ({ FILE, app, load, save, need, bad, newEval, scopeOf, limited,
       playbook: c.playbook || '', leadAuto: c.leadAuto !== false, rolePlay: !!c.rolePlay, analystAuto: !!c.analystAuto, voice: VOICES.includes(c.voice) ? c.voice : 'browser', elevenVoice: c.elevenVoice || '', keys: { anthropic: k('anthropic'), elevenlabs: k('elevenlabs'), openai: k('openai') }, enabled: ai.enabled() };
   };
   app.get('/api/ai/settings', need('admin'), (req, res) => res.json(show(load())));
-  // { model, budget, voice, elevenVoice, anthropicKey, elevenKey, openaiKey } — a key: text to set it, "" to remove it, left out to keep it
+  // { model, budget, voice, elevenVoice, anthropicKey, elevenKey, openaiKey } - a key: text to set it, "" to remove it, left out to keep it
   app.put('/api/ai/settings', need('admin'), (req, res) => {
     const b = req.body || {}, db = load(), c = { ...conf(db) };
     if (b.model !== undefined) { if (!MODELS.some(m => m[0] === b.model)) return bad(res, 'Choose one of the models in the list'); c.model = b.model; }

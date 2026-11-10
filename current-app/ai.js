@@ -1,7 +1,7 @@
 // Optional AI helpers (Anthropic API). Without a key everything still works: the import falls back to a simple splitter and
 // quiz generation and AI rating are switched off. The key, the model and the monthly budget come from Admin › Integrations
 // (server.js hands them over with setConfig); $env:ANTHROPIC_API_KEY / ANTHROPIC_MODEL still work when nothing is set there.
-// Prices per million tokens (in, out) — used to keep the monthly budget.
+// Prices per million tokens (in, out) - used to keep the monthly budget.
 const PRICE = { 'claude-opus-5-5': [4, 20], 'claude-sonnet-5-5': [2, 10], 'claude-haiku-5-5': [0.1, 0.5] };
 let CFG = () => ({ key: process.env.ANTHROPIC_API_KEY || '', model: process.env.ANTHROPIC_MODEL || 'claude-opus-5-5', budget: 0, used: 0 });
 let USE = () => {};

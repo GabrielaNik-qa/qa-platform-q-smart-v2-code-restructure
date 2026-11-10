@@ -18,7 +18,7 @@ function texts(src) {
     const attrs = [...s.matchAll(/(?:title|placeholder|aria-label|alt)="([^"$]*)"/g)].map(m => m[1]);
     for (let t of [...s.replace(/<[^>]*>/g, '\u0001').split('\u0001'), ...attrs]) {
       t = t.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&rarr;/g, '→').replace(/\s+/g, ' ').trim();
-      if (t && !t.includes('{}') && !/\($/.test(t) && !/^[A-Za-z]+\.[a-z]/.test(t) && /[a-z]{2,} /i.test(t + ' ') && /^[A-Z+(←•✓○▲▼—↗↘“"]/.test(t) && !/=|=>|\(\)|^[A-Z_]+$|^[A-Z][a-z]+[A-Z]/.test(t)
+      if (t && !t.includes('{}') && !/\($/.test(t) && !/^[A-Za-z]+\.[a-z]/.test(t) && /[a-z]{2,} /i.test(t + ' ') && /^([A-Z+(←•✓○▲▼↗↘“"]|- )/.test(t) && !/=|=>|\(\)|^[A-Z_]+$|^[A-Z][a-z]+[A-Z]/.test(t)
         // a ";" is code, unless the text is a sentence that goes on after it ("Click any card to go deeper; choose …", round 4)
         && (!t.includes(';') || /^[^;(){}[\]]+; [a-z][^;(){}[\]]*$/.test(t))) out.add(t);
     }
@@ -45,7 +45,7 @@ function texts(src) {
 // texts that are deliberately the same in every language (brand, commands typed in a terminal, sample transcripts in English)
 const SAME = new Set(['Q-SMART', 'Ctrl K', 'Escape', 'Tab', 'Enter', 'Content-Type', 'Customer: Hi, I have a question…nAgent: Good morning, thank you for calling…', 'Agent: Good morning, my name is Anna. How can I help you?nCustomer: …',
   // example steps shown inside a text box (text boxes are never translated)
-  'Check work email | 5nClose tickets in Zendesk | 20', 'Check work email – Outlook | 5nCheck escalation group in Teams | 10']);
+  'Check work email | 5nClose tickets in Zendesk | 20', 'Check work email - Outlook | 5nCheck escalation group in Teams | 10']);
 const EMAIL = /\{(name|link|username|password|lead)\}/;   // the default e-mail texts (Admin › Email templates): e-mails stay in English, see docs/i18n-glossary.md
 const PAGES = fs.readdirSync(JS).filter(f => f.endsWith('.js') && !['i18n.js', 'md.js'].includes(f));
 

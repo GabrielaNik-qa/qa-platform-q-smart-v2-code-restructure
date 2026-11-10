@@ -95,7 +95,7 @@ module.exports = ({ app, load, save, need, bad, hex, iso, str, list, notify, use
       if (b.type !== undefined) t.type = b.type === 'mission' ? 'mission' : 'task';
       if (b.priority !== undefined && PRIO.includes(b.priority)) t.priority = b.priority;
       if (b.points !== undefined) t.points = Math.min(1000, Math.max(0, parseInt(b.points) || 0));
-      if (b.due !== undefined) { if (b.due && !DAY.test(b.due)) return bad(res, 'Choose a valid deadline'); if ((b.due || '') !== (t.due || '')) logT(t, u.username, 'due', (t.due || '—') + ' → ' + (b.due || '—')); t.due = b.due || ''; }
+      if (b.due !== undefined) { if (b.due && !DAY.test(b.due)) return bad(res, 'Choose a valid deadline'); if ((b.due || '') !== (t.due || '')) logT(t, u.username, 'due', (t.due || '-') + ' → ' + (b.due || '-')); t.due = b.due || ''; }
       if (b.rev !== undefined) t.rev = !!b.rev;
       if (b.start !== undefined) { if (b.start && !DAY.test(b.start)) return bad(res, 'Choose a valid start date'); t.start = b.start || ''; }
       if (b.labels !== undefined) t.labels = list(b.labels, 8);
@@ -119,7 +119,7 @@ module.exports = ({ app, load, save, need, bad, hex, iso, str, list, notify, use
           if (t.by && t.by !== u.username) notify(db, t.by, 'task', `${u.name} sent for your review: ${t.title}`, { task: t.id });
         } else if (was === 'review' && reviewer) {
           logT(t, u.username, to === 'done' ? 'approved' : 'returned', to === 'done' ? '' : str(b.note, 300));
-          notify(db, t.assignee, 'task', to === 'done' ? `Approved: ${t.title}` : `Sent back to you: ${t.title}${b.note ? ' — ' + str(b.note, 300) : ''}`, { task: t.id });
+          notify(db, t.assignee, 'task', to === 'done' ? `Approved: ${t.title}` : `Sent back to you: ${t.title}${b.note ? ' - ' + str(b.note, 300) : ''}`, { task: t.id });
         } else logT(t, u.username, to);
         if (to === 'done' && was !== 'done' && !reviewer && t.by && t.by !== u.username) notify(db, t.by, 'taskdone', `${u.name} completed: ${t.title}`, { task: t.id });
       }

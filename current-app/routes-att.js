@@ -203,7 +203,7 @@ module.exports = ({ app, load, save, need, bad, hex, iso, str, userBy, notify, s
       return B.unlimited ? null : { year: y, left: Math.round((B.left - B.pending) * 10) / 10, after: Math.round((B.left - B.pending - v) * 10) / 10 }; }).filter(Boolean);
     return { T, L: { ...L, days }, after, warn: teamWarn(db, S, u, span, selfId) };
   }
-  const what = (T, L) => `${T ? T.name : ''}, ${L.from === L.to ? L.from : L.from + ' – ' + L.to} (${L.days} ${T && T.unit === 'hour' ? 'h' : 'd'})`;
+  const what = (T, L) => `${T ? T.name : ''}, ${L.from === L.to ? L.from : L.from + ' - ' + L.to} (${L.days} ${T && T.unit === 'hour' ? 'h' : 'd'})`;
   const withInfo = (db, S, L) => { const u = userBy(db, L.u) || { username: L.u }, T = typeOf(S, L.lt), span = spanOf(db, S, L), y = L.from.slice(0, 4);
     const B = T ? bal(db, S, T, u, y) : null;
     return { ...L, name: nameOf(db, L.u), left: B && !B.unlimited ? B.left : null, warn: teamWarn(db, S, u, span, L.id) }; };

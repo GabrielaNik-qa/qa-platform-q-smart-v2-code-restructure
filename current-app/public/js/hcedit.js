@@ -29,7 +29,7 @@ PG.cs_hcsite = function () {
   const site = card('Website', `<div class=form style="max-width:none"><div class=row style="gap:12px;align-items:flex-end"><label style="flex:1">${tr('Name')}<input id=hcn maxlength=80 value="${esc(HCS.name)}"></label><label style="flex:2">${tr('Welcome text on the home page')}<input id=hci maxlength=200 value="${esc(HCS.intro)}"></label>`
     + `<button class=btn onclick="hcApi('/site',{name:document.getElementById('hcn').value,intro:document.getElementById('hci').value},'PUT').then(e=>e&&toast(e,true))">${tr('Save')}</button></div></div>`
     + `<p class=mu style="margin:10px 0 0">${tr('The address of the website')}: <a href="/hc/" target=_blank rel=noopener class=mono>${esc(location.origin)}/hc/</a>. ${tr('It also opens at its own address: help. followed by your domain, for example help.q-smart.com.')}</p>`);
-  const n = HCS.arts.length, votes = a => a.up + a.down ? `${a.up} 👍 · ${a.down} 👎` : '—';
+  const n = HCS.arts.length, votes = a => a.up + a.down ? `${a.up} 👍 · ${a.down} 👎` : '-';
   const cats = HCS.cats.map(c => card(`<span data-noi18n style="flex:1">${esc(c.icon)} ${esc(c.name)}</span><span>${hcBtns(`hcCat('${c.id}')`, `hcDel('cats','${c.id}','category')`)}<button class=ib onclick="hcSec('','${c.id}')">${IC.plus} ${tr('Section')}</button></span>`, `${c.desc ? `<p class=mu data-noi18n style="margin:0 0 10px">${esc(c.desc)}</p>` : ''}`
     + HCS.secs.filter(s => s.cat === c.id).map(s => { const l = HCS.arts.filter(a => a.sec === s.id);
       return `<div class=hcsec><div class=row><b data-noi18n>${esc(s.name)}</b><span>${hcBtns(`hcSec('${s.id}')`, `hcDel('secs','${s.id}','section')`)}<button class=ib onclick="hcArt('','${s.id}')">${IC.plus} ${tr('Article')}</button></span></div>`

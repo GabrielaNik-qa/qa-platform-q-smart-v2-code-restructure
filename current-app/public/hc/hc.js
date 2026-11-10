@@ -106,7 +106,7 @@
     const [k, id] = parts();
     main.innerHTML = k === 'c' ? category(id) : k === 's' ? section(id) : k === 'a' ? article(id) : k === 'search' ? results(id) : home();
     const t = k === 'a' ? (FULL.get(id) || artOf(id) || {}).title : k === 'c' ? (catOf(id) || {}).name : k === 's' ? (secOf(id) || {}).name : k === 'search' ? 'Search results' : '';
-    document.title = (t ? t + ' – ' : '') + H.name;
+    document.title = (t ? t + ' - ' : '') + H.name;
     if (!keep) window.scrollTo(0, 0);
   }
   async function load(id) {

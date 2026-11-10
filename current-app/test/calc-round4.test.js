@@ -5,7 +5,7 @@ const wf = require('../wf'), cap = require('../cap');
 
 const S = wf.settingsOf({ rules: { since: '2026-01-01' } }, '2026-10-28'), A = S.leaveTypes.find(t => t.id === 'lt-annual'), u = { username: 'a' };
 
-test('time off over New Year: 30 Dec 2026 (Wed) – 4 Jan 2027 (Mon) takes 3 days, 2 in 2026 and 1 in 2027', () => {
+test('time off over New Year: 30 Dec 2026 (Wed) - 4 Jan 2027 (Mon) takes 3 days, 2 in 2026 and 1 in 2027', () => {
   // Wed 30 and Thu 31 December are working days; Fri 1 January is New Year; Sat 2 and Sun 3 are the weekend; Mon 4 is a working day
   const span = wf.leaveSpan(S, A, u, { from: '2026-12-30', to: '2027-01-04', part: 'full' }, {});
   assert.deepEqual(span, { '2026-12-30': 1, '2026-12-31': 1, '2027-01-04': 1 });

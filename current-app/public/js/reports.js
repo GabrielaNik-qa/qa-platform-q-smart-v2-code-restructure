@@ -18,7 +18,7 @@ const rbSet = (path, v) => { const k = path.split('.'); let o = RB.cfg; while (k
 const rbMet = m => { const l = RB.cfg.metrics; RB.cfg.metrics = l.includes(m) ? (l.length > 1 ? l.filter(x => x !== m) : l) : [...l, m]; render(); };
 const rbTpl = i => { const [n, c] = RTPL[i]; RB = { id: '', name: n, cfg: { ...RB0(), ...JSON.parse(JSON.stringify(c)), filters: { team: '', agent: '', ch: '', sc: '' } } }; render(); };
 const rbOpen = id => { const r = (CO.reports || []).find(x => x.id === id); if (!r) return; RB = { id: r.id, name: r.name, cfg: { ...RB0(), ...JSON.parse(JSON.stringify(r.cfg || {})) } }; goPage('rbuild'); };
-const fmtV = (m, v) => v == null ? '—' : ['avg', 'pass', 'fail', 'min', 'max', 'completion', 'happy'].includes(m) ? v.toFixed(1) + '%' : String(v);
+const fmtV = (m, v) => v == null ? '-' : ['avg', 'pass', 'fail', 'min', 'max', 'completion', 'happy'].includes(m) ? v.toFixed(1) + '%' : String(v);
 
 // ---- charts of a result
 function rbChart(res) {
@@ -35,7 +35,7 @@ function rbTable(res) {
   if (!res.rows.length) return '<div class=agem>No data for this period and these filters</div>';
   if (res.colDim === 'none') return tbl([esc(res.rowName), ...res.metricNames.map(esc)], res.rows.map(r => [esc(r.key), ...res.metrics.map(m => fmtV(m, r.cells[0][m]))]).concat([[`<b>Total</b>`, ...res.metrics.map(m => `<b>${fmtV(m, res.grand[m])}</b>`)]]));
   const m = res.metrics[0];
-  return `<small class=mu>Values: ${esc(res.metricNames[0])}</small>` + tbl([esc(res.rowName), ...res.colKeys.map(esc), 'Total'], res.rows.map(r => [esc(r.key), ...r.cells.map(c => c._n ? `<span style="color:${['avg', 'pass', 'completion', 'happy'].includes(m) && c[m] != null ? col(c[m]) : 'inherit'}">${fmtV(m, c[m])}</span>` : '<span class=mu>—</span>'), `<b>${fmtV(m, r.total[m])}</b>`]));
+  return `<small class=mu>Values: ${esc(res.metricNames[0])}</small>` + tbl([esc(res.rowName), ...res.colKeys.map(esc), 'Total'], res.rows.map(r => [esc(r.key), ...r.cells.map(c => c._n ? `<span style="color:${['avg', 'pass', 'completion', 'happy'].includes(m) && c[m] != null ? col(c[m]) : 'inherit'}">${fmtV(m, c[m])}</span>` : '<span class=mu>-</span>'), `<b>${fmtV(m, r.total[m])}</b>`]));
 }
 // ---- the builder
 PG.rbuild = function () {
@@ -50,13 +50,13 @@ PG.rbuild = function () {
 <div class=cap style="margin-top:6px">SHOW AS</div><div class=sg>${[['bars', 'Bars'], ['line', 'Line'], ['table', 'Table only']].map(([k, n]) => `<button class="${c.chart === k ? 'on' : ''}" onclick="rbSet('chart','${k}')">${n}</button>`).join('')}</div>
 ${sel('sort', c.sort, [['desc', 'Highest first'], ['asc', 'Lowest first'], ['az', 'A to Z']])}</aside>`;
   const sum = `<div class=rbsum>${res.metrics.map((m, i) => `<div><small>${esc(res.metricNames[i])}</small><b>${fmtV(m, res.grand[m])}</b></div>`).join('')}<div><small>Records</small><b>${res.n}</b></div></div>`;
-  return head('Report builder', 'Pick the data, metrics, rows and columns — the report updates as you click', `<div style="display:flex;gap:8px;flex-wrap:wrap">${bellBtn()}<button class="ib ibx" onclick="RB={id:'',name:'',cfg:RB0()};render()">${IC.plus} New report</button><button class="ib ibx" onclick="rbExport()">${IC.dl} Excel</button><button class="ib ibx" onclick="rbPrint()">${IC.dl} PDF</button><button class="btn ibx" onclick="rbSave()">${RB.id ? 'Save changes' : 'Save report'}</button></div>`)
-    + `<div class=rbg>${panel}<section class="card rbr"><div class=row style="flex-wrap:wrap"><div><input class=rbn value="${esc(RB.name)}" placeholder="Untitled report" oninput="RB.name=this.value"><br><small class=mu>${esc(res.srcName)} · ${esc(res.periodName)}${RB.cfg.period.p === 'all' ? '' : ' · ' + f(res.from) + ' – ' + f(new Date(Math.min(+res.to - 1, Date.now())))}</small></div>${RB.id ? `<span class=bg>Saved</span>` : ''}</div>${sum}${rbChart(res)}<div style="margin-top:10px">${rbTable(res)}</div></section></div>`;
+  return head('Report builder', 'Pick the data, metrics, rows and columns - the report updates as you click', `<div style="display:flex;gap:8px;flex-wrap:wrap">${bellBtn()}<button class="ib ibx" onclick="RB={id:'',name:'',cfg:RB0()};render()">${IC.plus} New report</button><button class="ib ibx" onclick="rbExport()">${IC.dl} Excel</button><button class="ib ibx" onclick="rbPrint()">${IC.dl} PDF</button><button class="btn ibx" onclick="rbSave()">${RB.id ? 'Save changes' : 'Save report'}</button></div>`)
+    + `<div class=rbg>${panel}<section class="card rbr"><div class=row style="flex-wrap:wrap"><div><input class=rbn value="${esc(RB.name)}" placeholder="Untitled report" oninput="RB.name=this.value"><br><small class=mu>${esc(res.srcName)} · ${esc(res.periodName)}${RB.cfg.period.p === 'all' ? '' : ' · ' + f(res.from) + ' - ' + f(new Date(Math.min(+res.to - 1, Date.now())))}</small></div>${RB.id ? `<span class=bg>Saved</span>` : ''}</div>${sum}${rbChart(res)}<div style="margin-top:10px">${rbTable(res)}</div></section></div>`;
 };
 function rbSave() {
   openForm({ title: RB.id ? 'Save report' : 'Save this report', w: 520, yes: 'Save', d: { name: RB.name || '', shared: (CO.reports || []).find(x => x.id === RB.id)?.shared || false },
     fields: [{ k: 'name', l: 'Report name', req: 1 }, { k: 'shared', l: 'Everyone in QA, team leads and trainers can see it', t: 'checkbox' }],
-    save: async d => { if (!d.name.trim()) return 'Give the report a name'; RB.name = d.name.trim(); const old = (CO.reports || []).find(x => x.id === RB.id) || {}; const r = await api('/api/c/reports' + (RB.id ? '/' + RB.id : ''), { name: RB.name, cfg: RB.cfg, shared: d.shared, schedule: old.schedule || { freq: 'none' } }, RB.id ? 'PUT' : 'POST'); if (!r.ok) return errOf(r, 'Could not save the report'); RB.id = (await r.json()).id; await load(); toast('Report saved — find it in Saved & scheduled'); } });
+    save: async d => { if (!d.name.trim()) return 'Give the report a name'; RB.name = d.name.trim(); const old = (CO.reports || []).find(x => x.id === RB.id) || {}; const r = await api('/api/c/reports' + (RB.id ? '/' + RB.id : ''), { name: RB.name, cfg: RB.cfg, shared: d.shared, schedule: old.schedule || { freq: 'none' } }, RB.id ? 'PUT' : 'POST'); if (!r.ok) return errOf(r, 'Could not save the report'); RB.id = (await r.json()).id; await load(); toast('Report saved - find it in Saved & scheduled'); } });
 }
 async function rbExport() {
   const res = RPT.run(RB.cfg, rbData()); if (!res.rows.length) return toast('Nothing to export', true);
@@ -73,7 +73,7 @@ PG.rsaved = function () {
   const one = r => { const s = r.schedule || {}, res = RPT.run(r.cfg || {}, rbData());
     return `<div class="card rsc"><div class=row><b style="font-size:16px">${esc(r.name)}</b>${r.shared ? pill('Shared', 'ac') : ''}</div><small class=mu>${esc(res.srcName)} · ${esc(res.periodName)} · by ${esc(r.byName || r.by)}</small>
 <div class=rbsum style="margin:10px 0">${res.metrics.slice(0, 3).map((m, i) => `<div><small>${esc(res.metricNames[i])}</small><b>${fmtV(m, res.grand[m])}</b></div>`).join('')}</div>
-<div class=row style="flex-wrap:wrap;gap:6px">${s.freq && s.freq !== 'none' ? `<span class=tkch style="--c:var(--ok)">${IC.clock} ${SCHN[s.freq]}${s.freq === 'weekly' ? ' on ' + ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][+s.weekday || 1] : s.freq === 'monthly' ? ' on day ' + (s.day || 1) : ''} at ${s.hour || 8}:00 → ${esc(s.to || '—')}</span>` : '<span class=tkch>Not scheduled</span>'}${r.lastSent ? `<small class=mu>last sent ${fdt(r.lastSent)}</small>` : ''}</div>
+<div class=row style="flex-wrap:wrap;gap:6px">${s.freq && s.freq !== 'none' ? `<span class=tkch style="--c:var(--ok)">${IC.clock} ${SCHN[s.freq]}${s.freq === 'weekly' ? ' on ' + ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][+s.weekday || 1] : s.freq === 'monthly' ? ' on day ' + (s.day || 1) : ''} at ${s.hour || 8}:00 → ${esc(s.to || '-')}</span>` : '<span class=tkch>Not scheduled</span>'}${r.lastSent ? `<small class=mu>last sent ${fdt(r.lastSent)}</small>` : ''}</div>
 <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px"><button class=btn onclick="rbOpen('${r.id}')">Open</button>${r.by === ME.username || ME.role === 'admin' ? `<button class="ib ibx" onclick="rsSched('${r.id}')">${IC.clock} Schedule</button><button class="ib ibx" onclick="rsSend('${r.id}')">Send now</button><button class=ic onclick="rsDel('${r.id}')" title="Delete">${IC.bin}</button>` : ''}</div></div>`; };
   return head('Saved & scheduled reports', 'Your reports, and the ones that arrive by themselves every day, week or month (as a notification, and by e-mail if you choose)', `<div style="display:flex;gap:8px">${bellBtn()}<button class="btn ibx" onclick="RB={id:'',name:'',cfg:RB0()};goPage('rbuild')">${IC.plus} New report</button></div>`)
     + (l.length ? '' : `<div class="card agem">No saved reports yet. Build one in <a href="javascript:void(0)" class=agl onclick="goPage('rbuild')">Report builder</a> and press <b>Save report</b>.</div>`)
@@ -90,7 +90,7 @@ const rsDel = id => ask('Delete this report?', 'The saved report and its schedul
 // ---- export centre: every Excel file made in the app, ready to download again
 PG.rexp = function () {
   const l = XPS;
-  return head('Export centre', 'Every Excel file made in the app — download it again any time', bellBtn())
+  return head('Export centre', 'Every Excel file made in the app - download it again any time', bellBtn())
     + card(`Exports <span class=bg>${l.length}</span>`, l.length ? tbl(['File', 'Rows', 'Made by', 'When', ''], l.map(x => [`<b>${esc(x.name)}</b>`, x.n, esc(x.byName || x.by), fdt(x.at), `<button class="ib ibx" onclick="xcGet('${x.id}')">${IC.dl} Download</button> <button class=ic onclick="xcDel('${x.id}')" title="Remove from the list">${IC.bin}</button>`])) : '<p class=mu>No exports yet. Every "Export to Excel" button in the app adds a line here.</p>');
 };
 async function xcGet(id) { const r = await api('/api/exports/' + id); if (!r.ok) return toast('Not found', true); const x = await r.json(); if (!x.rows) return toast('This export was too big to keep a copy (over 5000 rows)', true); const f2 = await api('/api/export/call-reviews', { rows: x.rows, pf: x.pf, pt: x.pt, dc: x.dc, name: x.name, again: true }); if (!f2.ok) return toast('Could not create the file', true); const a = document.createElement('a'); a.href = URL.createObjectURL(await f2.blob()); a.download = x.name.replace(/\s+/g, '_') + '_' + iso(new Date(x.at)) + '.xlsx'; a.click(); }

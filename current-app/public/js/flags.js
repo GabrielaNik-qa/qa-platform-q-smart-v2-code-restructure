@@ -33,7 +33,7 @@ const XFF = { all: () => true, flagged: r => r.red || r.green, red: r => r.red, 
 const XL = () => xfBase().filter(XFF[XF.ff]);
 const xfSet = (k, v, soft) => { fSet(XF, k, v); if (soft) xfRt(); else render(); };
 const xfKpis = b => { const fl = b.filter(XFF.flagged); return `<div class=fkp>${kpiF('Total Flagged', fl.length, 'var(--tx)', `<span style="color:var(--mu)">${IC.flag}</span>`, "xfSet('ff','flagged')", XF.ff === 'flagged')}${kpiF('Red Flags', b.filter(r => r.red).length, 'var(--bad)', FLG('red'), "xfSet('ff','red')", XF.ff === 'red')}${kpiF('Green Flags', b.filter(r => r.green).length, 'var(--ok)', FLG('green'), "xfSet('ff','green')", XF.ff === 'green')}</div>`; };
-const qfBadges = r => [...(r.ev && r.ev.fl ? [`<span class="qfb ${r.ev.fl}" title="Flag given in the QA review">${IC.flag} QA ${r.ev.fl === 'red' ? 'Red' : 'Green'}</span>`] : []), ...r.qf.map(f => `<span class="qfb ${f.type} clk" onclick="qfEdit('${f.id}')" title="${esc((f.cm || 'No comment') + ' — by ' + (f.byName || f.by) + ', ' + f.date)}">${IC.flag} ${f.type === 'red' ? 'Red' : 'Green'}</span>`)].join('') || '<span class=mu>—</span>';
+const qfBadges = r => [...(r.ev && r.ev.fl ? [`<span class="qfb ${r.ev.fl}" title="Flag given in the QA review">${IC.flag} QA ${r.ev.fl === 'red' ? 'Red' : 'Green'}</span>`] : []), ...r.qf.map(f => `<span class="qfb ${f.type} clk" onclick="qfEdit('${f.id}')" title="${esc((f.cm || 'No comment') + ' - by ' + (f.byName || f.by) + ', ' + f.date)}">${IC.flag} ${f.type === 'red' ? 'Red' : 'Green'}</span>`)].join('') || '<span class=mu>-</span>';
 // a score cell: the score, or "Not scored" when every question was N/A (decision 14)
 const evSc = (e, tm) => e.ns ? `<small class=mu>${tr('Not scored')}</small>` : `<b class=mono style="color:${scol(e.sc, tm)}">${Math.round(e.sc)}%</b>`;
 const qfPre = r => `{ch:'${r.ch}',agent:${jsq(r.agent)},lead:${jsq(r.lead)},date:'${iso(r.d)}',cp:${jsq(r.ev ? r.ev.cp : (r.qf[0] || {}).cp || '')}`;   // jsq: lead IDs and campaigns with ' \ or line breaks keep working
@@ -43,8 +43,8 @@ txReg('flags', { rows: () => XL(), count: () => XL().length, filters: () => [], 
   { k: 'ag', t: 'AGENT', td: r => agCell(r.agent, an(r.agent) || r.agent) }, { k: 'tm', t: 'TEAM', td: r => teamLink(r.tm) },
   { k: 'cp', t: 'CAMPAIGN', td: r => esc(r.cp) }, { k: 'sc', t: 'QA SCORE', td: r => r.ev ? evSc(r.ev, r.tm) : '<small class=mu>no review</small>' },
   { k: 'qf', t: 'QUICK FLAGS', td: r => `<div class=qfbs>${qfBadges(r)}</div>` },
-  { k: 'cm', t: 'COMMENTS', off: true, td: r => esc(r.qf.map(x => x.cm).filter(Boolean).join(' | ')) || '—' },
-  { k: 'by', t: 'FLAGGED BY', off: true, td: r => esc([...new Set(r.qf.map(x => x.byName || x.by))].join(', ')) || '—' },
+  { k: 'cm', t: 'COMMENTS', off: true, td: r => esc(r.qf.map(x => x.cm).filter(Boolean).join(' | ')) || '-' },
+  { k: 'by', t: 'FLAGGED BY', off: true, td: r => esc([...new Set(r.qf.map(x => x.byName || x.by))].join(', ')) || '-' },
   { k: 'act', t: 'ACTIONS', lock: true, r: true, td: r => `<button class="ic qfr" title="Add a red flag" onclick="qfNew(${qfPre(r)},type:'red'})">${IC.flag}</button><button class="ic qfg" title="Add a green flag" onclick="qfNew(${qfPre(r)},type:'green'})">${IC.flag}</button><button class=ic title="View" onclick="${r.ev ? `om('view','${r.ev.rid}')` : `qfEdit('${r.qf[0].id}')`}">${IC.eye}</button>` }] });
 function xfTable() {
   const l = XL(), [a, z, pg] = pager(l.length, XF, 'xfSet');
@@ -54,7 +54,7 @@ const xfRt = () => { const k = $('#xfk'), t = $('#xft'), b = xfBase(); if (k) k.
 PG.flags = function () {
   const b = xfBase(), cnt = k => b.filter(XFF[k]).length;
   const ff = `<div style="margin-top:14px"><span class=fcap>Flag Filter</span><div class=sg style="display:inline-flex">${[['all', 'All Calls'], ['flagged', 'Flagged'], ['red', '<i class=dotk style="background:var(--bad)"></i>Red'], ['green', '<i class=dotk style="background:var(--ok)"></i>Green'], ['none', 'No Flags']].map(([k, n]) => `<button class="${XF.ff === k ? 'on' : ''}" onclick="xfSet('ff','${k}')">${n} <small class=mono>${cnt(k)}</small></button>`).join('')}</div></div>`;
-  return head('Quick Flags', 'Flag calls, chats and emails independently from QA reviews — does not affect scores', `<div style="display:flex;gap:8px;flex-wrap:wrap">${qSearch()}${bellBtn()}<button class="ib ibx" onclick="xfExport()">${IC.dl} Export</button><button class="btn ibx" onclick="qfNew({type:'red'})">${IC.plus} New Flag</button></div>`)
+  return head('Quick Flags', 'Flag calls, chats and emails independently from QA reviews - does not affect scores', `<div style="display:flex;gap:8px;flex-wrap:wrap">${qSearch()}${bellBtn()}<button class="ib ibx" onclick="xfExport()">${IC.dl} Export</button><button class="btn ibx" onclick="qfNew({type:'red'})">${IC.plus} New Flag</button></div>`)
     + `<div id=xfk>${xfKpis(b)}</div>` + fltCard(XF, 'xfSet', ff) + `<div id=xft>${xfTable()}</div>`;
 };
 async function xfExport() {
@@ -78,7 +78,7 @@ async function qfSave() {
 }
 const qfDel = id => ask('Delete this flag?', 'The flag is removed. QA reviews and scores are not affected.', async () => { await api('/api/qflags/' + id, null, 'DELETE'); QFM = null; await load(); render(); toast('Flag deleted'); }, { yes: 'Yes, delete', no: 'Cancel', danger: true });
 const QFMM = () => { const d = QFM, red = d.type === 'red', tc = red ? 'var(--bad)' : 'var(--ok)', inp = (k, ph, t = 'text', id = '') => `<input ${id ? 'id=' + id : ''} type=${t} placeholder="${esc(ph)}" value="${esc(d[k] || '')}" oninput="QFM.${k}=this.value">`;
-  return OVL(`<div class=mh><span class=qfic style="--c:${tc}">${IC.flag}</span><div><h2>${d.id ? 'Edit Quick Flag' : 'New Quick Flag'}</h2><small>Flag a call without a QA review — scores do not change</small></div>${X('QFM=null;render()')}</div><div class=mb><div class=form style="max-width:none">
+  return OVL(`<div class=mh><span class=qfic style="--c:${tc}">${IC.flag}</span><div><h2>${d.id ? 'Edit Quick Flag' : 'New Quick Flag'}</h2><small>Flag a call without a QA review - scores do not change</small></div>${X('QFM=null;render()')}</div><div class=mb><div class=form style="max-width:none">
 <div><b class=flb>Flag Type</b><div class=qft><button class="${red ? 'on red' : ''}" onclick="QFM.type='red';render()">${IC.flag} Red Flag</button><button class="${red ? '' : 'on green'}" onclick="QFM.type='green';render()">${IC.flag} Green Flag</button></div></div>
 <div><b class=flb>Conversation type</b><div class=chseg>${CHS.map(k => `<button type=button class="${(d.ch || 'call') === k ? 'on' : ''}" style="--c:${CHC[k]}" onclick="QFM.ch='${k}';render()">${IC['ch_' + k]} ${CHN[k]}</button>`).join('')}</div></div>
 <div class=eg2><label>Team <i class=rq>*</i><select id=qft onchange="QFM.team=this.value;QFM.agent='';render()"><option value="">Select a team…</option>${TEAMS.filter(t => !t.system).map(t => `<option value="${t.id}" ${t.id === d.team ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select></label>
@@ -98,7 +98,7 @@ const dsBase = () => { const q = DS.q.toLowerCase(); return EVA.filter(e => e.dp
 const DL = () => dsBase().filter(e => !DS.s || dispStatus(e) === DS.s);
 const dsSet = (k, v, soft) => { fSet(DS, k, v); if (soft) dsRt(); else render(); };
 const dsKpis = b => { const c = k => b.filter(e => dispStatus(e) === k).length; return `<div class=fkp style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">${kpiF('Total Disputes', b.length, 'var(--tx)', `<span style="color:var(--mu)">${IC.flag}</span>`, "dsSet('s','')", !DS.s)}${kpiF('Disputed', c('disputed'), 'var(--bad)', '<i class=dotk style="background:var(--bad)"></i>', "dsSet('s','disputed')", DS.s === 'disputed')}${kpiF('In Progress', c('progress'), 'var(--ac)', '<i class=dotk style="background:var(--ac)"></i>', "dsSet('s','progress')", DS.s === 'progress')}${kpiF('Resolved', c('resolved'), 'var(--ok)', '<i class=dotk style="background:var(--ok)"></i>', "dsSet('s','resolved')", DS.s === 'resolved')}</div>`; };
-const DOUTP = r => r ? (r.outcome === 'kept' ? pill('Score kept', 'ac') : r.outcome === 'partly' ? pill('Partly changed', 'wn') : pill('Score changed', 'wn')) : '<span class=mu>—</span>';
+const DOUTP = r => r ? (r.outcome === 'kept' ? pill('Score kept', 'ac') : r.outcome === 'partly' ? pill('Partly changed', 'wn') : pill('Score changed', 'wn')) : '<span class=mu>-</span>';
 const dsLast = e => e.dp.msgs.filter(x => !x.sys).slice(-1)[0] || {};
 txReg('disputes', { rows: () => DL(), count: () => DL().length, filters: () => [], clear: () => {}, cols: [
   { k: 'lead', t: 'LEAD ID', lock: true, td: e => leadA(e.id, `om('view','${e.rid}')`) },
@@ -108,7 +108,7 @@ txReg('disputes', { rows: () => DL(), count: () => DL().length, filters: () => [
   { k: 'msg', t: 'LAST MESSAGE', td: e => { const m = dsLast(e); return `<div class=dsm title="${esc(m.t || '')}" onclick="om('view','${e.rid}')"><small class=mu>${esc(m.n || '')}</small> ${esc(m.t || '')}</div>`; } },
   { k: 'out', t: 'OUTCOME', td: e => DOUTP(e.dp.res) },
   { k: 'rv', t: 'REVIEWER', off: true, td: e => esc(e.rv || '') },
-  { k: 'res', t: 'RESOLVED ON', off: true, td: e => e.dp.res ? f(new Date(e.dp.res.at)) : '—' },
+  { k: 'res', t: 'RESOLVED ON', off: true, td: e => e.dp.res ? f(new Date(e.dp.res.at)) : '-' },
   { k: 'act', t: 'ACTIONS', lock: true, r: true, td: e => `<button class=ic title="Open the review and the conversation" onclick="om('view','${e.rid}')">${IC.eye}</button>` }] });
 function dsTable() {
   const l = DL(), [a, z, pg] = pager(l.length, DS, 'dsSet');
@@ -124,13 +124,13 @@ function dsInsights(b) {
   const catRows = Object.values(cats).sort((x, y) => y.t - x.t).slice(0, 8);
   const per = (key, all) => { const m = {}; all.forEach(e => { const k = key(e); if (!k) return; const x = m[k] = m[k] || { k, rev: 0, seen: 0, d: 0, open: 0, ch: 0, pa: 0, ke: 0 }; x.rev++; if (e.seen) x.seen++; if (e.dp) { x.d++; const o = e.dp.res ? e.dp.res.outcome : 'open'; if (o === 'open') x.open++; else if (o === 'kept') x.ke++; else if (o === 'partly') x.pa++; else x.ch++; } }); return Object.values(m).filter(x => x.d).sort((x, y) => y.d - x.d).slice(0, 10); };
   const scope = EV.filter(e => (!DS.c || chOf(e) === DS.c) && (!DS.t || e.tm === DS.t) && (!DS.a || e.agent === DS.a));
-  const cols = r => [r.rev, r.seen, `<b>${r.d}</b>`, r.open || '—', r.ch || '—', r.pa || '—', r.ke || '—'];
+  const cols = r => [r.rev, r.seen, `<b>${r.d}</b>`, r.open || '-', r.ch || '-', r.pa || '-', r.ke || '-'];
   const H = ['Reviews', 'Seen', 'Disputes', 'Open', 'Changed', 'Partly', 'Kept'];
-  return `<div class="g g2">${card('How disputes end', `<div class=fkp style="grid-template-columns:repeat(2,minmax(0,1fr));margin:0 0 12px">${kpiS('Average time to resolve', days.length ? (avg(days) < 1 ? Math.round(avg(days) * 24) + ' h' : avg(days).toFixed(1) + ' ' + tr('days')) : '—', res.length + ' ' + tr('resolved'))}${kpiS('Agent was right', res.length ? Math.round((oc('changed') + oc('partly')) / res.length * 100) + '%' : '—', tr('changed or partly changed'))}</div>`
+  return `<div class="g g2">${card('How disputes end', `<div class=fkp style="grid-template-columns:repeat(2,minmax(0,1fr));margin:0 0 12px">${kpiS('Average time to resolve', days.length ? (avg(days) < 1 ? Math.round(avg(days) * 24) + ' h' : avg(days).toFixed(1) + ' ' + tr('days')) : '-', res.length + ' ' + tr('resolved'))}${kpiS('Agent was right', res.length ? Math.round((oc('changed') + oc('partly')) / res.length * 100) + '%' : '-', tr('changed or partly changed'))}</div>`
       + outs.map(x => `<div style="margin-top:8px"><div class=row><span>${tr(x.n)}</span><b class=mono>${x.v}</b></div>${bar(x.v / mx * 100, x.c)}</div>`).join(''))}`
-    + `${card('Disputed categories', catRows.length ? tbl(['Category', 'Disputes', 'Score changed', 'Score kept'], catRows.map(x => [esc(x.n), `<b>${x.t}</b>`, x.ch || '—', x.ke || '—'])) : `<p class=mu style="margin:0">${tr('No disputed category in this period')}</p>`)}</div>`
-    + `<div class="g g2">${card('Who disputes', (l => l.length ? tbl(['Agent', ...H], l.map(r => [agCell(r.k, an(r.k) || r.k), ...cols(r)])) : `<p class=mu style="margin:0">—</p>`)(per(e => e.agent, scope.filter(e => !e.dp || inPF(new Date(e.dp.at), DS)))))}`
-    + `${card('Whose reviews are disputed', (l => l.length ? tbl(['Reviewer', ...H], l.map(r => [esc(an(r.k) || (scope.find(e => e.by === r.k) || {}).rv || r.k), ...cols(r)])) : `<p class=mu style="margin:0">—</p>`)(per(e => e.by, scope.filter(e => !e.dp || inPF(new Date(e.dp.at), DS)))))}</div>`;
+    + `${card('Disputed categories', catRows.length ? tbl(['Category', 'Disputes', 'Score changed', 'Score kept'], catRows.map(x => [esc(x.n), `<b>${x.t}</b>`, x.ch || '-', x.ke || '-'])) : `<p class=mu style="margin:0">${tr('No disputed category in this period')}</p>`)}</div>`
+    + `<div class="g g2">${card('Who disputes', (l => l.length ? tbl(['Agent', ...H], l.map(r => [agCell(r.k, an(r.k) || r.k), ...cols(r)])) : `<p class=mu style="margin:0">-</p>`)(per(e => e.agent, scope.filter(e => !e.dp || inPF(new Date(e.dp.at), DS)))))}`
+    + `${card('Whose reviews are disputed', (l => l.length ? tbl(['Reviewer', ...H], l.map(r => [esc(an(r.k) || (scope.find(e => e.by === r.k) || {}).rv || r.k), ...cols(r)])) : `<p class=mu style="margin:0">-</p>`)(per(e => e.by, scope.filter(e => !e.dp || inPF(new Date(e.dp.at), DS)))))}</div>`;
 }
 const dsRt = () => { const k = $('#dsk'), t = $('#dst'); if (k) k.innerHTML = dsKpis(dsBase()); if (t) t.innerHTML = dsTable(); };
 PG.disputes = function () {

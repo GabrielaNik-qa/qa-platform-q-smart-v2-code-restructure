@@ -1,4 +1,4 @@
-// ===================== Workforce, phase 4: Capacity planning — the fair split of the leads =====================
+// ===================== Workforce, phase 4: Capacity planning - the fair split of the leads =====================
 // Workforce › Capacity planning. Staff see the plans of a month (each for one or more teams): the campaigns and their leads
 // (pasted from Excel or typed in), the people and the hours they can work, the split, the numbers of every day and the
 // history. When something changes, the plan shows what changed and suggests a new split; a team lead or an admin approves
@@ -40,7 +40,7 @@ function cpMine() {
   if (!L.length) return card('', `<p class=mu style="margin:0">${tr('No leads for you this month yet. Your team lead publishes them here.')}</p>`);
   return L.map(x => card(esc(x.name), `<div class=tdks>${tdTile(cpN(x.today), 'Today', 'ac')}${tdTile(cpN(x.week), 'This week')}${tdTile(cpN(x.total), 'This month')}${tdTile(cpN(x.left), 'Left this month')}${x.lost ? tdTile(cpN(x.lost), 'Not worked', 'bad') : ''}</div>
 <p class=mu style="margin:0 0 10px;font-size:12.5px">${esc(tr(`Your share of every campaign: ${cpPct(x.share)}. Split on ${wfDay(x.from)}.`))} ${tr('Everybody gets the same share of every campaign, sized by the hours they can work.')}</p>`
-    + tbl(['Campaign', 'Today', 'This week', 'This month', 'Still to do'], x.campaigns.map(c => [cpCamp(c), c.today ? `<b>${cpN(c.today)}</b>` : '—', cpN(c.week), cpN(c.month), cpN(c.left)]))
+    + tbl(['Campaign', 'Today', 'This week', 'This month', 'Still to do'], x.campaigns.map(c => [cpCamp(c), c.today ? `<b>${cpN(c.today)}</b>` : '-', cpN(c.week), cpN(c.month), cpN(c.left)]))
     + cpStrip(x.days, today))).join('');
 }
 
@@ -56,7 +56,7 @@ PG.cap = function () {
   if (!P) return top + nav + card('', `<p style="margin:0 0 10px">${esc(tr(`No plan for ${cpMonName(cpMon())} yet.`))}</p><ol class=mu style="margin:0;padding-left:18px;line-height:1.7">${['Make a plan for the month and choose the teams whose agents share the leads.', 'Add the campaigns and their leads: paste them from Excel (campaign, brand, segment, leads).', 'Check the people: the hours they can work come from the rota and time off.', 'Publish: every agent sees their leads for the month, the week and the day.'].map(s => `<li>${tr(s)}</li>`).join('')}</ol>`);
   const live = !!P.version, leads = P.campaigns.filter(c => !c.old).reduce((s, c) => s + c.leads, 0), assigned = cpSum(P.assigned), members = P.people.filter(x => x.member).length;
   const status = `<div class=row style="gap:8px;flex-wrap:wrap;justify-content:flex-start;margin:0 0 12px">${live ? pill(tr('Published'), 'ok') : pill(tr('Not published yet'), 'wn')}<small class=mu>${live ? esc(tr(`The last split: ${fdt(P.version.at)} by ${P.version.by}, from ${wfDay(P.version.from)}.`)) : tr('The agents do not see it yet.')} ${esc(P.teams.map(tn).join(', '))}</small></div>`;
-  const tiles = `<div class=tdks>${tdTile(cpN(leads), 'Leads')}${tdTile(members, 'Agents')}${live ? tdTile(cpN(assigned), 'Assigned', 'ok') + tdTile(cpN(leads - assigned), 'Not assigned', leads !== assigned ? 'bad' : '') : tdTile(P.preview ? cpN(P.preview.people.reduce((s, x) => s + x.hours, 0)) + '<small> h</small>' : '—', 'Hours to work')}</div>`;
+  const tiles = `<div class=tdks>${tdTile(cpN(leads), 'Leads')}${tdTile(members, 'Agents')}${live ? tdTile(cpN(assigned), 'Assigned', 'ok') + tdTile(cpN(leads - assigned), 'Not assigned', leads !== assigned ? 'bad' : '') : tdTile(P.preview ? cpN(P.preview.people.reduce((s, x) => s + x.hours, 0)) + '<small> h</small>' : '-', 'Hours to work')}</div>`;
   const tabs = [['split', 'Split'], ...(live ? [['days', 'By day']] : []), ['camps', 'Campaigns'], ['people', 'People'], ...(live ? [['hist', 'History']] : [])], t = tabs.some(x => x[0] === CPT) ? CPT : 'split';
   const bar = `<div class=sg role=tablist style="margin:0 0 12px">${tabs.map(([k, l]) => `<button role=tab class="${t === k ? 'on' : ''}" aria-selected="${t === k}" onclick="cpTab('${k}')">${tr(l)}</button>`).join('')}</div>`;
   const body = t === 'days' ? cpDays(P) : t === 'camps' ? cpCamps(P) : t === 'people' ? cpPeople(P) : t === 'hist' ? cpHist(P) : live ? cpSplitLive(P) : cpSplitDraft(P);
@@ -82,7 +82,7 @@ function cpSplitDraft(P) {
   if (!pv) return card('', `<p class=mu style="margin:0">${tr(!P.open ? 'This month is over.' : P.why || 'Add the campaigns of the month first.')}</p>${P.open && P.canEdit && !P.campaigns.length ? `<button class=btn style="margin-top:10px" onclick="cpTab('camps');cpImp()">${IC.dl} ${tr('Paste from Excel')}</button>` : ''}`);
   const C = P.campaigns.filter(c => pv.pool[c.id]);
   // the totals first, so they stay in view when there are many campaigns
-  const rows = pv.people.map(x => [esc(x.name), cpN(x.hours) + ' h', cpPct(x.share), `<b>${cpN(x.total)}</b>`, `<small class=mu>${(Math.round(x.exact * 100) / 100).toLocaleString(I18N.locale())}</small>`, x.days ? cpN(Math.round(x.total / x.days)) : '—', ...C.map(c => cpN(x.split[c.id] || 0))]);
+  const rows = pv.people.map(x => [esc(x.name), cpN(x.hours) + ' h', cpPct(x.share), `<b>${cpN(x.total)}</b>`, `<small class=mu>${(Math.round(x.exact * 100) / 100).toLocaleString(I18N.locale())}</small>`, x.days ? cpN(Math.round(x.total / x.days)) : '-', ...C.map(c => cpN(x.split[c.id] || 0))]);
   rows.push([`<b>${tr('Leads')}</b>`, '', '', `<b>${cpN(cpSum(pv.pool))}</b>`, '', '', ...C.map(c => `<b>${cpN(pv.pool[c.id])}</b>`)]);
   return card(esc(tr(`The split from ${wfDay(pv.from)}`)), `<p class=mu style="margin:0 0 10px;font-size:12.5px">${tr('Everybody gets the same share of every campaign, sized by the hours they can work. Whole leads only: every campaign adds up, and nobody is a whole lead away from their exact fair total.')} ${esc(tr(`Biggest gap: ${pv.gap} leads.`))}</p>`
     + tbl(['Person', 'Hours to work', 'Share', 'Total', 'Exact', 'A day', ...C.map(cpHead)], rows)
@@ -91,7 +91,7 @@ function cpSplitDraft(P) {
 // a published plan: every person's leads of every campaign for the month (days not worked apart), today, this week, left
 function cpSplitLive(P) {
   const C = P.campaigns.filter(c => !c.old || P.assigned[c.id]), multi = P.teams.length > 1, ppl = P.people.filter(x => x.member || x.total || x.lost);
-  const rows = ppl.map(x => [`<b>${esc(x.name)}</b>${x.member ? '' : `<br><small class=mu>${tr('no longer in the plan')}</small>`}`, ...(multi ? [esc(tn(x.team))] : []), `<b>${cpN(x.total)}</b>`, cpN(x.today), cpN(x.week), cpN(x.left), x.lost ? `<span style="color:var(--bad)">${cpN(x.lost)}</span>` : '—', ...C.map(c => cpN(x.month[c.id] || 0))]);
+  const rows = ppl.map(x => [`<b>${esc(x.name)}</b>${x.member ? '' : `<br><small class=mu>${tr('no longer in the plan')}</small>`}`, ...(multi ? [esc(tn(x.team))] : []), `<b>${cpN(x.total)}</b>`, cpN(x.today), cpN(x.week), cpN(x.left), x.lost ? `<span style="color:var(--bad)">${cpN(x.lost)}</span>` : '-', ...C.map(c => cpN(x.month[c.id] || 0))]);
   const foot = (l, f, all) => [`<b>${tr(l)}</b>`, ...(multi ? [''] : []), all, '', '', '', '', ...C.map(f)];
   const gap = c => c.leads - (P.assigned[c.id] || 0), lead = C.reduce((s, c) => s + c.leads, 0), asg = cpSum(P.assigned);
   rows.push(foot('Assigned', c => cpN(P.assigned[c.id] || 0), `<b>${cpN(asg)}</b>`), foot('Leads', c => cpN(c.leads), `<b>${cpN(lead)}</b>`),
@@ -114,7 +114,7 @@ function cpDays(P) {
 function cpCamps(P) {
   const C = P.campaigns.filter(c => !c.old), ed = P.canEdit && P.open, live = !!P.version;
   const tools = ed ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px"><button class=btn onclick="cpImp()">${IC.dl} ${tr('Paste from Excel')}</button><button class=ib onclick="cpCampEdit('')">${IC.plus} ${tr('Add a campaign')}</button></div>` : '';
-  return card('', tools + (C.length ? tbl(['Campaign', 'Brand', 'Segment', 'Leads', ...(live ? ['Assigned'] : []), ...(ed ? [''] : [])], C.map(c => [`<b>${esc(c.name)}</b>`, esc(c.brand) || '—', esc(c.segment) || '—', `<b class=mono>${cpN(c.leads)}</b>`, ...(live ? [cpN(P.assigned[c.id] || 0)] : []),
+  return card('', tools + (C.length ? tbl(['Campaign', 'Brand', 'Segment', 'Leads', ...(live ? ['Assigned'] : []), ...(ed ? [''] : [])], C.map(c => [`<b>${esc(c.name)}</b>`, esc(c.brand) || '-', esc(c.segment) || '-', `<b class=mono>${cpN(c.leads)}</b>`, ...(live ? [cpN(P.assigned[c.id] || 0)] : []),
     ...(ed ? [`<span style="white-space:nowrap"><button class=ic onclick="cpCampEdit('${c.id}')" title="${esc(tr('Edit'))}" aria-label="${esc(tr('Edit') + ' · ' + c.name)}">${IC.pen}</button><button class=ic onclick="cpCampDel('${c.id}')" title="${esc(tr('Delete'))}" aria-label="${esc(tr('Delete') + ' · ' + c.name)}">${IC.bin}</button></span>`] : [])]))
     : `<p class=mu style="margin:0">${tr('No campaigns yet.')}</p>`)
     + (live && ed ? `<small class=mu style="display:block;margin-top:8px">${tr('The agents see changes only after you approve the new split.')}</small>` : ''));
@@ -122,7 +122,7 @@ function cpCamps(P) {
 function cpPeople(P) {
   const capOf = u => (P.capacity || []).find(x => x.u === u) || {}, ed = P.canEdit && P.open, multi = P.teams.length > 1, mem = P.people.filter(x => x.member);
   return card('', (mem.length ? tbl(['Person', ...(multi ? ['Team'] : []), esc(tr(`Hours from ${wfDay(P.from)}`)), 'Working days', 'Share'], mem.map(x => { const c = capOf(x.u);
-    return [`<b>${esc(x.name)}</b>`, ...(multi ? [esc(tn(x.team))] : []), c.hours != null ? cpN(c.hours) + ' h' : '—', c.days != null ? c.days : '—',
+    return [`<b>${esc(x.name)}</b>`, ...(multi ? [esc(tn(x.team))] : []), c.hours != null ? cpN(c.hours) + ' h' : '-', c.days != null ? c.days : '-',
       ed ? `<input type=number min=0 max=200 step=10 value="${x.pct}" style="width:80px" onchange="cpShare(${jsq(x.u)},this.value)" aria-label="${esc(tr('Share') + ' · ' + x.name)}"> %` : x.pct + ' %']; }))
     : `<p class=mu style="margin:0">${tr('No agents in these teams yet.')}</p>`)
     + `<p class=mu style="margin:10px 0 0;font-size:12.5px">${tr('The hours come from the rota, public holidays and approved time off, so part-timers and people on leave get less. Share: 100% as usual, 50% for somebody still learning, 0% to leave somebody out.')}</p>`);
@@ -194,7 +194,7 @@ function cpParse(txt) {
 }
 const cpImp = () => { CPI = { txt: '', mode: 'add' }; render(); };
 const cpImpTable = r => r.rows.length || r.bad.length ? (r.bad.length ? `<p style="color:var(--bad);margin:0 0 6px;font-size:12.5px">${esc(tr(`Lines without a campaign or a number of leads: ${r.bad.join(', ')}`))}</p>` : '')
-  + (r.rows.length ? tbl(['Campaign', 'Brand', 'Segment', 'Leads'], r.rows.slice(0, 50).map(x => [esc(x.name), esc(x.brand) || '—', esc(x.segment) || '—', `<b class=mono>${cpN(x.leads)}</b>`])) + (r.rows.length > 50 ? `<small class=mu>${tr(`and ${r.rows.length - 50} more`)}</small>` : '') : '') : '';
+  + (r.rows.length ? tbl(['Campaign', 'Brand', 'Segment', 'Leads'], r.rows.slice(0, 50).map(x => [esc(x.name), esc(x.brand) || '-', esc(x.segment) || '-', `<b class=mono>${cpN(x.leads)}</b>`])) + (r.rows.length > 50 ? `<small class=mu>${tr(`and ${r.rows.length - 50} more`)}</small>` : '') : '') : '';
 const cpImpPrev = () => { const el = document.getElementById('cpprev'); if (el) el.innerHTML = cpImpTable(cpParse(CPI.txt)); };
 function CPIM() {
   const live = CAP && CAP.plan && CAP.plan.version;

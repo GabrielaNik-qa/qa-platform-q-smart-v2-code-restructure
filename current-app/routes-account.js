@@ -81,7 +81,7 @@ module.exports = ({ ADMIN_TEAM, BASE, DAY, DEFAULT_PASSWORD, DUMMY, LANGS, PREF_
     for (const id of list(b.restore, 30, 40)) delete p.off[id];
     for (const id of list(b.dismiss, 30, 40)) { if (!PREF_ID.test(id)) return bad(res, 'Unknown message'); p.off[id] = iso(); }
     if (Object.keys(p.off).length > 100) return bad(res, 'Too many dismissed messages');
-    if (b.cols !== undefined) {                                     // { cols: { page: 'calls', keys: ['id', 'ag'] } } — keys null = the standard columns again
+    if (b.cols !== undefined) {                                     // { cols: { page: 'calls', keys: ['id', 'ag'] } } - keys null = the standard columns again
       const c = b.cols || {}, page = String(c.page || '');
       if (!/^[a-z]{1,20}$/.test(page) || (c.keys !== null && !Array.isArray(c.keys))) return bad(res, 'Unknown table');
       const all = { ...(p.cols || {}) }; if (c.keys === null) delete all[page]; else all[page] = c.keys;

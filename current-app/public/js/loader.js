@@ -1,6 +1,6 @@
 // ===================== Loading animations: the Q logo with a letter inside, and dots =====================
 // 1 · Heartbeat (signing in, until the first page is ready): the wavy lines become a heartbeat trace and the ( ) brackets beat.
-// 2 · Drawn by hand (opening a panel, like a slide transition): the Q draws itself with the panel's letter inside — L Learning,
+// 2 · Drawn by hand (opening a panel, like a slide transition): the Q draws itself with the panel's letter inside - L Learning,
 //     W Workforce, C Compliance & CX, A Admin (S Set-up for non-admins).
 // 3 · Sonar (anything slower than expected, and opening the AI Simulator panel with "AI" inside): the brackets travel outward.
 // Each shows at least a short moment so it never flickers; with "reduce motion" switched on in the system, the logo stays still.

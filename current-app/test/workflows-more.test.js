@@ -239,8 +239,8 @@ test('a custom period includes its first and last day completely, and nothing ou
   assert.equal(res.grand.count, 2);
 });
 
-test('an empty period shows "no data" (—), not 0%', () => {
+test('an empty period shows "no data" (-), not 0%', () => {
   const res = RPT.run({ src: 'reviews', metrics: ['count', 'avg', 'pass'], period: { p: 'all' } }, { ev: [], users: [], teams: [] });
   assert.deepEqual([res.grand.count, res.grand.avg, res.grand.pass], [0, null, null]);
-  assert.match(RPT.toHtml({ ...res, rows: [{ key: 'Total', cells: [res.grand] }] }, 'Empty'), /<td>—<\/td>/);
+  assert.match(RPT.toHtml({ ...res, rows: [{ key: 'Total', cells: [res.grand] }] }, 'Empty'), /<td>-<\/td>/);
 });
