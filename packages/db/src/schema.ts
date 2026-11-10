@@ -691,3 +691,66 @@ export const calibrationScores = pgTable(
     }).onDelete('cascade'),
   ],
 );
+
+/**
+ * Reviewer QA (today's rule): a check of a review made by someone else, with four yes/no questions. A reviewer's score
+ * is the share of "yes". The check stays when the review, its agent or its reviewer go (the names are kept).
+ */
+export const reviewerChecks = pgTable(
+  'reviewer_checks',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    reviewId: uuid('review_id'),
+    leadId: text('lead_id').notNull(),
+    reviewedOn: date('reviewed_on').notNull(),
+    agentId: uuid('agent_membership_id'),
+    agentName: text('agent_name').notNull(),
+    teamId: uuid('team_id'),
+    reviewerId: uuid('reviewer_membership_id'),
+    reviewerName: text('reviewer_name').notNull(),
+    /** the score is fair */
+    fair: boolean('fair').notNull(),
+    /** it follows the scorecard */
+    follows: boolean('follows').notNull(),
+    /** the critical items are right */
+    critical: boolean('critical').notNull(),
+    /** the comment helps the agent */
+    useful: boolean('useful').notNull(),
+    note: text('note').notNull().default(''),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('reviewer_checks_company').on(t.companyId, t.createdAt),
+    foreignKey({
+      name: 'reviewer_checks_review_same_company',
+      columns: [t.reviewId, t.companyId],
+      foreignColumns: [reviews.id, reviews.companyId],
+    }),
+    foreignKey({
+      name: 'reviewer_checks_agent_same_company',
+      columns: [t.agentId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'reviewer_checks_team_same_company',
+      columns: [t.teamId, t.companyId],
+      foreignColumns: [teams.id, teams.companyId],
+    }),
+    foreignKey({
+      name: 'reviewer_checks_reviewer_same_company',
+      columns: [t.reviewerId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'reviewer_checks_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);

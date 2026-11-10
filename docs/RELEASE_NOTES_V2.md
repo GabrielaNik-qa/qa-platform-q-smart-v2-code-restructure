@@ -60,6 +60,11 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - **Reviewer consistency:** each reviewer's average score against everyone's, and how often their scores had to change after a dispute (Consistent, Watch, Calibrate).
   - Each session has its own page (its address can be shared, and the invitation in the bell opens it). Making and deleting a session go into the activity log.
   - If a participant is taken off the session or leaves the company, their part and their scores go with them. A review that is deleted leaves the sessions too.
+- **Reviewer QA** (Quality › Reviewer QA), as today:
+  - **Checking a review:** admins, reviewers and team leads check a review made by someone else with four yes/no questions (the score is fair, it follows the scorecard, the critical items are right, the comment helps the agent) and a note for the reviewer. Trainers read the checks; agents don't see the page.
+  - **Reviewers** shows each reviewer's score, the share of "yes" (green from 80%, orange from 60%), and **Latest checks** the last 50, with a link to each review.
+  - **New in v2:** nobody checks their own reviews, or changes or deletes a check of them (tested). Staff see and change only the checks of their workspaces' agents, admins all (today everyone saw everything). Each review in the list starts with its lead ID, so two reviews of the same day can be told apart.
+  - A check stays when its review is deleted, with the lead ID and the names as they were. Every check given, changed or deleted goes into the activity log.
 - **Tests on Windows:** a temporary test database folder that Windows keeps locked for a moment no longer fails the run.
 
 ## 6 November 2026: Phase 1 (foundation), finished (tag `v2-phase-1`)

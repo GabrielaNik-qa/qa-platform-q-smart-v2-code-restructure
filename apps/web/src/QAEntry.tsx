@@ -42,6 +42,7 @@ export interface ReviewRow {
   conversationLink: string;
   transcript: string;
   emailSubject: string;
+  reviewerId: string | null;
   reviewerName: string;
   seenAt: string | null;
   createdAt: string;

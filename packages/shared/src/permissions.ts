@@ -30,6 +30,9 @@ export const PERMISSIONS = {
   'rootCauses.write': ADMIN_REVIEWER,
   'flags.read': STAFF_WS_AGENT_OWN,
   'flags.write': STAFF_WS,
+  // Reviewer QA: checks of reviews made by others (today: staff read them; admins, reviewers and team leads write them)
+  'reviewerQa.read': STAFF_WS,
+  'reviewerQa.write': { admin: 'all', reviewer: 'workspace', lead: 'workspace' },
   'calibrations.take': { admin: 'all', reviewer: 'participant', lead: 'participant', trainer: 'participant' },
   'autoqa.read': STAFF_WS_AGENT_OWN,
   'autoqa.write': { admin: 'all', reviewer: 'workspace' },

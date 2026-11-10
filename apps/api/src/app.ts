@@ -24,6 +24,7 @@ import {
 import { CalibrationsController } from './calibrations.controller.js';
 import { DisputesController } from './disputes.controller.js';
 import { FlagsController } from './flags.controller.js';
+import { ReviewerChecksController } from './reviewer-checks.controller.js';
 import { ReviewsController } from './reviews.controller.js';
 import { SkillsController, TeamsController, WorkspacesController } from './setup.controller.js';
 import { DB, TOKEN_VERIFIER } from './tokens.js';
@@ -60,6 +61,7 @@ export class AppModule {
         DisputesController,
         FlagsController,
         CalibrationsController,
+        ReviewerChecksController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },

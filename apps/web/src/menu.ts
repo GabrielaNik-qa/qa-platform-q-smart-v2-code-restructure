@@ -22,6 +22,7 @@ export const BUILT = new Set([
   'quality/disputes',
   'quality/quick-flags',
   'quality/calibration',
+  'quality/reviewer-qa',
   'admin/categories',
   'admin/root-causes',
   'admin/system-settings',

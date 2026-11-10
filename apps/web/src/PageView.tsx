@@ -11,6 +11,7 @@ import { People } from './People';
 import { Prefs } from './Prefs';
 import { QAEntry } from './QAEntry';
 import { QuickFlags } from './QuickFlags';
+import { ReviewerQA } from './ReviewerQA';
 import { Reviews } from './Reviews';
 import { Library, RootCauses, SystemSettings } from './QualitySetup';
 import { Roles } from './Roles';
@@ -37,6 +38,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'quality/disputes': (company) => <Disputes company={company} />,
   'quality/quick-flags': (company) => <QuickFlags company={company} />,
   'quality/calibration': (company) => <Calibrations company={company} />,
+  'quality/reviewer-qa': (company) => <ReviewerQA company={company} />,
   'admin/categories': (company) => <Library company={company} />,
   'admin/root-causes': (company) => <RootCauses company={company} />,
   'admin/system-settings': (company) => <SystemSettings company={company} />,

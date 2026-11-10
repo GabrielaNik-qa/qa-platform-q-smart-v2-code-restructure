@@ -169,6 +169,20 @@
       "when": 1793997914539,
       "tag": "0023_calibrations",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794296167582,
+      "tag": "0024_reviewer_checks_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794296169830,
+      "tag": "0025_reviewer_checks",
+      "breakpoints": true
     }
   ]
 }
