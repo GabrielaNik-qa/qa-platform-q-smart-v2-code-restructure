@@ -71,6 +71,8 @@ export const PERMISSIONS = {
   'goals.write': { admin: 'all', reviewer: 'all', lead: 'all' },
   'improvementPlans.read': { ...STAFF_ALL, agent: 'own' },
   'improvementPlans.write': STAFF_ALL,
+  // everyone reads the kudos wall and the leaderboard (as today)
+  'recognition.read': { ...STAFF_ALL, agent: 'all' },
   'recognition.write': { ...STAFF_ALL, agent: 'own' },
   'risks.write': STAFF_ALL,
   'surveys.read': { ...STAFF_ALL, agent: 'own' },

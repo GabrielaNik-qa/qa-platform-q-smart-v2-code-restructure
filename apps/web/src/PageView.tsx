@@ -10,12 +10,15 @@ import { Calibrations } from './Calibration';
 import { CategoryStats } from './CategoryStats';
 import { Dashboard } from './Dashboard';
 import { Disputes } from './Disputes';
+import { Goals } from './Goals';
+import { ImprovementPlans } from './ImprovementPlans';
 import { People } from './People';
 import { Personalize } from './Personalize';
 import { Pins } from './Pins';
 import { Prefs } from './Prefs';
 import { QAEntry } from './QAEntry';
 import { QuickFlags } from './QuickFlags';
+import { Recognition } from './Recognition';
 import { ReviewerQA } from './ReviewerQA';
 import { Reviews } from './Reviews';
 import { Library, RootCauses, SystemSettings } from './QualitySetup';
@@ -53,6 +56,9 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'quality/team-review': (company) => <TeamReview company={company} />,
   'quality/category-stats': (company) => <CategoryStats company={company} />,
   'quality/topic-dashboards': (company) => <TopicDashboards company={company} />,
+  'quality/goals-and-kpis': (company) => <Goals company={company} />,
+  'quality/improvement-plans': (company) => <ImprovementPlans company={company} />,
+  'quality/recognition': (company) => <Recognition company={company} />,
   'admin/categories': (company) => <Library company={company} />,
   'admin/root-causes': (company) => <RootCauses company={company} />,
   'admin/system-settings': (company) => <SystemSettings company={company} />,

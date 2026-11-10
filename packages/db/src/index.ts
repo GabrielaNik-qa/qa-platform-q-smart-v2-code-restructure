@@ -9,6 +9,7 @@ export * from './local-postgres.js';
 export * from './log.js';
 export * from './migrate.js';
 export * from './people.js';
+export * from './performance.js';
 export * from './pins.js';
 export * from './platform.js';
 export * from './quality.js';
@@ -17,5 +18,14 @@ export * from './reviews.js';
 export * from './seed.js';
 export * from './seed-reviews.js';
 export * from './teams.js';
-export type { CompanyDashboards, DashboardView, MyDashboards, PageRules, Prefs, SharedDashboard } from './schema.js';
+export type {
+  CompanyDashboards,
+  DashboardView,
+  MyDashboards,
+  PageRules,
+  PlanCheckIn,
+  PlanGoal,
+  Prefs,
+  SharedDashboard,
+} from './schema.js';
 export * as schema from './schema.js';

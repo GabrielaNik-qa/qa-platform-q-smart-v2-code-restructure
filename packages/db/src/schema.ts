@@ -7,6 +7,7 @@ import {
   boolean,
   foreignKey,
   date,
+  doublePrecision,
   index,
   integer,
   jsonb,
@@ -836,6 +837,141 @@ export const pins = pgTable(
     }),
     foreignKey({
       name: 'pins_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+// ---- Performance (Phase 3, step 5): goals & KPIs, improvement plans, recognition
+
+/** Who a goal is for: the whole company, a team or one agent. */
+export const goalScope = pgEnum('goal_scope', ['all', 'team', 'agent']);
+/** What a goal measures (tasks and CSAT count once Tasks and Surveys exist). */
+export const goalMetric = pgEnum('goal_metric', ['avg', 'pass', 'reviews', 'tasks', 'csat', 'kudos']);
+
+/** A monthly target (today's Goals & KPIs): its progress is counted from the real data, never typed in. */
+export const goals = pgTable(
+  'goals',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    title: text('title').notNull().default(''),
+    scope: goalScope('scope').notNull(),
+    teamId: uuid('team_id'),
+    agentId: uuid('agent_membership_id'),
+    /** the team's or agent's name, kept when they go */
+    targetName: text('target_name').notNull().default(''),
+    metric: goalMetric('metric').notNull(),
+    value: doublePrecision('value').notNull(),
+    /** a review type, or empty for all */
+    channel: text('channel').notNull().default(''),
+    /** YYYY-MM */
+    month: text('month').notNull(),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('goals_company_month').on(t.companyId, t.month),
+    foreignKey({
+      name: 'goals_team_same_company',
+      columns: [t.teamId, t.companyId],
+      foreignColumns: [teams.id, teams.companyId],
+    }),
+    foreignKey({
+      name: 'goals_agent_same_company',
+      columns: [t.agentId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'goals_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+export const planStatus = pgEnum('plan_status', ['active', 'extended', 'passed', 'failed', 'cancelled']);
+export interface PlanGoal {
+  text: string;
+  done: boolean;
+}
+export interface PlanCheckIn {
+  date: string;
+  note: string;
+  byName: string;
+}
+
+/** An improvement plan for an agent below target (today's PIPs): goals, check-ins, the outcome and the agent's signature. */
+export const improvementPlans = pgTable(
+  'improvement_plans',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    agentId: uuid('agent_membership_id'),
+    agentName: text('agent_name').notNull(),
+    title: text('title').notNull(),
+    reason: text('reason').notNull().default(''),
+    startOn: date('start_on').notNull(),
+    endOn: date('end_on').notNull(),
+    goals: jsonb('goals').$type<PlanGoal[]>().notNull().default([]),
+    checkIns: jsonb('check_ins').$type<PlanCheckIn[]>().notNull().default([]),
+    status: planStatus('status').notNull().default('active'),
+    /** when the agent signed that they read and agree */
+    signedAt: timestamp('signed_at', { withTimezone: true }),
+    agentNote: text('agent_note').notNull().default(''),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('improvement_plans_company').on(t.companyId, t.createdAt),
+    index('improvement_plans_agent').on(t.agentId),
+    foreignKey({
+      name: 'improvement_plans_agent_same_company',
+      columns: [t.agentId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'improvement_plans_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/** A thank-you to a colleague (today's kudos), with a badge. */
+export const kudos = pgTable(
+  'kudos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    toId: uuid('to_membership_id'),
+    toName: text('to_name').notNull(),
+    badge: text('badge').notNull(),
+    text: text('text').notNull(),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('kudos_company').on(t.companyId, t.createdAt),
+    foreignKey({
+      name: 'kudos_to_same_company',
+      columns: [t.toId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'kudos_by_same_company',
       columns: [t.byId, t.companyId],
       foreignColumns: [memberships.id, memberships.companyId],
     }),

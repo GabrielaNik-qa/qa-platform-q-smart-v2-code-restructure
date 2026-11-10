@@ -204,6 +204,20 @@
       "when": 1794303073868,
       "tag": "0028_company_dashboards",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794323668138,
+      "tag": "0029_performance_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1794323670004,
+      "tag": "0030_performance",
+      "breakpoints": true
     }
   ]
 }

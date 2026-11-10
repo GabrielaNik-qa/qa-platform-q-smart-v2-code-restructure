@@ -3,8 +3,8 @@
 // The page only reads what the other pages store, so every number matches Reviews and the Dashboard: the same shared
 // counting (packages/shared/src/stats.ts), here with calendar periods (this week from Monday, this month, quarter,
 // year) as today. Its tabs: Performance (categories, agent against team), Reviews & Trends (a column per day, week or
-// month, and the reviews), Flags (red and green flags, disputes). One-to-ones, simulations and growth join with their
-// own phases.
+// month, and the reviews), Flags (red and green flags, disputes) and Growth (goals, improvement plans, kudos).
+// One-to-ones and simulations join with their own phases.
 import {
   average,
   averageScore,
@@ -20,13 +20,16 @@ import {
   scoredOnly,
   type Window,
 } from '@qsmart/shared';
-import { useNavigate, useSearch } from '@tanstack/react-router';
+import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, apiFile } from './api';
 import { band, BAND_FILL, BAND_SOFT, BAND_TEXT, Empty, ReviewLink, TeamLink } from './bits';
 import { Radar, type ScoreColumn, ScoreColumns } from './charts';
 import type { Dispute } from './Disputes';
+import { type Goal, GoalCard, monthName } from './Goals';
+import { type Plan, planOpen, PlanRow } from './ImprovementPlans';
+import type { Kudos } from './Recognition';
 import { currentLanguage } from './i18n';
 import { pageOf, Pager } from './Pager';
 import type { PassRates, ReviewRow } from './QAEntry';
@@ -35,7 +38,7 @@ import { card, type CompanyRef, field, Notice, type PersonRow, smallButton, type
 
 const CHANNELS = ['call', 'chat', 'email', 'other'] as const;
 type Channel = (typeof CHANNELS)[number];
-type Tab = 'perf' | 'calls' | 'flags';
+type Tab = 'perf' | 'calls' | 'flags' | 'growth';
 const PERIODS: CalendarPeriod[] = ['week', 'month', 'quarter', 'year', 'all'];
 const LOCALES = { en: 'en-GB', bg: 'bg-BG', fr: 'fr-FR' } as const;
 const DAY = 864e5;
@@ -74,6 +77,11 @@ export function Agents({ company }: { company: CompanyRef }) {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [serverTeam, setServerTeam] = useState<TeamAverage | null>(null);
+  const [growth, setGrowth] = useState<{ goals: Goal[]; plans: Plan[]; kudos: Kudos[] }>({
+    goals: [],
+    plans: [],
+    kudos: [],
+  });
 
   const [q, setQ] = useState('');
   const [team, setTeam] = useState('');
@@ -107,6 +115,16 @@ export function Agents({ company }: { company: CompanyRef }) {
       setDisputes(d);
     }, fail);
   }, [company.id, agentView, fail]);
+
+  // the Growth tab: this month's goals, the improvement plans and the kudos (each only as far as the person may read)
+  useEffect(() => {
+    const month = new Date().toLocaleDateString('sv-SE').slice(0, 7);
+    void Promise.all([
+      api<Goal[]>(`/goals?month=${month}`, company.id).catch(() => []),
+      api<Plan[]>('/improvement-plans', company.id).catch(() => []),
+      api<Kudos[]>('/kudos', company.id).catch(() => []),
+    ]).then(([goals, plans, kudos]) => setGrowth({ goals, plans, kudos }));
+  }, [company.id]);
 
   // a link from elsewhere (today's openAgent): open that agent, with the filters of the page reset
   useEffect(() => {
@@ -621,6 +639,12 @@ export function Agents({ company }: { company: CompanyRef }) {
     ['perf', t('agents.tabs.perf'), null],
     ['calls', t('agents.tabs.calls'), n],
     ['flags', t('agents.tabs.flags'), flagged.length],
+    [
+      'growth',
+      t('agents.tabs.growth'),
+      growth.plans.filter((p) => p.agentId === u.membershipId && planOpen(p)).length +
+        growth.goals.filter((g) => g.scope === 'agent' && g.agentId === u.membershipId).length,
+    ],
   ];
   const body =
     tab === 'perf' ? (
@@ -659,8 +683,10 @@ export function Agents({ company }: { company: CompanyRef }) {
         }}
         onOpen={(id) => void navigate({ to: '/review/$id', params: { id } })}
       />
-    ) : (
+    ) : tab === 'flags' ? (
       <Flags flagged={flagged} disputed={disputed} disputeOf={disputeOf} label={label} />
+    ) : (
+      <Growth agent={u} growth={growth} agentView={agentView} />
     );
 
   return (
@@ -1147,6 +1173,97 @@ function Flags({
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Growth: everything from Performance about this agent (today's agGrowthTab): this month's goals, improvement plans, kudos. */
+function Growth({
+  agent,
+  growth,
+  agentView,
+}: {
+  agent: PersonRow;
+  growth: { goals: Goal[]; plans: Plan[]; kudos: Kudos[] };
+  agentView: boolean;
+}) {
+  const { t } = useTranslation();
+  const goals = growth.goals.filter(
+    (g) =>
+      g.scope === 'all' ||
+      (g.scope === 'team' && g.teamId === agent.teamId) ||
+      (g.scope === 'agent' && g.agentId === agent.membershipId),
+  );
+  const plans = growth.plans.filter((p) => p.agentId === agent.membershipId);
+  const kudos = growth.kudos.filter((k) => k.toId === agent.membershipId);
+  const month = new Date().toLocaleDateString('sv-SE').slice(0, 7);
+  const stat = (value: string | number, name: string, look: string) => (
+    <div className="rounded-s bg-pn2 p-3">
+      <b className={`font-display text-2xl ${look}`}>{value}</b>
+      <small className="block text-xs text-mu">{name}</small>
+    </div>
+  );
+  const page = (id: string, text: string) => (
+    <Link
+      to="/$app/$page"
+      params={{ app: 'quality', page: id }}
+      className="text-sm font-medium text-ac hover:underline"
+    >
+      {text} ›
+    </Link>
+  );
+  return (
+    <div className="grid gap-5">
+      <div className="grid grid-cols-3 gap-2">
+        {stat(
+          `${goals.filter((g) => g.state === 'met').length}/${goals.length}`,
+          t('agents.growth.goalsMet'),
+          'text-ok',
+        )}
+        {stat(plans.filter(planOpen).length, t('agents.growth.activePlans'), 'text-wn')}
+        {stat(kudos.length, t('agents.growth.kudos'), '')}
+      </div>
+      <div className="grid gap-2">
+        <h3 className="flex items-center gap-3 font-semibold">
+          {t('agents.growth.goals', { month: monthName(month) })} {page('goals-and-kpis', t('topics.open'))}
+        </h3>
+        {goals.length ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {goals.map((g) => (
+              <GoalCard key={g.id} g={g} />
+            ))}
+          </div>
+        ) : (
+          <Empty>{t('agents.growth.noGoals')}</Empty>
+        )}
+      </div>
+      <div className="grid gap-2">
+        <h3 className="flex items-center gap-3 font-semibold">
+          {t('menu.pages.pips')} {page('improvement-plans', t('topics.open'))}
+        </h3>
+        {plans.length ? plans.map((p) => <PlanRow key={p.id} p={p} />) : <Empty>{t('agents.growth.noPlans')}</Empty>}
+      </div>
+      <div className="grid gap-2">
+        <h3 className="flex items-center gap-3 font-semibold">
+          {t('agents.growth.kudosTitle')} {page('recognition', t('topics.open'))}
+        </h3>
+        {kudos.length ? (
+          kudos.slice(0, 6).map((k) => (
+            <div key={k.id} className="flex items-start gap-3 rounded-s bg-pn2 px-3 py-2 text-sm">
+              <span className="text-xl" aria-hidden="true">
+                {k.badge}
+              </span>
+              <span className="grid flex-1">
+                <b>{k.byName}</b>
+                <span>{k.text}</span>
+              </span>
+              <small className="text-mu">{k.createdAt.slice(0, 10)}</small>
+            </div>
+          ))
+        ) : (
+          <Empty>{agentView ? t('agents.growth.noKudosMine') : t('agents.growth.noKudos')}</Empty>
+        )}
+      </div>
     </div>
   );
 }
