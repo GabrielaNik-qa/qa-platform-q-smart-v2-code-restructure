@@ -50,6 +50,8 @@ export const PERMISSIONS = {
   // My activity: what I did and what was done to my account
   'activity.readOwn': { admin: 'all', reviewer: 'own', lead: 'own', trainer: 'own', agent: 'own' },
   'dashboards.shareViews': ADMIN_REVIEWER,
+  // Planning › Review planner: staff read the plan (the Dashboard shows it too); admins and reviewers change it
+  'planner.read': STAFF_ALL,
   'planner.write': ADMIN_REVIEWER,
   // Coaching and tasks
   'tasks.read': STAFF_WS_AGENT_OWN,

@@ -9,6 +9,7 @@ import {
   type ScoredCategory,
   scoreReview,
 } from '@qsmart/shared';
+import { useSearch } from '@tanstack/react-router';
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from './api';
@@ -102,6 +103,8 @@ export function QAEntry({
   onDone?: () => void;
 }) {
   const { t } = useTranslation();
+  // a link may choose the agent (today's "Review now" of the Review planner)
+  const preset = (useSearch({ strict: false }) as { agent?: string }).agent;
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [people, setPeople] = useState<PersonRow[]>([]);
   const [cards, setCards] = useState<ScorecardRow[] | null>(null);
@@ -127,6 +130,7 @@ export function QAEntry({
       setCauses(causeRows.filter((c) => c.active));
       setRates(rateRows);
       const first = cardRows[0];
+      const chosen = personRows.find((p) => p.membershipId === preset && p.role === 'agent' && p.active);
       setForm(
         editing
           ? {
@@ -152,8 +156,8 @@ export function QAEntry({
           : {
               channel: 'call',
               channelName: '',
-              teamId: '',
-              agentId: '',
+              teamId: chosen?.teamId ?? '',
+              agentId: chosen?.membershipId ?? '',
               leadId: '',
               reviewedOn: today(),
               campaign: '',
@@ -169,7 +173,7 @@ export function QAEntry({
             },
       );
     }, fail);
-  }, [company.id, editing, fail]);
+  }, [company.id, editing, preset, fail]);
   useEffect(load, [load]);
 
   // today's warning before leaving with unsaved changes

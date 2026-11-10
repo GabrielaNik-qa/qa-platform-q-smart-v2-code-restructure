@@ -4,6 +4,9 @@
 // links to their own pages (Agents and Team Review).
 import {
   average,
+  type PlannerSettings,
+  planRows,
+  planTotals,
   averageReviewTime,
   averageScore,
   categoryAverages,
@@ -59,6 +62,9 @@ export interface WidgetContext {
   staff: boolean;
   agentView: boolean;
   now: number;
+  /** the review plan (staff), and every review the person may see, scored or not (the plan counts every review) */
+  plan: PlannerSettings | null;
+  reviews: ReviewRow[];
 }
 
 const pct1 = (v: number) => `${v.toFixed(1)}%`;
@@ -872,6 +878,59 @@ function HeatMap({ c, span }: { c: WidgetContext; span: number }) {
   );
 }
 
+/** This month's review plan of the dashboard's team (today's `dPlan`): for whoever may read the plan, else null. */
+export function planOf(c: WidgetContext) {
+  if (!c.plan) return null;
+  const agents = c.people.filter((p) => p.role === 'agent' && p.active && (!c.teamFilter || p.teamId === c.teamFilter));
+  if (!agents.length) return null;
+  const today = new Date(c.now).toLocaleDateString('sv-SE');
+  const rows = planRows(
+    agents.map((a) => ({ id: a.membershipId, teamId: a.teamId })),
+    c.reviews,
+    c.plan,
+    today.slice(0, 7),
+    today,
+  );
+  const names = new Map(agents.map((a) => [a.membershipId, a.name]));
+  return { rows: rows.map((r) => ({ ...r, name: names.get(r.agentId) ?? '' })), ...planTotals(rows) };
+}
+
+/** Review plan this month (today's `planner` widget): done against planned, and who is behind. */
+function PlanWidget({ c }: { c: WidgetContext }) {
+  const { t } = useTranslation();
+  const p = planOf(c);
+  if (!p) return <W id="planner">{<Empty>{t('widgets.common.noData')}</Empty>}</W>;
+  const behind = p.rows.filter((r) => r.state === 'behind');
+  return (
+    <W id="planner">
+      <div className="flex items-baseline justify-between gap-2">
+        <b className="font-display text-3xl">
+          {p.done}
+          <small className="text-sm text-mu"> / {p.planned}</small>
+        </b>
+        <small className="text-mu">{t('widgets.planner.planned')}</small>
+      </div>
+      <Bar value={p.planned ? (p.done / p.planned) * 100 : 0} tone="ok" />
+      <small className="text-mu">{t('widgets.planner.behind', { count: behind.length })}</small>
+      <ul className="grid">
+        {behind.slice(0, 4).map((r) => (
+          <li key={r.agentId} className="flex justify-between gap-2 border-t border-bd py-1.5 text-sm first:border-t-0">
+            <AgentLink id={r.agentId} name={r.name} />
+            <Link
+              to="/$app/$page"
+              params={{ app: 'quality', page: 'qa-entry' }}
+              search={{ agent: r.agentId }}
+              className="text-xs text-ac hover:underline"
+            >
+              {r.done}/{r.target} · {t('widgets.planner.reviewNow')} ›
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </W>
+  );
+}
+
 function NeedsYou({ c }: { c: WidgetContext }) {
   const { t } = useTranslation();
   const items: { key: string; tone: string; text: string; to: ReactNode }[] = [];
@@ -892,6 +951,14 @@ function NeedsYou({ c }: { c: WidgetContext }) {
       c.all.filter((r) => (!c.teamFilter || r.teamId === c.teamFilter) && ageDays(r, c.now) < 14),
     ).slice(0, 2))
       items.push({ key: `low-${a.id}`, tone: 'text-bad', text: t('widgets.inbox.low', { name: a.name }), to: null });
+  const behind = planOf(c)?.behind ?? 0;
+  if (behind)
+    items.push({
+      key: 'plan',
+      tone: 'text-wn',
+      text: t('widgets.inbox.plan', { count: behind }),
+      to: <PageLink page="review-planner">{t('widgets.inbox.reviewNow')}</PageLink>,
+    });
   const critical = c.d.filter((r) => r.score === 0 && ageDays(r, c.now) < 7).length;
   if (critical)
     items.push({
@@ -978,6 +1045,17 @@ function Briefing({ c }: { c: WidgetContext }) {
         {t('widgets.brief.disputes', { count: open })}
       </PageLink>,
     );
+  const plan = planOf(c);
+  const left = plan ? plan.rows.reduce((s, r) => s + Math.max(0, r.target - r.done), 0) : 0;
+  if (left) {
+    const now = new Date(c.now);
+    const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
+    parts.push(
+      <PageLink key="p" page="review-planner">
+        {t('widgets.brief.plan', { count: left, days })}
+      </PageLink>,
+    );
+  }
   return (
     <section className={`${card} flex gap-3 text-[15px] leading-relaxed`} aria-label={t('widgets.brief.title')}>
       <span className="text-ac" aria-hidden="true">
@@ -1053,4 +1131,5 @@ export const WIDGETS: Record<string, WidgetSpec> = {
   rcreview: { width: 60, group: 'Lists', render: (c) => <RootCausesByReview c={c} /> },
   qflags: { width: 30, group: 'Lists', render: (c) => <QuickFlagList c={c} /> },
   targets: { width: 30, group: 'Numbers', render: (c) => <Targets c={c} /> },
+  planner: { width: 30, group: 'Work', render: (c) => <PlanWidget c={c} /> },
 };

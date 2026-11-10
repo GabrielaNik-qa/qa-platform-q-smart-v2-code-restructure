@@ -6,6 +6,7 @@ import { Account } from './Account';
 import { Activity } from './Activity';
 import { Agents } from './Agents';
 import { findPage, isBuilt, menuOf } from './menu';
+import { Calendar } from './Calendar';
 import { Calibrations } from './Calibration';
 import { CategoryStats } from './CategoryStats';
 import { Dashboard } from './Dashboard';
@@ -15,6 +16,7 @@ import { ImprovementPlans } from './ImprovementPlans';
 import { People } from './People';
 import { Personalize } from './Personalize';
 import { Pins } from './Pins';
+import { Planner } from './Planner';
 import { Prefs } from './Prefs';
 import { QAEntry } from './QAEntry';
 import { QuickFlags } from './QuickFlags';
@@ -30,6 +32,7 @@ import { TeamReview } from './TeamReview';
 import { TopicDashboards } from './TopicDashboards';
 import { Teams } from './Teams';
 import type { CompanyRef } from './ui';
+import { Workload } from './Workload';
 import { Workspaces } from './Workspaces';
 
 const PAGES: Record<string, (company: CompanyRef, email: string | null) => ReactNode> = {
@@ -59,6 +62,9 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'quality/goals-and-kpis': (company) => <Goals company={company} />,
   'quality/improvement-plans': (company) => <ImprovementPlans company={company} />,
   'quality/recognition': (company) => <Recognition company={company} />,
+  'quality/review-planner': (company) => <Planner company={company} />,
+  'quality/qa-workload': (company) => <Workload company={company} />,
+  'quality/calendar': (company) => <Calendar company={company} />,
   'admin/categories': (company) => <Library company={company} />,
   'admin/root-causes': (company) => <RootCauses company={company} />,
   'admin/system-settings': (company) => <SystemSettings company={company} />,

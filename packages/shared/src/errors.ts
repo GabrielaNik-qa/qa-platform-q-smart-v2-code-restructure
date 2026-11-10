@@ -70,6 +70,7 @@ export const ERROR_MESSAGES = {
   kudosSelf: 'You cannot give kudos to yourself.',
   kudosNotFound: 'These kudos are not there.',
   kudosNotYours: 'Only the person who gave these kudos, or an admin, can delete them.',
+  plannerInvalid: 'Targets are whole numbers from 0 to 100, and each agent is reviewed by an active admin or reviewer.',
   reviewerCheckInvalid: 'Choose a review and answer the four questions. The note is up to 2000 characters.',
   reviewerCheckOwn: 'Nobody checks their own reviews: someone else does.',
   reviewerCheckNotFound: 'This check is not there, or you cannot open it.',

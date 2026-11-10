@@ -1,6 +1,7 @@
 // The activity log, the notification bell and the page rules of a company: always behind the company wall (inside
 // withCompany). The log only ever grows: the server can add and read entries, never change or delete them.
 import { and, desc, eq, isNull, like, or, sql } from 'drizzle-orm';
+import type { PlannerSettings } from '@qsmart/shared';
 import type { Tx } from './company.js';
 import { activity, companies, type CompanyDashboards, notifications, type PageRules } from './schema.js';
 
@@ -159,4 +160,14 @@ export async function companyDashboards(tx: Tx): Promise<CompanyDashboards> {
 
 export async function setCompanyDashboards(tx: Tx, dashboards: CompanyDashboards): Promise<void> {
   await tx.update(companies).set({ dashboards }).where(eq(companies.id, thisCompany));
+}
+
+/** Planning › Review planner: the company's plan. */
+export async function companyPlanner(tx: Tx): Promise<PlannerSettings> {
+  const [row] = await tx.select({ planner: companies.planner }).from(companies);
+  return row?.planner ?? {};
+}
+
+export async function setCompanyPlanner(tx: Tx, planner: PlannerSettings): Promise<void> {
+  await tx.update(companies).set({ planner }).where(eq(companies.id, thisCompany));
 }

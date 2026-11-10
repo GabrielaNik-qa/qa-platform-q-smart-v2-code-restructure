@@ -27,6 +27,7 @@ import { DisputesController } from './disputes.controller.js';
 import { FlagsController } from './flags.controller.js';
 import { GoalsController, ImprovementPlansController, KudosController } from './performance.controller.js';
 import { PinsController } from './pins.controller.js';
+import { PlannerController } from './planner.controller.js';
 import { TeamAverageController } from './team-average.controller.js';
 import { ReviewerChecksController } from './reviewer-checks.controller.js';
 import { ReviewsController } from './reviews.controller.js';
@@ -72,6 +73,7 @@ export class AppModule {
         GoalsController,
         ImprovementPlansController,
         KudosController,
+        PlannerController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },

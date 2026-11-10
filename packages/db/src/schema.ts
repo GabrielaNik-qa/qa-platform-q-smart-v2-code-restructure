@@ -2,7 +2,13 @@
 // Every company table has company_id and sits behind the company wall (migrations/0001_company_wall.sql).
 // People are the one exception: a person can belong to several companies, so `users` is shared and
 // reaches companies through `memberships`; its wall rule shows a person only to the companies they belong to.
-import { ROLES, type ScoredCategory, type ScorecardCategory, type ScorecardQuestion } from '@qsmart/shared';
+import {
+  type PlannerSettings,
+  ROLES,
+  type ScoredCategory,
+  type ScorecardCategory,
+  type ScorecardQuestion,
+} from '@qsmart/shared';
 import {
   boolean,
   foreignKey,
@@ -31,6 +37,8 @@ export const companies = pgTable('companies', {
   pageRules: jsonb('page_rules').$type<PageRules>().notNull().default({}),
   /** Home › Personalize: the dashboards shared with roles, and each role's home dashboard set by an admin */
   dashboards: jsonb('dashboards').$type<CompanyDashboards>().notNull().default({}),
+  /** Planning › Review planner: reviews per agent per month (default, per team, per agent) and who reviews whom */
+  planner: jsonb('planner').$type<PlannerSettings>().notNull().default({}),
   /** Quality set-up › System settings: a review passes at this score or above (today's default: 85) */
   passRate: integer('pass_rate').notNull().default(85),
   createdAt: createdAt(),

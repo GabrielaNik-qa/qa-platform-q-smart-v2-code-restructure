@@ -24,6 +24,7 @@ export interface Plan {
   status: Status;
   signedAt: string | null;
   agentNote: string;
+  byId: string | null;
   byName: string;
 }
 const STATUSES: Status[] = ['active', 'extended', 'passed', 'failed', 'cancelled'];

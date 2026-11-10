@@ -218,6 +218,13 @@
       "when": 1794323670004,
       "tag": "0030_performance",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794325731580,
+      "tag": "0031_company_planner",
+      "breakpoints": true
     }
   ]
 }

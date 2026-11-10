@@ -19,6 +19,7 @@ import {
   lastTenWeeks,
   passRateOf,
   type Period,
+  type PlannerSettings,
   periodWindow,
   ROLE_LABELS,
   share,
@@ -37,7 +38,7 @@ import { currentLanguage } from './i18n';
 import type { PassRates, ReviewRow } from './QAEntry';
 import type { QuickFlag } from './QuickFlags';
 import { type MyDashboards, useSession } from './session';
-import { type WidgetContext, WIDGETS } from './widgets';
+import { planOf, type WidgetContext, WIDGETS } from './widgets';
 import {
   card,
   type CompanyRef,
@@ -109,10 +110,12 @@ const WORD = [
   'rcreview',
   'qflags',
   'targets',
+  'planner',
 ];
 /** today's width of each widget, of 60 columns */
 const WIDTH: Record<WidgetId, number> = {
   ...Object.fromEntries(TILES.map((k) => [k, 15])),
+  plan_kpi: 15,
   qtime: 60,
   cattime: 60,
   ...Object.fromEntries(Object.entries(WIDGETS).map(([k, w]) => [k, w.width])),
@@ -231,6 +234,7 @@ export function Board({
   const [people, setPeople] = useState<PersonRow[]>([]);
   const [scorecards, setScorecards] = useState<{ id: string; name: string }[]>([]);
   const [workspaces, setWorkspaces] = useState<WorkspaceRow[]>([]);
+  const [plan, setPlan] = useState<PlannerSettings | null>(null);
   const [filters, setFilters] = useState<Filters>({ ...NO_FILTERS, from: daysAgo(30), to: daysAgo(0) });
   const [added, setAdded] = useState<FilterKey[]>([]);
   const [menu, setMenu] = useState(false);
@@ -246,8 +250,11 @@ export function Board({
       agentView ? Promise.resolve([]) : api<PersonRow[]>('/people', company.id),
       api<{ id: string; name: string }[]>('/scorecards', company.id).catch(() => []),
       agentView ? Promise.resolve([]) : api<WorkspaceRow[]>('/workspaces', company.id).catch(() => []),
+      can(company.role, 'planner.read')
+        ? api<PlannerSettings>('/planner', company.id).catch(() => null)
+        : Promise.resolve(null),
     ]).then(
-      ([r, pr, f, d, tm, ppl, sc, ws]) => {
+      ([r, pr, f, d, tm, ppl, sc, ws, pl]) => {
         setNow(Date.now());
         setReviews(r);
         setRates(pr);
@@ -257,10 +264,11 @@ export function Board({
         setPeople(ppl);
         setScorecards(sc);
         setWorkspaces(ws);
+        setPlan(pl);
       },
       () => setReviews([]),
     );
-  }, [company.id, agentView]);
+  }, [company.id, company.role, agentView]);
 
   useEffect(() => {
     if (!menu) return;
@@ -406,6 +414,8 @@ export function Board({
     staff: can(company.role, 'reviews.write'),
     agentView,
     now,
+    plan,
+    reviews: all,
   };
   const widget = (id: WidgetId, span: number): ReactNode => {
     const more = WIDGETS[id];
@@ -510,6 +520,24 @@ export function Board({
           <small className="text-xs text-mu">{open ? t('dash.waiting') : t('dash.nothingOpen')}</small>,
           page('disputes'),
           open ? 'wn' : '',
+        );
+      }
+      case 'plan_kpi': {
+        const p = planOf(wctx);
+        return tile(
+          id,
+          p ? (
+            <>
+              {p.done}
+              <small className="ml-0.5 text-sm opacity-70">/{p.planned}</small>
+            </>
+          ) : (
+            '-'
+          ),
+          <small className="text-xs text-mu">
+            {p?.behind ? t('dash.planBehind', { count: p.behind }) : t('dash.planOnTrack')}
+          </small>,
+          page('review-planner'),
         );
       }
       case 'qtime':
