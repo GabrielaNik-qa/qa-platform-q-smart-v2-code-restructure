@@ -35,6 +35,23 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - **Who may do what:** everyone makes their own dashboards; admins and reviewers share them with roles (or everyone); only the person who shared one, or an admin, changes or deletes it (tested); a ready-made dashboard stays as it is.
   - **Where it's saved:** your own choices with your account, per company (the same on every computer); shared dashboards and a role's home with the company. Your Dashboard page shows your own home, else your role's, else today's ready-made one for your role.
   - Still to come at the end of Phase 3: today's "Arrange" (an admin moving and resizing widgets by hand). The AutoQA and Tasks tabs come with their phases.
+- **Step 3: Quality › Analytics › Agents**, everything about one agent, as today:
+  - **Who sees whom:** an agent sees only themselves ("My Performance"); team leads, trainers and reviewers see the agents of their workspaces; admins see every agent.
+  - **The filters:** search, team, agent, period (this week from Monday, this month, quarter, year, all, or chosen dates: calendar periods, as today's Agents page), review type (with each type's count and average) and scorecard.
+  - **The agent's card and six numbers:** average score, team average, pass rate, total reviews, red flags and green flags, with the change against the period before (for example "↑ 2.1 pts vs Oct").
+  - **Performance:** a radar of every category, agent against team, then each category's breakdown (Excellent, Good, Needs improvement) and the agent-against-team comparison.
+  - **Reviews & Trends:** one column per day, week or month (never one per review), green at the pass rate or above and amber below, with the pass rate and the trend line. Pointing at a column shows its average, reviews, pass rate and every category; clicking it zooms into that period. Below the chart is the list of reviews, with its own search, sorting and pages.
+  - **Flags:** the red and green flagged reviews, and the agent's disputes with where each stands.
+  - **Report PDF** (a printable summary) and **Export to Excel**.
+  - **The team average for an agent:** an agent's browser receives only their own reviews, so the server counts their team's average and sends the totals only, never a colleague's review. Under 3 team reviews in the period it shows no average, so a short period can't reveal one colleague's score. Tested, together with the company wall.
+  - Checked against today's demo data: Nina Rowe (90 reviews in 2026, average 95%, 16 green flags) and Petar Iliev (88 reviews, average 91%, pass rate 86%, 3 red and 7 green flags) match.
+  - One-to-ones, simulations and growth (goals, improvement plans, kudos) join with their own phases.
+- **Step 3: Quality › Analytics › Team Review**, as today:
+  - **One card per team:** reviews, average and pass rate, the trend against the period before, the average of each review type, category scores, top performers, agents who need help, and the last 8 weeks.
+  - **Three views:** Cards, Compact (every card folded to its key numbers; the ⌄ unfolds one) and Table (one row per team). Your choice is saved with your account, so it's the same on every computer.
+  - **Every agent ranked:** reviews, average, pass rate, trend, red flags and Pass or Fail against their team's target. This list can be folded too.
+  - Rolling periods as today (last 7 days, 30 days, 12 months, all time), a type filter and a team filter. Each review counts for the team the agent was in when it was reviewed.
+- **Agent and team names are now links**: on the Dashboard widgets, Team Review and the Agents page, an agent's name opens their profile and a team's name opens it on Team Review. For anyone who doesn't see those pages they stay plain text, as today.
 
 ## 10 November 2026: Phase 2 (Quality), finished (tag `v2-phase-2`)
 

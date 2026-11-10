@@ -26,6 +26,8 @@ export interface Prefs {
   columns?: Record<string, string[]>;
   /** Home › Personalize, per company: my home dashboard, my own dashboards, and how the data is counted */
   dashboards?: Record<string, MyDashboards>;
+  /** small choices of a page, e.g. Team Review's view ("team.view": cards, compact or table) */
+  choices?: Record<string, string>;
 }
 export interface MyDashboards {
   home?: string[];

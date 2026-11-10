@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Account } from './Account';
 import { Activity } from './Activity';
+import { Agents } from './Agents';
 import { findPage, isBuilt, menuOf } from './menu';
 import { Calibrations } from './Calibration';
 import { Dashboard } from './Dashboard';
@@ -21,6 +22,7 @@ import { Roles } from './Roles';
 import { Scorecards } from './Scorecards';
 import { useSession } from './session';
 import { Skills } from './Skills';
+import { TeamReview } from './TeamReview';
 import { Teams } from './Teams';
 import type { CompanyRef } from './ui';
 import { Workspaces } from './Workspaces';
@@ -45,6 +47,8 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'quality/calibration': (company) => <Calibrations company={company} />,
   'quality/reviewer-qa': (company) => <ReviewerQA company={company} />,
   'quality/pins': (company) => <Pins company={company} />,
+  'quality/agents': (company) => <Agents company={company} />,
+  'quality/team-review': (company) => <TeamReview company={company} />,
   'admin/categories': (company) => <Library company={company} />,
   'admin/root-causes': (company) => <RootCauses company={company} />,
   'admin/system-settings': (company) => <SystemSettings company={company} />,

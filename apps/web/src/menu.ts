@@ -26,6 +26,8 @@ export const BUILT = new Set([
   'quality/calibration',
   'quality/reviewer-qa',
   'quality/pins',
+  'quality/agents',
+  'quality/team-review',
   'admin/categories',
   'admin/root-causes',
   'admin/system-settings',

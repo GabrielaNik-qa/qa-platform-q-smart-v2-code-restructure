@@ -217,6 +217,108 @@ export function groups<T extends StatReview>(
     .map((key) => ({ key, reviews: by.get(key) ?? [] }));
 }
 
+/**
+ * The periods of the Agents page (today's agents.js `agRange`): calendar ones, so "this month" starts on the 1st and
+ * "this week" on Monday; "quarter" is the calendar quarter.
+ */
+export type CalendarPeriod = 'week' | 'month' | 'quarter' | 'year' | 'all' | 'custom';
+
+/**
+ * The window of a calendar period, or with `shift` 1 the one before it (2 the one before that …). Custom dates are
+ * whole days, both included, and the window before them has the same length. "All time" has nothing before it.
+ */
+export function calendarWindow(
+  period: CalendarPeriod,
+  now: number,
+  shift = 0,
+  custom?: { from: string; to: string },
+): Window | null {
+  const n = new Date(now);
+  const y = n.getFullYear();
+  const m = n.getMonth();
+  const at = (year: number, month: number, day = 1) => new Date(year, month, day).getTime();
+  if (period === 'week') {
+    const monday = n.getDate() - ((n.getDay() + 6) % 7) - 7 * shift;
+    return [at(y, m, monday), at(y, m, monday + 7)];
+  }
+  if (period === 'month') return [at(y, m - shift), at(y, m - shift + 1)];
+  if (period === 'quarter') {
+    const q = Math.floor(m / 3) * 3 - 3 * shift;
+    return [at(y, q), at(y, q + 3)];
+  }
+  if (period === 'year') return [at(y - shift, 0), at(y - shift + 1, 0)];
+  if (period === 'custom' && custom?.from && custom.to) {
+    const a = new Date(`${custom.from}T00:00:00`);
+    const b = new Date(`${custom.to}T00:00:00`);
+    b.setDate(b.getDate() + 1);
+    const length = b.getTime() - a.getTime();
+    return [a.getTime() - length * shift, b.getTime() - length * shift];
+  }
+  return shift ? null : [-Infinity, Infinity];
+}
+
+/** One column of the Agents page's score chart: a day, a week of the month (1–7, 8–14, 15–21, 22 to the end), a week, or a month. */
+export interface Bucket {
+  from: number;
+  to: number;
+  unit: 'day' | 'monthWeek' | 'week' | 'month';
+  /** 1–4 for the weeks of a month */
+  week?: number;
+}
+
+/**
+ * The columns of the score chart (today's `agBuckets`): one per period, never one per review. A week shows its days, a
+ * month its four weeks, a quarter its weeks, a year (or all time) its months; custom dates choose by their length. A
+ * few days left at the end of a quarter (fewer than 4) join the week before instead of a tiny column of their own.
+ */
+export function chartBuckets(window: Window, period: CalendarPeriod): Bucket[] {
+  const [a, b] = window;
+  const days = Math.max(1, Math.round((b - a) / DAY));
+  const unit: Bucket['unit'] =
+    period === 'week'
+      ? 'day'
+      : period === 'month'
+        ? 'monthWeek'
+        : period === 'quarter'
+          ? 'week'
+          : period === 'year' || period === 'all'
+            ? 'month'
+            : days <= 14
+              ? 'day'
+              : days <= 92
+                ? 'week'
+                : 'month';
+  const out: Bucket[] = [];
+  const start = new Date(a);
+  if (unit === 'month') {
+    for (let d = new Date(start.getFullYear(), start.getMonth(), 1); d.getTime() < b;) {
+      const next = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+      out.push({ from: d.getTime(), to: next.getTime(), unit });
+      d = next;
+    }
+  } else if (unit === 'monthWeek') {
+    for (let i = 0; i < 4; i++) {
+      const from = new Date(start.getFullYear(), start.getMonth(), 1 + 7 * i).getTime();
+      const to = i < 3 ? new Date(start.getFullYear(), start.getMonth(), 8 + 7 * i).getTime() : b;
+      out.push({ from, to, unit, week: i + 1 });
+    }
+  } else {
+    const step = unit === 'day' ? 1 : 7;
+    for (let d = new Date(start); d.getTime() < b;) {
+      const next = new Date(d.getFullYear(), d.getMonth(), d.getDate() + step);
+      out.push({ from: d.getTime(), to: Math.min(b, next.getTime()), unit });
+      d = next;
+    }
+    const last = out.at(-1);
+    const before = out.at(-2);
+    if (unit === 'week' && last && before && last.to - last.from < 4 * DAY) {
+      before.to = last.to;
+      out.pop();
+    }
+  }
+  return out;
+}
+
 /** Today's colour of a score: at the target or above, below it, low (under 70), failing (under 50). */
 export type ScoreBand = 'ok' | 'wn' | 'hot' | 'bad';
 export const scoreBand = (value: number, target: number): ScoreBand =>

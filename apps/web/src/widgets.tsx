@@ -1,7 +1,7 @@
 // The quality widgets of the Dashboard (Phase 3, step 2), as today's (current-app: widgets.js, dashboards.js): lists,
 // categories, people, review tables, the team heat map, "Needs you now" and the team briefing. Each counts with the
-// shared rules (packages/shared/src/stats.ts) on the reviews the dashboard's filters picked. Agent and team names become
-// links when their own pages arrive (step 3).
+// shared rules (packages/shared/src/stats.ts) on the reviews the dashboard's filters picked. Agent and team names are
+// links to their own pages (Agents and Team Review).
 import {
   average,
   averageReviewTime,
@@ -19,6 +19,20 @@ import {
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  AgentLink,
+  BAND_SOFT,
+  BAND_TEXT,
+  band,
+  Bar,
+  colour,
+  Empty,
+  ReviewLink,
+  ScorePill,
+  Table,
+  TeamLink,
+  Versus,
+} from './bits';
 import { CategoryDots, Donut } from './charts';
 import type { Dispute } from './Disputes';
 import type { PassRates, ReviewRow } from './QAEntry';
@@ -51,90 +65,6 @@ const pct1 = (v: number) => `${v.toFixed(1)}%`;
 const DAY = 864e5;
 const ageDays = (r: ReviewRow, now: number) => (now - new Date(`${r.reviewedOn}T12:00:00`).getTime()) / DAY;
 
-/** Today's pass/below/fail colour of a score, against a team's pass rate (today's `sp` and `scol`). */
-function band(value: number, rates: PassRates | null, teamId: string | null) {
-  const p = passRateOf(rates, teamId);
-  return value >= p ? 'ok' : value >= Math.min(70, p) ? 'wn' : 'bad';
-}
-const BAND_TEXT = { ok: 'text-ok', wn: 'text-wn', bad: 'text-bad', hot: 'text-hot' } as const;
-const BAND_FILL = { ok: 'bg-ok', wn: 'bg-wn', bad: 'bg-bad', hot: 'bg-hot' } as const;
-const BAND_SOFT = {
-  ok: 'bg-ok/12 text-ok',
-  wn: 'bg-wn/15 text-wn',
-  bad: 'bg-bad/12 text-bad',
-  hot: 'bg-hot/12 text-hot',
-} as const;
-/** today's colour of a value against the target: at it, below it, low, failing */
-const colour = (v: number, target: number) => (v >= target ? 'ok' : v >= 70 ? 'wn' : v >= 50 ? 'hot' : 'bad');
-
-/** A score as today's coloured pill. */
-function ScorePill({ value, rates, teamId }: { value: number; rates: PassRates | null; teamId: string | null }) {
-  return (
-    <span className={`rounded-full px-2 text-xs font-semibold font-mono ${BAND_SOFT[band(value, rates, teamId)]}`}>
-      {Math.round(value * 10) / 10}%
-    </span>
-  );
-}
-/** A value against the target, as today's tinted cell (green at the target or above, red below). */
-function Versus({ value, target }: { value: number | null; target: number }) {
-  if (value === null) return <span className="text-mu">—</span>;
-  return (
-    <span
-      className={`inline-block min-w-16 rounded-[6px] px-2 py-0.5 text-right font-mono tabular-nums ${value >= target ? 'bg-ok/12' : 'bg-bad/12'}`}
-    >
-      {pct1(value)}
-    </span>
-  );
-}
-/** Today's thin bar under a row. */
-function Bar({ value, tone }: { value: number; tone: keyof typeof BAND_FILL | 'mu' }) {
-  return (
-    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-sunk">
-      <div
-        className={`h-full rounded-full ${tone === 'mu' ? 'bg-mu/40' : BAND_FILL[tone]}`}
-        style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
-      />
-    </div>
-  );
-}
-function Empty({ children }: { children: ReactNode }) {
-  return <p className="text-sm text-mu">{children}</p>;
-}
-const th = 'py-1 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-mu';
-const td = 'py-1.5 pr-3';
-function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr>
-            {head.map((h, i) => (
-              <th key={i} className={th}>
-                {h}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i} className="border-t border-bd">
-              {r.map((cell, j) => (
-                <td key={j} className={td}>
-                  {cell}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-const ReviewLink = ({ r }: { r: ReviewRow }) => (
-  <Link to="/review/$id" params={{ id: r.id }} className="font-mono font-semibold text-ac hover:underline">
-    {r.leadId}
-  </Link>
-);
 const PageLink = ({ page, children }: { page: string; children: ReactNode }) => (
   <Link to="/$app/$page" params={{ app: 'quality', page }} className="font-semibold text-ac hover:underline">
     {children}
@@ -241,7 +171,9 @@ function Last5({ c }: { c: WidgetContext }) {
                 <span>
                   <ReviewLink r={r} /> <small className="text-mu">{t(`reviews.channels.${r.channel}`)}</small>
                   <br />
-                  <small className="text-mu">{r.agentName}</small>
+                  <small className="text-mu">
+                    <AgentLink id={r.agentId} name={r.agentName} />
+                  </small>
                 </span>
               </span>
               <ScorePill value={r.score ?? 0} rates={c.rates} teamId={r.teamId} />
@@ -331,7 +263,7 @@ function People({ c, top }: { c: WidgetContext; top: boolean }) {
             >
               <span>
                 {top && `#${i + 1} `}
-                <b>{a.name}</b>{' '}
+                <AgentLink id={a.id} name={a.name} />{' '}
                 <small className="text-mu">
                   {top
                     ? t('widgets.common.evaluations', { count: a.count })
@@ -367,7 +299,8 @@ function Teams({ c }: { c: WidgetContext }) {
                   style={{ background: team.color }}
                   aria-hidden="true"
                 />
-                {team.name} <small className="text-mu">{t('widgets.common.reviews', { count: l.length })}</small>
+                <TeamLink id={team.id} name={team.name} />{' '}
+                <small className="text-mu">{t('widgets.common.reviews', { count: l.length })}</small>
               </span>
               <b className={`font-mono ${a === null ? 'text-mu' : BAND_TEXT[band(a, c.rates, team.id)]}`}>
                 {a === null ? '—' : pct1(a)}
@@ -404,7 +337,7 @@ function QuickFlagList({ c }: { c: WidgetContext }) {
               </span>{' '}
               <b className="font-mono">{f.leadId}</b>{' '}
               <small className="text-mu">
-                {f.agentName} · {f.flaggedOn}
+                <AgentLink id={f.agentId} name={f.agentName} /> · {f.flaggedOn}
               </small>
               {f.comment && (
                 <>
@@ -502,7 +435,7 @@ function Attention({ c }: { c: WidgetContext }) {
               <span>
                 <ReviewLink r={r} />{' '}
                 <small className="text-mu">
-                  {r.agentName} · {r.reviewedOn}
+                  <AgentLink id={r.agentId} name={r.agentName} /> · {r.reviewedOn}
                 </small>
               </span>
               <ScorePill value={r.score ?? 0} rates={c.rates} teamId={r.teamId} />
@@ -730,7 +663,7 @@ function Agents({ c }: { c: WidgetContext }) {
             t('widgets.h.withComments'),
           ]}
           rows={rows.map((z) => [
-            z.l[0]?.agentName ?? '',
+            <AgentLink key="n" id={z.l[0]?.agentId ?? null} name={z.l[0]?.agentName ?? ''} />,
             <Versus key="a" value={z.a} target={c.target} />,
             before.has(z.id) ? (
               <Change key="c" cur={z.a} prev={averageScore(before.get(z.id) ?? [])} />
@@ -764,7 +697,7 @@ function CategoryPivot({ c }: { c: WidgetContext }) {
           head={[t('widgets.h.agent'), t('widgets.h.total'), ...cats]}
           rows={[
             ...agents.map((l) => [
-              l[0]?.agentName ?? '',
+              <AgentLink key="n" id={l[0]?.agentId ?? null} name={l[0]?.agentName ?? ''} />,
               <Versus key="t" value={averageScore(l)} target={c.target} />,
               ...cats.map((n) => <Versus key={n} value={categoryOf(l, n)} target={c.target} />),
             ]),
@@ -820,7 +753,7 @@ function ByReview({ c }: { c: WidgetContext }) {
                 r.createdAt.slice(0, 10),
                 r.reviewedOn,
                 r.reviewerName,
-                r.agentName,
+                <AgentLink key="n" id={r.agentId} name={r.agentName} />,
                 <ScorePill key="s" value={r.score ?? 0} rates={c.rates} teamId={r.teamId} />,
                 duration(r.reviewSeconds && r.reviewSeconds > 0 ? r.reviewSeconds : null),
                 r.seenAt ? t('widgets.common.yes') : t('widgets.common.no'),
@@ -852,7 +785,7 @@ function RootCausesByReview({ c }: { c: WidgetContext }) {
           head={[t('widgets.h.lead'), t('widgets.h.agent'), t('widgets.h.score'), t('widgets.h.lostWhy')]}
           rows={list.map((r) => [
             <ReviewLink key="l" r={r} />,
-            r.agentName,
+            <AgentLink key="n" id={r.agentId} name={r.agentName} />,
             <ScorePill key="s" value={r.score ?? 0} rates={c.rates} teamId={r.teamId} />,
             <span key="c" className="flex flex-wrap gap-1">
               {lost(r).map((k) => {
@@ -907,7 +840,9 @@ function HeatMap({ c, span }: { c: WidgetContext; span: number }) {
             ))}
             {rows.slice(0, 8).map((a) => (
               <div key={a.id} className="contents">
-                <span className="truncate">{a.name}</span>
+                <span className="truncate">
+                  <AgentLink id={a.id} name={a.name} />
+                </span>
                 {cats.map((n) => {
                   const z = categoryOf(
                     c.d.filter((r) => r.agentId === a.id),

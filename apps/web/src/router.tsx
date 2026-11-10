@@ -26,7 +26,25 @@ function Owner() {
 const root = createRootRoute({ component: Shell, notFoundComponent: NotFound });
 const start = createRoute({ getParentRoute: () => root, path: '/', component: Start });
 const owner = createRoute({ getParentRoute: () => root, path: '/owner', component: Owner });
-const page = createRoute({ getParentRoute: () => root, path: '/$app/$page', component: PageView });
+/** a page; some take a choice from a link (today's agLink and teamLink: the agent or team to open) */
+export interface PageSearch {
+  agent?: string;
+  team?: string;
+}
+const pick = (v: unknown) => (typeof v === 'string' && v.length <= 64 ? v : undefined);
+const page = createRoute({
+  getParentRoute: () => root,
+  path: '/$app/$page',
+  component: PageView,
+  validateSearch: (search: Record<string, unknown>): PageSearch => {
+    const out: PageSearch = {};
+    const agent = pick(search.agent);
+    const team = pick(search.team);
+    if (agent) out.agent = agent;
+    if (team) out.team = team;
+    return out;
+  },
+});
 /** one review: from the bell, the list of reviews and QA Entry */
 const review = createRoute({ getParentRoute: () => root, path: '/review/$id', component: ReviewView });
 

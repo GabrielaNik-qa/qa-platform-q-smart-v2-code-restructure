@@ -6,6 +6,8 @@ import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
 import {
   averageReviewTime,
+  calendarWindow,
+  chartBuckets,
   averageScore,
   categoryAverages,
   change,
@@ -243,5 +245,112 @@ describe('the dashboard formulas, next to today’s', () => {
     expect(periodWindow('all', now, undefined, true)).toBeNull();
     const custom = periodWindow('custom', now, { from: '2026-11-01', to: '2026-11-07' });
     expect(custom?.[1] && custom[0] && (custom[1] - custom[0]) / 864e5).toBeCloseTo(7, 5);
+  });
+});
+
+// Today's Agents page (current-app/public/js/agents.js), copied word for word but for the "now" and custom dates it
+// reads from the page.
+function todayRange(p: string, shift: number, n: Date, AG: { f: string; to: string }) {
+  const y = n.getFullYear(),
+    m = n.getMonth();
+  if (p === 'week') {
+    const d = new Date(y, m, n.getDate() - ((n.getDay() + 6) % 7) - 7 * shift),
+      e = new Date(d);
+    e.setDate(d.getDate() + 7);
+    return [d, e];
+  }
+  if (p === 'month') return [new Date(y, m - shift, 1), new Date(y, m - shift + 1, 1)];
+  if (p === 'q') {
+    const q = Math.floor(m / 3) * 3 - 3 * shift;
+    return [new Date(y, q, 1), new Date(y, q + 3, 1)];
+  }
+  if (p === 'year') return [new Date(y - shift, 0, 1), new Date(y - shift + 1, 0, 1)];
+  if (p === 'custom') {
+    const a = new Date(AG.f + 'T00:00:00'),
+      b = new Date(AG.to + 'T00:00:00');
+    b.setDate(b.getDate() + 1);
+    const L = +b - +a;
+    return [new Date(+a - L * shift), new Date(+b - L * shift)];
+  }
+  return shift ? null : [new Date(0), new Date(8.64e15)];
+}
+function todayBuckets(a: Date, b: Date, p: string) {
+  const DAY = 864e5,
+    days = Math.max(1, Math.round((+b - +a) / DAY)),
+    out: { s: Date; e: Date; w?: number }[] = [];
+  const unit =
+    p === 'week'
+      ? 'day'
+      : p === 'month'
+        ? 'mweek'
+        : p === 'q'
+          ? 'week'
+          : p === 'year' || p === 'all'
+            ? 'month'
+            : days <= 14
+              ? 'day'
+              : days <= 92
+                ? 'week'
+                : 'month';
+  if (unit === 'month')
+    for (let d = new Date(a.getFullYear(), a.getMonth(), 1); d < b; d = new Date(d.getFullYear(), d.getMonth() + 1, 1))
+      out.push({ s: d, e: new Date(d.getFullYear(), d.getMonth() + 1, 1) });
+  else if (unit === 'mweek')
+    for (let i = 0; i < 4; i++) {
+      const s = new Date(a.getFullYear(), a.getMonth(), 1 + 7 * i),
+        e = i < 3 ? new Date(a.getFullYear(), a.getMonth(), 8 + 7 * i) : new Date(b);
+      out.push({ s, e, w: i + 1 });
+    }
+  else {
+    const step = unit === 'day' ? 1 : 7;
+    for (let d = new Date(a); d < b; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + step)) {
+      const e = new Date(Math.min(+b, +new Date(d.getFullYear(), d.getMonth(), d.getDate() + step)));
+      out.push({ s: d, e });
+    }
+  }
+  const last = out[out.length - 1],
+    prev = out[out.length - 2];
+  if (unit === 'week' && prev && last && +last.e - +last.s < 4 * DAY) {
+    prev.e = last.e;
+    out.pop();
+  }
+  return out;
+}
+
+describe('the Agents page periods, next to today’s', () => {
+  const OURS = { week: 'week', month: 'month', q: 'quarter', year: 'year', all: 'all', custom: 'custom' } as const;
+  // every day of two years (both leap and not), at a random hour
+  const days = Array.from({ length: 730 }, (_, i) => new Date(2027, 0, 1 + i, Math.floor(Math.random() * 24)));
+  const customs = [
+    { f: '2026-11-01', to: '2026-11-07' },
+    { f: '2026-10-01', to: '2026-12-31' },
+    { f: '2026-02-10', to: '2026-03-02' },
+    { f: '2025-01-15', to: '2026-11-10' },
+  ];
+
+  it('gives the same windows, this one and the ones before, for every day of two years', () => {
+    for (const n of days)
+      for (const [p, ours] of Object.entries(OURS))
+        for (const shift of [0, 1, 2]) {
+          const c = customs[n.getDate() % customs.length] ?? { f: '', to: '' };
+          const a = todayRange(p, shift, n, c);
+          const b = calendarWindow(ours, n.getTime(), shift, { from: c.f, to: c.to });
+          if (!a) expect(b).toBeNull();
+          else if (p === 'all') expect(b).toEqual([-Infinity, Infinity]);
+          else expect(b).toEqual([Number(a[0]), Number(a[1])]);
+        }
+  });
+
+  it('gives the same chart columns for every period', () => {
+    for (const n of days.filter((_, i) => i % 3 === 0))
+      for (const [p, ours] of Object.entries(OURS)) {
+        if (p === 'all') continue;
+        const c = customs[n.getDate() % customs.length] ?? { f: '', to: '' };
+        const a = todayRange(p, 0, n, c);
+        if (!a) continue;
+        const theirs = todayBuckets(a[0] as Date, a[1] as Date, p).map((k) => [+k.s, +k.e, k.w]);
+        const mine = chartBuckets([+(a[0] as Date), +(a[1] as Date)], ours).map((k) => [k.from, k.to, k.week]);
+        expect(mine).toEqual(theirs);
+      }
   });
 });

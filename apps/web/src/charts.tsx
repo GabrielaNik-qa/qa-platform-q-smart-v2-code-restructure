@@ -605,3 +605,409 @@ export function CategoryDots({
     </div>
   );
 }
+
+/**
+ * Agent against team, category by category (today's Agents › Performance radar): one shape per series on one 0–100%
+ * scale with a ring every 20%. Pointing at (or arrowing to) a category shows both values; "Table" has the same numbers.
+ */
+export function Radar({
+  names,
+  series,
+  title,
+}: {
+  names: string[];
+  series: { label: string; values: (number | null)[]; color: string }[];
+  title: string;
+}) {
+  const { t } = useTranslation();
+  const [table, setTable] = useState(false);
+  const [index, setIndex] = useState<number | null>(null);
+  const { ref: wrap, width } = useWidth();
+  const svg = useRef<SVGSVGElement>(null);
+  const W = Math.min(760, width);
+  const H = Math.max(260, Math.min(380, Math.round(W * 0.55)));
+  const cx = W / 2;
+  const cy = H / 2;
+  const R = Math.max(50, Math.min(122, (W - 300) / 2, H / 2 - 40));
+  const n = names.length;
+  const angle = (i: number) => -Math.PI / 2 + (i * 2 * Math.PI) / n;
+  const at = (i: number, v: number): [number, number] => [
+    cx + (Math.cos(angle(i)) * R * v) / 100,
+    cy + (Math.sin(angle(i)) * R * v) / 100,
+  ];
+  const shape = (values: (number | null)[]) =>
+    values
+      .map((v, i) =>
+        at(i, v ?? 0)
+          .map((x) => x.toFixed(1))
+          .join(','),
+      )
+      .join(' ');
+  const ring = (v: number) =>
+    names
+      .map((_, i) =>
+        at(i, v)
+          .map((x) => x.toFixed(1))
+          .join(','),
+      )
+      .join(' ');
+  const value = (v: number | null | undefined) => (v === null || v === undefined ? '—' : `${Math.round(v)}%`);
+  const onPointerMove = (e: PointerEvent<SVGSVGElement>) => {
+    const box = svg.current?.getBoundingClientRect();
+    if (!box || !n) return;
+    const x = ((e.clientX - box.left) / box.width) * W - cx;
+    const y = ((e.clientY - box.top) / box.height) * H - cy;
+    if (Math.hypot(x, y) > R + 60) {
+      setIndex(null);
+      return;
+    }
+    const a = (Math.atan2(y, x) + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI);
+    setIndex(Math.round((a / (2 * Math.PI)) * n) % n);
+  };
+  const onKeyDown = (e: KeyboardEvent<SVGSVGElement>) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setIndex((i) => ((i ?? -1) + 1) % n);
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setIndex((i) => ((i ?? 0) - 1 + n) % n);
+    else if (e.key === 'Escape') setIndex(null);
+    else return;
+    e.preventDefault();
+  };
+  const hovered = index === null ? undefined : names[index];
+  return (
+    <div ref={wrap} className="grid gap-2">
+      <div className="flex justify-end">
+        <ViewSwitch table={table} onChange={setTable} />
+      </div>
+      {table ? (
+        <table className="w-full text-sm">
+          <thead>
+            <tr>
+              <th className={th}>{t('widgets.h.category')}</th>
+              {series.map((s) => (
+                <th key={s.label} className={th}>
+                  {s.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {names.map((name, i) => (
+              <tr key={name} className="border-t border-bd">
+                <td className="py-1 pr-3">{name}</td>
+                {series.map((s) => (
+                  <td key={s.label} className={td}>
+                    {value(s.values[i])}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div className="relative mx-auto w-full" style={{ maxWidth: W }}>
+          <svg
+            ref={svg}
+            viewBox={`0 0 ${W} ${H}`}
+            width="100%"
+            role="img"
+            aria-label={title}
+            tabIndex={0}
+            className="block font-sans focus:outline-2 focus:outline-brand rounded-s"
+            onPointerMove={onPointerMove}
+            onPointerLeave={() => setIndex(null)}
+            onKeyDown={onKeyDown}
+            onFocus={() => setIndex((i) => i ?? 0)}
+            onBlur={() => setIndex(null)}
+          >
+            {[20, 40, 60, 80, 100].map((v) => (
+              <g key={v}>
+                <polygon points={ring(v)} fill="none" stroke="var(--bd)" />
+                <text x={cx + 3} y={cy - (R * v) / 100 + 3} fontSize={10} fill="var(--mu)">
+                  {v}%
+                </text>
+              </g>
+            ))}
+            {names.map((name, i) => {
+              const [x, y] = at(i, 100);
+              const c = Math.cos(angle(i));
+              const s = Math.sin(angle(i));
+              return (
+                <g key={name}>
+                  <line x1={cx} y1={cy} x2={x} y2={y} stroke={index === i ? 'var(--mu)' : 'var(--bd)'} />
+                  <text
+                    x={x + c * 14}
+                    y={y + s * 14 + 4}
+                    fontSize={12.5}
+                    fontWeight={index === i ? 700 : 400}
+                    textAnchor={c > 0.3 ? 'start' : c < -0.3 ? 'end' : 'middle'}
+                    fill="var(--tx)"
+                  >
+                    {name.length > 22 ? `${name.slice(0, 21)}…` : name}
+                  </text>
+                </g>
+              );
+            })}
+            {[...series].reverse().map((s) => (
+              <g key={s.label}>
+                <polygon
+                  points={shape(s.values)}
+                  fill={s.color}
+                  fillOpacity={0.18}
+                  stroke={s.color}
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                />
+                {s.values.map((v, i) =>
+                  v === null ? null : (
+                    <circle
+                      key={names[i]}
+                      cx={at(i, v)[0]}
+                      cy={at(i, v)[1]}
+                      r={index === i ? 6 : 4}
+                      fill={s.color}
+                      stroke="var(--pn)"
+                      strokeWidth={2}
+                    />
+                  ),
+                )}
+              </g>
+            ))}
+          </svg>
+          {hovered !== undefined && index !== null && (
+            <Tooltip left={(at(index, 100)[0] / W) * 100}>
+              <div className="text-xs text-mu">{hovered}</div>
+              {series.map((s) => (
+                <div key={s.label} className="flex items-center gap-2">
+                  <i
+                    className="inline-block size-2.5 rounded-full"
+                    style={{ background: s.color }}
+                    aria-hidden="true"
+                  />
+                  <b className="font-mono">{value(s.values[index])}</b>
+                  <span className="text-mu">{s.label}</span>
+                </div>
+              ))}
+            </Tooltip>
+          )}
+          <ul className="flex flex-wrap justify-center gap-4 text-sm">
+            {series.map((s) => (
+              <li key={s.label} className="flex items-center gap-1.5">
+                <i className="inline-block size-2.5 rounded-full" style={{ background: s.color }} aria-hidden="true" />
+                {s.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** One column of the score chart: a day, a week or a month, with its reviews' average. */
+export interface ScoreColumn {
+  key: string;
+  /** under the column */
+  label: string;
+  /** in the tooltip and the table */
+  long: string;
+  average: number | null;
+  count: number;
+}
+
+/** The straight line closest to the points (least squares), or null when they don't define one. */
+export function fitLine(points: [number, number][]): { slope: number; intercept: number } | null {
+  const n = points.length;
+  if (n < 2) return null;
+  const sx = points.reduce((s, p) => s + p[0], 0);
+  const sy = points.reduce((s, p) => s + p[1], 0);
+  const sxy = points.reduce((s, p) => s + p[0] * p[1], 0);
+  const sxx = points.reduce((s, p) => s + p[0] * p[0], 0);
+  const d = n * sxx - sx * sx;
+  if (!d) return null;
+  const slope = (n * sxy - sx * sy) / d;
+  return { slope, intercept: (sy - slope * sx) / n };
+}
+
+/**
+ * The Agents page's score evolution (today's `agChart`): one wide column per day, week or month (never one per review),
+ * green at the pass rate or above, amber below, the pass rate as a dashed line and the trend as a straight line through
+ * the columns. Pointing at a column (or arrowing to it) shows `tip`; a click or Enter calls `onPick` (today: zoom in).
+ */
+export function ScoreColumns({
+  columns,
+  pass,
+  title,
+  tip,
+  onPick,
+}: {
+  columns: ScoreColumn[];
+  pass: number;
+  title: string;
+  tip: (index: number) => ReactNode;
+  onPick: (index: number) => void;
+}) {
+  const { t } = useTranslation();
+  const [table, setTable] = useState(false);
+  const [index, setIndex] = useState<number | null>(null);
+  const { ref: wrap, width: W } = useWidth();
+  const svg = useRef<SVGSVGElement>(null);
+  const H = 300;
+  const L = 46;
+  const Rg = 84;
+  const T = 14;
+  const B = 46;
+  const plot = W - L - Rg;
+  const ph = H - T - B;
+  const n = columns.length;
+  const bw = plot / Math.max(1, n);
+  const w = Math.min(64, Math.max(6, bw * 0.62));
+  const y = (v: number) => T + ph * (1 - v / 100);
+  const mid = (i: number) => L + i * bw + bw / 2;
+  const points = columns
+    .map((c, i): [number, number] | null => (c.average === null ? null : [mid(i), c.average]))
+    .filter((p): p is [number, number] => p !== null);
+  const fit = fitLine(points);
+  const first = points[0];
+  const last = points.at(-1);
+  const clamp = (v: number) => Math.max(0, Math.min(100, v));
+  const every = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(plot / 56))));
+  const pick = (e: PointerEvent<SVGSVGElement>) => {
+    const box = svg.current?.getBoundingClientRect();
+    if (!box) return null;
+    const x = ((e.clientX - box.left) / box.width) * W;
+    const i = Math.floor((x - L) / bw);
+    return i >= 0 && i < n ? i : null;
+  };
+  const onKeyDown = (e: KeyboardEvent<SVGSVGElement>) => {
+    if (e.key === 'ArrowRight') setIndex((i) => Math.min(n - 1, (i ?? -1) + 1));
+    else if (e.key === 'ArrowLeft') setIndex((i) => Math.max(0, (i ?? n) - 1));
+    else if (e.key === 'Escape') setIndex(null);
+    else if ((e.key === 'Enter' || e.key === ' ') && index !== null) onPick(index);
+    else return;
+    e.preventDefault();
+  };
+  const bar = (x: number, top: number, bottom: number, width: number) => {
+    const h = bottom - top;
+    const r = Math.min(4, h, width / 2);
+    return `M${x},${bottom} v${-(h - r)} q0,${-r} ${r},${-r} h${width - 2 * r} q${r},0 ${r},${r} v${h - r} z`;
+  };
+  return (
+    <div ref={wrap} className="grid gap-2">
+      <div className="flex justify-end">
+        <ViewSwitch table={table} onChange={setTable} />
+      </div>
+      {table ? (
+        <table className="w-full text-sm">
+          <thead>
+            <tr>
+              <th className={th}>{t('dash.charts.period')}</th>
+              <th className={th}>{t('dash.charts.average')}</th>
+              <th className={th}>{t('dash.charts.reviews')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {columns.map((c) => (
+              <tr key={c.key} className="border-t border-bd">
+                <td className="py-1 pr-3">{c.long}</td>
+                <td className={td}>{c.average === null ? '—' : pct(c.average)}</td>
+                <td className={td}>{c.count}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div className="relative">
+          <svg
+            ref={svg}
+            viewBox={`0 0 ${W} ${H}`}
+            width="100%"
+            role="img"
+            aria-label={title}
+            tabIndex={0}
+            className={`block font-sans focus:outline-2 focus:outline-brand rounded-s ${index !== null && columns[index]?.count ? 'cursor-pointer' : ''}`}
+            onPointerMove={(e) => setIndex(pick(e))}
+            onPointerLeave={() => setIndex(null)}
+            onClick={(e) => {
+              const i = pick(e as unknown as PointerEvent<SVGSVGElement>);
+              if (i !== null) onPick(i);
+            }}
+            onKeyDown={onKeyDown}
+            onFocus={() => setIndex((i) => i ?? n - 1)}
+            onBlur={() => setIndex(null)}
+          >
+            {[0, 20, 40, 60, 80, 100].map((v) => (
+              <g key={v}>
+                <line x1={L} x2={W - Rg} y1={y(v)} y2={y(v)} stroke="var(--bd)" />
+                <text x={L - 8} y={y(v) + 4} fontSize={12} textAnchor="end" fill="var(--mu)">
+                  {v}%
+                </text>
+              </g>
+            ))}
+            {index !== null && <rect x={L + index * bw} y={T} width={bw} height={ph} fill="var(--mu)" opacity={0.08} />}
+            {columns.map((c, i) =>
+              c.average === null ? null : (
+                <g key={c.key}>
+                  <path
+                    d={bar(mid(i) - w / 2, y(c.average), y(0), w)}
+                    fill={c.average >= pass ? 'var(--ok)' : 'var(--wn)'}
+                    fillOpacity={index === i ? 0.55 : 0.35}
+                  />
+                  <circle cx={mid(i)} cy={y(c.average)} r={4} fill="var(--tx)" stroke="var(--pn)" strokeWidth={2} />
+                </g>
+              ),
+            )}
+            <line
+              x1={L}
+              x2={W - Rg + 6}
+              y1={y(pass)}
+              y2={y(pass)}
+              stroke="var(--ok)"
+              strokeDasharray="5 4"
+              strokeWidth={1.5}
+            />
+            <text x={W - Rg + 10} y={y(pass) + 4} fontSize={12} fill="var(--ok)">
+              {t('agents.passLine', { pass })}
+            </text>
+            {fit && first && last && (
+              <line
+                x1={first[0]}
+                y1={y(clamp(fit.slope * first[0] + fit.intercept))}
+                x2={last[0]}
+                y2={y(clamp(fit.slope * last[0] + fit.intercept))}
+                stroke="var(--mu)"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+              />
+            )}
+            {columns.map((c, i) =>
+              i % every ? null : (
+                <g key={c.key}>
+                  <text x={mid(i)} y={H - 24} fontSize={12} textAnchor="middle" fill="var(--mu)">
+                    {c.label}
+                  </text>
+                  <text x={mid(i)} y={H - 9} fontSize={11} textAnchor="middle" fill="var(--mu)">
+                    ({c.count})
+                  </text>
+                </g>
+              ),
+            )}
+          </svg>
+          {index !== null && <Tooltip left={(mid(index) / W) * 100}>{tip(index)}</Tooltip>}
+          <ul className="mt-1 flex flex-wrap gap-4 text-sm text-mu">
+            <li className="flex items-center gap-1.5">
+              <i className="inline-block size-2.5 rounded-sm bg-ok" aria-hidden="true" />
+              {t('agents.legendPass', { pass })}
+            </li>
+            <li className="flex items-center gap-1.5">
+              <i className="inline-block size-2.5 rounded-sm bg-wn" aria-hidden="true" />
+              {t('agents.legendBelow', { pass })}
+            </li>
+            <li className="flex items-center gap-1.5">
+              <i className="inline-block h-0.5 w-4 rounded-full bg-mu" aria-hidden="true" />
+              {t('agents.legendTrend')}
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}

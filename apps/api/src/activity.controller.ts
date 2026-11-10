@@ -130,6 +130,11 @@ const prefsInput = z.object({
   dismissed: z.record(z.string().max(80), z.string().max(40)).optional(),
   /** the columns each table shows (e.g. the Reviews list) */
   columns: z.record(z.string().max(40), z.array(z.string().max(40)).max(40)).optional(),
+  /** small choices of a page, e.g. Team Review's view */
+  choices: z
+    .record(z.string().regex(/^[a-z]{1,20}\.[a-z]{1,20}$/), z.string().max(20))
+    .refine((c) => Object.keys(c).length <= 40)
+    .optional(),
   /** Home › Personalize, per company: my home dashboard, my own dashboards, how the data is counted */
   dashboards: z
     .record(
