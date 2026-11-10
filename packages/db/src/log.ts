@@ -2,7 +2,7 @@
 // withCompany). The log only ever grows: the server can add and read entries, never change or delete them.
 import { and, desc, eq, isNull, like, or, sql } from 'drizzle-orm';
 import type { Tx } from './company.js';
-import { activity, companies, notifications, type PageRules } from './schema.js';
+import { activity, companies, type CompanyDashboards, notifications, type PageRules } from './schema.js';
 
 const thisCompany = sql<string>`app_company()`;
 
@@ -149,4 +149,14 @@ export async function pageRules(tx: Tx): Promise<PageRules> {
 
 export async function setPageRules(tx: Tx, rules: PageRules): Promise<void> {
   await tx.update(companies).set({ pageRules: rules }).where(eq(companies.id, thisCompany));
+}
+
+/** Home › Personalize: the company's shared dashboards and each role's home dashboard. */
+export async function companyDashboards(tx: Tx): Promise<CompanyDashboards> {
+  const [row] = await tx.select({ dashboards: companies.dashboards }).from(companies);
+  return row?.dashboards ?? {};
+}
+
+export async function setCompanyDashboards(tx: Tx, dashboards: CompanyDashboards): Promise<void> {
+  await tx.update(companies).set({ dashboards }).where(eq(companies.id, thisCompany));
 }

@@ -24,6 +24,14 @@ export interface Prefs {
   dismissed?: Record<string, string>;
   /** the columns each table shows (e.g. the Reviews list) */
   columns?: Record<string, string[]>;
+  /** Home › Personalize, per company: my home dashboard, my own dashboards, and how the data is counted */
+  dashboards?: Record<string, MyDashboards>;
+}
+export interface MyDashboards {
+  home?: string[];
+  views?: { id: string; name: string; items: string[] }[];
+  base?: 'conversation' | 'review';
+  grouping?: 'day' | 'week' | 'month' | 'quarter';
 }
 export interface Me {
   email: string | null;

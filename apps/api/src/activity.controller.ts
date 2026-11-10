@@ -24,6 +24,7 @@ import type { VerifiedPerson } from './auth/token-verifier.js';
 import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { CurrentMembership, Person } from './decorators.js';
 import { badRequest, notFound } from './errors.js';
+import { dashboardItems } from './dashboard-items.js';
 import { DB } from './tokens.js';
 
 /** Who did it, for the activity log. */
@@ -129,6 +130,27 @@ const prefsInput = z.object({
   dismissed: z.record(z.string().max(80), z.string().max(40)).optional(),
   /** the columns each table shows (e.g. the Reviews list) */
   columns: z.record(z.string().max(40), z.array(z.string().max(40)).max(40)).optional(),
+  /** Home › Personalize, per company: my home dashboard, my own dashboards, how the data is counted */
+  dashboards: z
+    .record(
+      z.uuid(),
+      z.object({
+        home: dashboardItems.optional(),
+        views: z
+          .array(
+            z.object({
+              id: z.string().regex(/^[a-z0-9-]{1,40}$/),
+              name: z.string().trim().min(1).max(40),
+              items: dashboardItems,
+            }),
+          )
+          .max(10)
+          .optional(),
+        base: z.enum(['conversation', 'review']).optional(),
+        grouping: z.enum(['day', 'week', 'month', 'quarter']).optional(),
+      }),
+    )
+    .optional(),
 });
 
 /** My account › Notifications & Confirmations, saved with the account (the same on every browser). */

@@ -9,6 +9,7 @@ import { Calibrations } from './Calibration';
 import { Dashboard } from './Dashboard';
 import { Disputes } from './Disputes';
 import { People } from './People';
+import { Personalize } from './Personalize';
 import { Pins } from './Pins';
 import { Prefs } from './Prefs';
 import { QAEntry } from './QAEntry';
@@ -36,6 +37,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'admin/notifications-and-confirmations': () => <Prefs />,
   'admin/scorecards': (company) => <Scorecards company={company} />,
   'quality/dashboard': (company) => <Dashboard company={company} />,
+  'quality/personalize': (company) => <Personalize company={company} />,
   'quality/qa-entry': (company) => <QAEntry company={company} />,
   'quality/reviews': (company) => <Reviews company={company} />,
   'quality/disputes': (company) => <Disputes company={company} />,

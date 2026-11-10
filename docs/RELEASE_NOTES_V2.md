@@ -28,6 +28,13 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - **People:** top performers, agents needing support, teams compared, review types compared, score distribution, reviewer performance, agent performance, workspace performance, and scores by category (every agent × every category).
   - Each role's dashboard now shows them as today (for example, admins, reviewers and team leads see the team briefing, Needs you now and the heat map). The rings use the same eight colours as the category lines; past eight parts the smallest fold into "Other".
   - Agent and team names become links when the Agents and Team Review pages arrive (step 3).
+- **Step 2: Home › Personalize**, as today:
+  - **The gallery:** your home dashboard, your own dashboards and the ones shared with you, and today's 10 ready-made dashboards, each with a small picture of its layout.
+  - **The dashboard you pick** shows as a live preview, with Display, Use as my home, Make my own copy, Rename and Delete; admins can also "View as" another role.
+  - **Display settings:** count the data by conversation date or review date, charts over time by day, week, month or quarter, every widget switched on or off (each keeps its preset size and place), who sees the dashboard, "Back to the default of my role", and for admins "Make it the home dashboard of …" a role.
+  - **Who may do what:** everyone makes their own dashboards; admins and reviewers share them with roles (or everyone); only the person who shared one, or an admin, changes or deletes it (tested); a ready-made dashboard stays as it is.
+  - **Where it's saved:** your own choices with your account, per company (the same on every computer); shared dashboards and a role's home with the company. Your Dashboard page shows your own home, else your role's, else today's ready-made one for your role.
+  - Still to come at the end of Phase 3: today's "Arrange" (an admin moving and resizing widgets by hand). The AutoQA and Tasks tabs come with their phases.
 
 ## 10 November 2026: Phase 2 (Quality), finished (tag `v2-phase-2`)
 

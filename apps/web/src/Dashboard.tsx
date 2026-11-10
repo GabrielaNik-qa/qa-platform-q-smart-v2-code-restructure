@@ -36,7 +36,7 @@ import type { Dispute } from './Disputes';
 import { currentLanguage } from './i18n';
 import type { PassRates, ReviewRow } from './QAEntry';
 import type { QuickFlag } from './QuickFlags';
-import { useSession } from './session';
+import { type MyDashboards, useSession } from './session';
 import { type WidgetContext, WIDGETS } from './widgets';
 import {
   card,
@@ -122,7 +122,7 @@ const ORDER: WidgetId[] = WORD.filter((id) => WIDTH[id] !== undefined);
  * Today's ready-made dashboard of each role (dashboards.js): Overall for admins, reviewers and team leads, Trainer for
  * trainers, "my progress" for agents. Only the widgets built so far show.
  */
-const DEFAULTS: Record<string, string[]> = {
+export const DEFAULTS: Record<string, string[]> = {
   admin: ['brief', 'kpi_avg', 'kpi_pass', 'plan_kpi', 'kpi_disputes', 'inbox', 'heat', 'qtime'],
   reviewer: ['brief', 'kpi_avg', 'kpi_pass', 'plan_kpi', 'kpi_disputes', 'inbox', 'heat', 'qtime'],
   lead: ['brief', 'kpi_avg', 'kpi_pass', 'plan_kpi', 'kpi_disputes', 'inbox', 'heat', 'qtime'],
@@ -199,10 +199,27 @@ const NO_FILTERS: Filters = {
 };
 const daysAgo = (n: number) => new Date(Date.now() - n * 864e5).toLocaleDateString('sv-SE');
 
-export function Dashboard({ company }: { company: CompanyRef }) {
+/**
+ * The board: the filters in one row and the widgets below them, with the data they count. The Dashboard page shows it
+ * with the person's home dashboard; Home › Personalize shows it as the preview of the dashboard being chosen.
+ */
+export function Board({
+  company,
+  ids,
+  base,
+  grouping,
+  personalize = true,
+}: {
+  company: CompanyRef;
+  /** the widgets, in today's order */
+  ids: string[];
+  base: DateBase;
+  grouping: Grouping;
+  /** the "Personalize" button (not on the Personalize page itself) */
+  personalize?: boolean;
+}) {
   const { t } = useTranslation();
   const lang = currentLanguage();
-  const { me } = useSession();
   const agentView = company.role === 'agent';
   const [reviews, setReviews] = useState<ReviewRow[] | null>(null);
   /** the moment the numbers are counted at: when the data arrived */
@@ -218,9 +235,6 @@ export function Dashboard({ company }: { company: CompanyRef }) {
   const [added, setAdded] = useState<FilterKey[]>([]);
   const [menu, setMenu] = useState(false);
   const menuRef = useRef<HTMLSpanElement>(null);
-  // how the charts group dates, and which date counts: today's defaults (Personalize changes them, step 2)
-  const grouping = 'week' as Grouping;
-  const base = 'conversation' as DateBase;
 
   useEffect(() => {
     void Promise.all([
@@ -272,11 +286,6 @@ export function Dashboard({ company }: { company: CompanyRef }) {
     target: passRateOf(rates, filters.team || null),
   };
   const disputed = useMemo(() => new Map(disputes.map((x) => [x.reviewId, x])), [disputes]);
-
-  const ids = useMemo(() => {
-    const wanted = (DEFAULTS[company.role] ?? DEFAULTS['admin'] ?? []).filter(isWidget);
-    return wanted.sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
-  }, [company.role]);
 
   // ---- the filters
   const options: Record<FilterKey, [string, string][]> = {
@@ -544,30 +553,7 @@ export function Dashboard({ company }: { company: CompanyRef }) {
   const latest = (reviews ?? []).reduce((m, r) => Math.max(m, new Date(r.createdAt).getTime()), 0);
 
   return (
-    <section className="grid gap-4" aria-labelledby="dash-title">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="grid gap-1">
-          <h1 id="dash-title" className="lane font-display text-3xl font-bold uppercase tracking-wide">
-            {t('dash.title')}
-          </h1>
-          <p className="text-sm text-mu">{t('dash.intro')}</p>
-        </div>
-        {can(company.role, 'reviews.write') && (
-          <Link to="/$app/$page" params={{ app: 'quality', page: 'qa-entry' }} className={primaryButton}>
-            + {t('dash.newEvaluation')}
-          </Link>
-        )}
-      </div>
-      <div>
-        <h2 className="flex flex-wrap items-center gap-2 text-xl font-semibold">
-          {t('dash.welcome', { name: me.name ?? '' })}
-          <span className="rounded-full bg-ac/15 px-2 text-xs font-semibold text-ac">
-            {ROLE_LABELS[lang][company.role]}
-          </span>
-        </h2>
-        <p className="text-sm text-mu">{t('dash.overview')}</p>
-      </div>
-
+    <div className="grid gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex flex-1 flex-wrap items-center gap-2" role="group" aria-label={t('dash.filters')}>
           <label className={`${chip} ${chipLook(filters.period !== 'all')}`}>
@@ -673,14 +659,16 @@ export function Dashboard({ company }: { company: CompanyRef }) {
             </button>
           )}
         </div>
-        <Link
-          to="/$app/$page"
-          params={{ app: 'quality', page: 'personalize' }}
-          className={smallButton}
-          title={t('dash.personalizeHelp')}
-        >
-          ⚙ {t('dash.personalize')}
-        </Link>
+        {personalize && (
+          <Link
+            to="/$app/$page"
+            params={{ app: 'quality', page: 'personalize' }}
+            className={smallButton}
+            title={t('dash.personalizeHelp')}
+          >
+            ⚙ {t('dash.personalize')}
+          </Link>
+        )}
       </div>
 
       {!reviews && <p className="text-mu">{t('common.loading')}</p>}
@@ -715,6 +703,117 @@ export function Dashboard({ company }: { company: CompanyRef }) {
           <b>{t('dash.updated')}</b>
           <span className="font-mono">{new Date(latest).toISOString().slice(0, 19).replace('T', ' ')}</span>
         </p>
+      )}
+    </div>
+  );
+}
+
+/** Today's ready-made dashboards (dashboards.js), in today's order; their names and descriptions are in the texts. */
+export const TEMPLATES: { id: string; items: string[] }[] = [
+  { id: 't-overall', items: ['brief', 'kpi_avg', 'kpi_pass', 'plan_kpi', 'kpi_disputes', 'inbox', 'heat', 'qtime'] },
+  {
+    id: 't-lead',
+    items: [
+      'brief',
+      'wf_today',
+      'ai_lead',
+      'kpi_avg',
+      'kpi_pass',
+      'kpi_trend',
+      'inbox',
+      'low',
+      'heat',
+      'teams',
+      'tasks',
+    ],
+  },
+  {
+    id: 't-qa',
+    items: [
+      'plan_kpi',
+      'kpi_disputes',
+      'kpi_total',
+      'kpi_flags',
+      'planner',
+      'inbox',
+      'attention',
+      'distribution',
+      'qflags',
+    ],
+  },
+  { id: 't-trainer', items: ['brief', 'ai_train', 'needs', 'cat0', 'heat', 'learn_prog', 'strong', 'cattime'] },
+  {
+    id: 't-agent',
+    items: ['att_me', 'cap_me', 'kpi_avg', 'kpi_pass', 'kpi_trend', 'coach_new', 'todo', 'strong', 'needs', 'last5'],
+  },
+  { id: 't-perf', items: ['kpi_avg', 'kpi_pass', 'csat', 'complaints', 'goals', 'kudos', 'top', 'low'] },
+  { id: 't-speed', items: ['plan_kpi', 'kpi_disputes', 'kpi_total', 'planner', 'tasks', 'inbox'] },
+  { id: 't-analytics', items: ['ai_ana', 'qtime', 'cattime', 'catins', 'channels', 'cat0', 'distribution', 'teams'] },
+  { id: 't-ai', items: ['ai_sim', 'brief', 'channels', 'distribution'] },
+  { id: 't-learn', items: ['learn_prog', 'needs', 'cat0', 'strong', 'todo'] },
+];
+/** The widgets of a list that exist so far, in today's order on the page. */
+export const ordered = (items: string[]) =>
+  [...new Set(items)].filter(isWidget).sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+/** Every widget built so far, in today's order (Home › Personalize › Display). */
+export const ALL_WIDGETS = ORDER;
+/** A widget's group in Home › Personalize › Display. */
+export const groupOf = (id: string): string =>
+  WIDGETS[id]?.group ?? (id === 'qtime' || id === 'cattime' ? 'Charts' : 'Numbers');
+export const widthOf = (id: string) => WIDTH[id] ?? 30;
+
+/** The company's dashboards: the ones shared with roles, and each role's home set by an admin. */
+export interface CompanyDashboards {
+  shared: { id: string; name: string; items: string[]; roles: string[]; byId: string | null; byName: string }[];
+  roles: Record<string, string[]>;
+}
+/** A person's home dashboard: their own, else their role's (set by an admin), else today's ready-made one for the role. */
+export const homeOf = (mine: MyDashboards | undefined, role: string, company: CompanyDashboards | null) =>
+  mine?.home ?? company?.roles[role] ?? DEFAULTS[role] ?? DEFAULTS['admin'] ?? [];
+
+/** Quality › Home › Dashboard: the welcome line, and the person's home dashboard. */
+export function Dashboard({ company }: { company: CompanyRef }) {
+  const { t } = useTranslation();
+  const lang = currentLanguage();
+  const { me } = useSession();
+  const [shared, setShared] = useState<CompanyDashboards | null | undefined>(undefined);
+  useEffect(() => {
+    api<CompanyDashboards>('/dashboards', company.id).then(setShared, () => setShared(null));
+  }, [company.id]);
+  const mine = me.prefs.dashboards?.[company.id];
+  return (
+    <section className="grid gap-4" aria-labelledby="dash-title">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="grid gap-1">
+          <h1 id="dash-title" className="lane font-display text-3xl font-bold uppercase tracking-wide">
+            {t('dash.title')}
+          </h1>
+          <p className="text-sm text-mu">{t('dash.intro')}</p>
+        </div>
+        {can(company.role, 'reviews.write') && (
+          <Link to="/$app/$page" params={{ app: 'quality', page: 'qa-entry' }} className={primaryButton}>
+            + {t('dash.newEvaluation')}
+          </Link>
+        )}
+      </div>
+      <div>
+        <h2 className="flex flex-wrap items-center gap-2 text-xl font-semibold">
+          {t('dash.welcome', { name: me.name ?? '' })}
+          <span className="rounded-full bg-ac/15 px-2 text-xs font-semibold text-ac">
+            {ROLE_LABELS[lang][company.role]}
+          </span>
+        </h2>
+        <p className="text-sm text-mu">{t('dash.overview')}</p>
+      </div>
+      {shared === undefined ? (
+        <p className="text-mu">{t('common.loading')}</p>
+      ) : (
+        <Board
+          company={company}
+          ids={ordered(homeOf(mine, company.role, shared))}
+          base={mine?.base ?? 'conversation'}
+          grouping={mine?.grouping ?? 'week'}
+        />
       )}
     </section>
   );

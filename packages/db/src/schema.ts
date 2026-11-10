@@ -28,6 +28,8 @@ export const companies = pgTable('companies', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   pageRules: jsonb('page_rules').$type<PageRules>().notNull().default({}),
+  /** Home › Personalize: the dashboards shared with roles, and each role's home dashboard set by an admin */
+  dashboards: jsonb('dashboards').$type<CompanyDashboards>().notNull().default({}),
   /** Quality set-up › System settings: a review passes at this score or above (today's default: 85) */
   passRate: integer('pass_rate').notNull().default(85),
   createdAt: createdAt(),
@@ -55,6 +57,35 @@ export interface Prefs {
   dismissed?: Record<string, string>;
   /** the columns each table shows (e.g. the Reviews list) */
   columns?: Record<string, string[]>;
+  /** Home › Personalize, per company: my home dashboard, my own dashboards, and how the data is counted */
+  dashboards?: Record<string, MyDashboards>;
+}
+
+/** A dashboard: its name and the widgets on it (today's widget ids, e.g. "kpi_avg"), in today's order on the page. */
+export interface DashboardView {
+  id: string;
+  name: string;
+  items: string[];
+}
+export interface MyDashboards {
+  /** my home dashboard, when I chose my own (otherwise my role's) */
+  home?: string[];
+  views?: DashboardView[];
+  /** which date a review counts by: of the conversation (today's default) or when it was reviewed */
+  base?: 'conversation' | 'review';
+  /** how the charts over time group the dates */
+  grouping?: 'day' | 'week' | 'month' | 'quarter';
+}
+export interface SharedDashboard extends DashboardView {
+  /** the roles that see it ("all": everyone) */
+  roles: string[];
+  byId: string | null;
+  byName: string;
+}
+export interface CompanyDashboards {
+  shared?: SharedDashboard[];
+  /** a role's home dashboard set by an admin (instead of today's ready-made one for the role) */
+  roles?: Record<string, string[]>;
 }
 
 /** Admin › Roles & permissions: who sees which page in the menu (it only changes the menu; the server's rules stay). */

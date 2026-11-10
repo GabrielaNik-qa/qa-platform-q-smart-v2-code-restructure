@@ -18,6 +18,7 @@ export const BUILT = new Set([
   'admin/notifications-and-confirmations',
   'admin/scorecards',
   'quality/dashboard',
+  'quality/personalize',
   'quality/qa-entry',
   'quality/reviews',
   'quality/disputes',

@@ -17,5 +17,5 @@ export * from './reviews.js';
 export * from './seed.js';
 export * from './seed-reviews.js';
 export * from './teams.js';
-export type { PageRules, Prefs } from './schema.js';
+export type { CompanyDashboards, DashboardView, MyDashboards, PageRules, Prefs, SharedDashboard } from './schema.js';
 export * as schema from './schema.js';
