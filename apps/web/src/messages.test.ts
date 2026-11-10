@@ -31,7 +31,9 @@ describe('the texts of the pages', () => {
 
   it('never use the long or medium dash, only - or : (your rule of 10 November)', () => {
     for (const lang of LANGUAGES) {
-      const found = JSON.stringify(messages[lang]).match(/.{0,30}[–—].{0,30}/g) ?? [];
+      // the two dashes, by their character codes, so this file doesn't contain them either
+      const dashes = new RegExp(`.{0,30}[${String.fromCharCode(0x2013, 0x2014)}].{0,30}`, 'g');
+      const found = JSON.stringify(messages[lang]).match(dashes) ?? [];
       expect(found, lang).toEqual([]);
     }
   });
