@@ -6,6 +6,7 @@ import { Account } from './Account';
 import { Activity } from './Activity';
 import { findPage, isBuilt, menuOf } from './menu';
 import { Calibrations } from './Calibration';
+import { Dashboard } from './Dashboard';
 import { Disputes } from './Disputes';
 import { People } from './People';
 import { Pins } from './Pins';
@@ -34,6 +35,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'admin/language': (company) => <Account tab="language" company={company} />,
   'admin/notifications-and-confirmations': () => <Prefs />,
   'admin/scorecards': (company) => <Scorecards company={company} />,
+  'quality/dashboard': (company) => <Dashboard company={company} />,
   'quality/qa-entry': (company) => <QAEntry company={company} />,
   'quality/reviews': (company) => <Reviews company={company} />,
   'quality/disputes': (company) => <Disputes company={company} />,

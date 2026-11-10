@@ -2,4 +2,5 @@
 export * from './errors.js';
 export * from './permissions.js';
 export * from './scoring.js';
+export * from './stats.js';
 export * from './roles.js';

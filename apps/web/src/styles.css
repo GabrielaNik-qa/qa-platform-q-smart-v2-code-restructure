@@ -25,6 +25,18 @@
   --focus: #171717;
   --ring: rgb(255 107 0 / 0.28);
   --sh-2: 0 6px 18px rgb(23 23 23 / 0.1);
+  /* the charts (Phase 3): the eight category colours, in this fixed order, checked for colour blindness on this
+     surface (light and dark each its own steps); the line of the average score as today; "hot" = a low score (50–69) */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #6250d6;
+  --series-8: #e34948;
+  --score-line: #e8458b;
+  --hot: #c2410c;
   color-scheme: light;
 }
 
@@ -44,6 +56,16 @@
     --bad: #ff6b5e;
     --focus: #ffd447;
     --sh-2: 0 8px 22px rgb(0 0 0 / 0.5);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+    --score-line: #e8458b;
+    --hot: #ff8a3d;
     color-scheme: dark;
   }
 }
@@ -63,6 +85,16 @@
   --bad: #ff6b5e;
   --focus: #ffd447;
   --sh-2: 0 8px 22px rgb(0 0 0 / 0.5);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+  --score-line: #e8458b;
+  --hot: #ff8a3d;
   color-scheme: dark;
 }
 
@@ -85,6 +117,7 @@
   --color-ok: var(--ok);
   --color-wn: var(--wn);
   --color-bad: var(--bad);
+  --color-hot: var(--hot);
   --shadow-card: var(--sh-2);
 }
 

@@ -45,6 +45,7 @@ export interface ReviewRow {
   reviewerId: string | null;
   reviewerName: string;
   seenAt: string | null;
+  reviewSeconds: number | null;
   createdAt: string;
 }
 interface RootCause {

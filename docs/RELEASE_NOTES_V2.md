@@ -6,6 +6,16 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 - **Fixed from Phase 2:** GitHub's checks failed after the merge, although all 140 tests passed there. A test database was stopped a moment before its last connections had really closed, and the test tool counted the message they got as an error. The test database now waits until every connection has left before it stops (checked by stopping it right after closing ten connections, five times in a row).
 - **GitHub now also checks each phase's own branch** (`v2-phase-2`, `v2-phase-3` …), not only `main`, so a problem shows up before a phase is merged.
+- **Step 1: the Dashboard, part 1** (Quality › Home › Dashboard):
+  - **The counting, the same as today's:** one shared set of rules counts every number, so a number is never counted two ways. A test runs it next to today's own report engine on today's 842 demo reviews: the same counts, averages and pass rates overall and per team, review type, agent and category. The change ▲ ▼, the trend, the 10-week line and the grouping by day, week, month and quarter match today's formulas, copied into the test word for word.
+  - **The page as today:** "Welcome back" with your role, "+ New evaluation" for admins and reviewers, and one row of filters above everything: "Date is" (last 7 days, 30 days, 12 months, all time, custom dates), then "+ Filter" for type, team, agent, reviewer and scorecard (agents: type and scorecard), and Reset.
+  - **The 13 number tiles** (average score, total, reviewed conversations, review time, reviewed agents, disputed, with comments, unseen, pass rate, fail rate, recent trend with its small line, flags, open disputes), each with ▲ ▼ against the period before (∅ when there is nothing to compare with), and the charts **Quality scores over time** and **Category scores over time**.
+  - **Each role starts with today's dashboard for it.** Widgets that aren't built yet are left out, as today; the other quality widgets and Personalize come in step 2.
+  - **The charts are drawn by v2 itself, as today** (your decision of 10 November: no chart library). They follow the chart rules: hover or use the arrow keys to see every value at a date; a "Table" button with the same numbers; text always 12px, also in a narrow card.
+  - **Three differences from today, on purpose:**
+    - "Quality scores over time" shows the number of reviews in its own strip under the line, instead of a second scale on the same chart, which is easy to misread.
+    - The category lines use eight colours checked for colour blindness in both themes; today's colours failed that check (green against yellow, yellow against orange).
+    - A review counts for the team the agent was in when it was reviewed (today: the agent's current team), the same team that decides who may see it. The Flags tile counts quick flags of the chosen period only (today: of all time).
 
 ## 10 November 2026: Phase 2 (Quality), finished (tag `v2-phase-2`)
 
