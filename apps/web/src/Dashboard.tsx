@@ -22,6 +22,7 @@ import {
   periodWindow,
   ROLE_LABELS,
   share,
+  scoredOnly,
   type StatFilters,
   trend,
   type Window,
@@ -36,7 +37,17 @@ import { currentLanguage } from './i18n';
 import type { PassRates, ReviewRow } from './QAEntry';
 import type { QuickFlag } from './QuickFlags';
 import { useSession } from './session';
-import { card, type CompanyRef, field, type PersonRow, primaryButton, smallButton, type TeamRow } from './ui';
+import { type WidgetContext, WIDGETS } from './widgets';
+import {
+  card,
+  type CompanyRef,
+  field,
+  type PersonRow,
+  primaryButton,
+  smallButton,
+  type TeamRow,
+  type WorkspaceRow,
+} from './ui';
 
 /** Today's widgets of this step, in today's order on the page. */
 const TILES = [
@@ -54,15 +65,59 @@ const TILES = [
   'kpi_flags',
   'kpi_disputes',
 ] as const;
-const CHARTS = ['qtime', 'cattime'] as const;
-type WidgetId = (typeof TILES)[number] | (typeof CHARTS)[number];
-const ORDER: WidgetId[] = [...TILES, ...CHARTS];
+type WidgetId = string;
+/**
+ * Today's place of every widget on the page (widgets.js `WORD`); only the ones built so far are kept. The others join in
+ * their own steps and phases (tasks, coaching, workforce, AI, the review plan …).
+ */
+const WORD = [
+  'brief',
+  'att_me',
+  'cap_me',
+  'wf_today',
+  'ai_lead',
+  ...TILES,
+  'plan_kpi',
+  'csat',
+  'complaints',
+  'inbox',
+  'todo',
+  'coach_new',
+  'qtime',
+  'cattime',
+  'catavg',
+  'catover',
+  'cat0',
+  'catins',
+  'heat',
+  'strong',
+  'needs',
+  'rootc',
+  'scperf',
+  'revperf',
+  'agperf',
+  'wsperf',
+  'catpivot',
+  'teams',
+  'channels',
+  'distribution',
+  'top',
+  'low',
+  'last5',
+  'attention',
+  'byreview',
+  'rcreview',
+  'qflags',
+  'targets',
+];
 /** today's width of each widget, of 60 columns */
 const WIDTH: Record<WidgetId, number> = {
   ...Object.fromEntries(TILES.map((k) => [k, 15])),
   qtime: 60,
   cattime: 60,
-} as Record<WidgetId, number>;
+  ...Object.fromEntries(Object.entries(WIDGETS).map(([k, w]) => [k, w.width])),
+};
+const ORDER: WidgetId[] = WORD.filter((id) => WIDTH[id] !== undefined);
 /**
  * Today's ready-made dashboard of each role (dashboards.js): Overall for admins, reviewers and team leads, Trainer for
  * trainers, "my progress" for agents. Only the widgets built so far show.
@@ -74,7 +129,7 @@ const DEFAULTS: Record<string, string[]> = {
   trainer: ['brief', 'ai_train', 'needs', 'cat0', 'heat', 'learn_prog', 'strong', 'cattime'],
   agent: ['att_me', 'cap_me', 'kpi_avg', 'kpi_pass', 'kpi_trend', 'coach_new', 'todo', 'strong', 'needs', 'last5'],
 };
-const isWidget = (id: string): id is WidgetId => (ORDER as string[]).includes(id);
+const isWidget = (id: string): boolean => ORDER.includes(id);
 
 /**
  * Today's layout: a run of number tiles takes the fewest rows of at most five, as even as possible; other cards fill
@@ -91,7 +146,7 @@ export function pack(ids: WidgetId[]): { id: WidgetId; span: number }[] {
       out.push({ id: x.id, span });
     });
   };
-  const tile = (id: WidgetId) => WIDTH[id] <= 15;
+  const tile = (id: WidgetId) => (WIDTH[id] ?? 30) <= 15;
   for (let i = 0; i < ids.length;) {
     const id = ids[i] as WidgetId;
     if (tile(id)) {
@@ -110,10 +165,10 @@ export function pack(ids: WidgetId[]): { id: WidgetId; span: number }[] {
     }
     const row: { id: WidgetId; w: number }[] = [];
     let w = 0;
-    while (i < ids.length && !tile(ids[i] as WidgetId) && w + WIDTH[ids[i] as WidgetId] <= 60) {
+    while (i < ids.length && !tile(ids[i] as WidgetId) && w + (WIDTH[ids[i] as WidgetId] ?? 30) <= 60) {
       const next = ids[i] as WidgetId;
-      row.push({ id: next, w: WIDTH[next] });
-      w += WIDTH[next];
+      row.push({ id: next, w: WIDTH[next] ?? 30 });
+      w += WIDTH[next] ?? 30;
       i++;
     }
     fill(row);
@@ -158,6 +213,7 @@ export function Dashboard({ company }: { company: CompanyRef }) {
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [people, setPeople] = useState<PersonRow[]>([]);
   const [scorecards, setScorecards] = useState<{ id: string; name: string }[]>([]);
+  const [workspaces, setWorkspaces] = useState<WorkspaceRow[]>([]);
   const [filters, setFilters] = useState<Filters>({ ...NO_FILTERS, from: daysAgo(30), to: daysAgo(0) });
   const [added, setAdded] = useState<FilterKey[]>([]);
   const [menu, setMenu] = useState(false);
@@ -175,8 +231,9 @@ export function Dashboard({ company }: { company: CompanyRef }) {
       agentView ? Promise.resolve([]) : api<TeamRow[]>('/teams', company.id),
       agentView ? Promise.resolve([]) : api<PersonRow[]>('/people', company.id),
       api<{ id: string; name: string }[]>('/scorecards', company.id).catch(() => []),
+      agentView ? Promise.resolve([]) : api<WorkspaceRow[]>('/workspaces', company.id).catch(() => []),
     ]).then(
-      ([r, pr, f, d, tm, ppl, sc]) => {
+      ([r, pr, f, d, tm, ppl, sc, ws]) => {
         setNow(Date.now());
         setReviews(r);
         setRates(pr);
@@ -185,6 +242,7 @@ export function Dashboard({ company }: { company: CompanyRef }) {
         setTeams(tm.filter((x) => !x.isAdministration));
         setPeople(ppl);
         setScorecards(sc);
+        setWorkspaces(ws);
       },
       () => setReviews([]),
     );
@@ -323,7 +381,26 @@ export function Dashboard({ company }: { company: CompanyRef }) {
         ? key
         : `${key.slice(8, 10)}/${key.slice(5, 7)}`;
 
-  const widget = (id: WidgetId): ReactNode => {
+  const wctx: WidgetContext = {
+    d: ctx.d,
+    pv: ctx.pv,
+    target: ctx.target,
+    rates,
+    slice: (change) => inWindow(all, window, { ...statFilters, ...change }, base),
+    all: scoredOnly(all),
+    teamFilter: filters.team,
+    people,
+    teams,
+    workspaces,
+    flags,
+    disputes: disputed,
+    staff: can(company.role, 'reviews.write'),
+    agentView,
+    now,
+  };
+  const widget = (id: WidgetId, span: number): ReactNode => {
+    const more = WIDGETS[id];
+    if (more) return more.render(wctx, span);
     switch (id) {
       case 'kpi_avg':
         return tile(
@@ -625,9 +702,9 @@ export function Dashboard({ company }: { company: CompanyRef }) {
               <div
                 key={id}
                 className="min-w-0 px-[7px] [grid-column:span_var(--sp)/span_var(--sp)] @max-2xl:[grid-column:span_var(--spm)/span_var(--spm)]"
-                style={{ '--sp': span, '--spm': WIDTH[id] <= 15 ? 30 : 60 } as React.CSSProperties}
+                style={{ '--sp': span, '--spm': (WIDTH[id] ?? 30) <= 15 ? 30 : 60 } as React.CSSProperties}
               >
-                {widget(id)}
+                {widget(id, span)}
               </div>
             ))}
           </div>

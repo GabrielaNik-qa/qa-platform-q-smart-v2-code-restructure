@@ -22,6 +22,12 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - **Each review is scored again by v2**, and a test checks every one against today's score: all 842 match. 152 of them were made before today's scorecards changed their critical items, so they keep the critical settings they were scored with.
   - Checked: v2's dashboard shows today's numbers (average 93.8%, 8 open disputes).
   - Added once, when v2 starts (`Start Q-smart v2.cmd`); the automatic tests keep their own small demo company.
+- **Step 2: the other quality widgets**, as today, counted with the same shared rules:
+  - **Numbers and lists:** the team briefing (one sentence: the trend, the review type that slipped this week, agents who need support, disputes waiting), Needs you now (disputes waiting over 48 hours, agents below target for 2 weeks, critical fails this week, reviews not seen), Quality target & disputes, the last 5 reviews, reviews requiring attention, the latest quick flags, scores by reviews, and ratings and root causes by reviews.
+  - **Categories:** strong categories and categories needing improvement, category insights (average, trend, ratings, below target, scored 0, disputes), average category scores (a dot per category with the target as a line), category score over target and category score 0% (rings), root causes, scorecard performance, and the team heat map (agents × categories).
+  - **People:** top performers, agents needing support, teams compared, review types compared, score distribution, reviewer performance, agent performance, workspace performance, and scores by category (every agent × every category).
+  - Each role's dashboard now shows them as today (for example, admins, reviewers and team leads see the team briefing, Needs you now and the heat map). The rings use the same eight colours as the category lines; past eight parts the smallest fold into "Other".
+  - Agent and team names become links when the Agents and Team Review pages arrive (step 3).
 
 ## 10 November 2026: Phase 2 (Quality), finished (tag `v2-phase-2`)
 

@@ -451,3 +451,157 @@ export function CategoriesOverTime({
     </div>
   );
 }
+
+/**
+ * A ring: the share of each part, the biggest first, with a legend beside it (today's `donut`). Eight colours at most:
+ * past eight, the smallest parts fold into "Other", so a colour never repeats.
+ */
+export function Donut({
+  rows,
+  empty,
+  label,
+}: {
+  rows: { name: string; value: number }[];
+  empty: string;
+  label: string;
+}) {
+  const { t } = useTranslation();
+  const total = rows.reduce((a, r) => a + r.value, 0);
+  if (!total) return <p className="text-center text-sm text-mu">{empty}</p>;
+  const parts =
+    rows.length > SERIES
+      ? [
+          ...rows.slice(0, SERIES - 1),
+          { name: t('dash.charts.other'), value: rows.slice(SERIES - 1).reduce((a, r) => a + r.value, 0) },
+        ]
+      : rows;
+  const R = 70;
+  const inner = 44;
+  const C = 80;
+  const at = (angle: number, r: number) =>
+    `${(C + r * Math.cos(angle)).toFixed(2)} ${(C + r * Math.sin(angle)).toFixed(2)}`;
+  let start = -Math.PI / 2;
+  const share = (v: number) => `${((v / total) * 100).toFixed(1)}%`;
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      <svg viewBox="0 0 160 160" width={150} height={150} role="img" aria-label={label} className="flex-none">
+        {parts.length === 1 ? (
+          <circle cx={C} cy={C} r={(R + inner) / 2} fill="none" stroke={seriesColor(0)} strokeWidth={R - inner}>
+            <title>{`${parts[0]?.name}: 100%`}</title>
+          </circle>
+        ) : (
+          parts.map((p, i) => {
+            const end = start + (p.value / total) * 2 * Math.PI;
+            const big = end - start > Math.PI ? 1 : 0;
+            const d = `M${at(start, R)}A${R} ${R} 0 ${big} 1 ${at(end, R)}L${at(end, inner)}A${inner} ${inner} 0 ${big} 0 ${at(start, inner)}Z`;
+            start = end;
+            return (
+              <path key={p.name} d={d} fill={seriesColor(i)} stroke="var(--pn)" strokeWidth={2}>
+                <title>{`${p.name}: ${share(p.value)} (${p.value})`}</title>
+              </path>
+            );
+          })
+        )}
+      </svg>
+      <ul className="grid min-w-40 flex-1 gap-1 text-[12.5px]">
+        {parts.map((p, i) => (
+          <li key={p.name} className="flex items-center gap-2">
+            <i
+              className="inline-block size-2.5 flex-none rounded-full"
+              style={{ background: seriesColor(i) }}
+              aria-hidden="true"
+            />
+            <span className="flex-1">{p.name}</span>
+            <b className="font-mono">{share(p.value)}</b>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Every category at its average score, with the target as a line across (today's "Average category scores"). */
+export function CategoryDots({
+  categories,
+  target,
+  title,
+}: {
+  categories: { name: string; value: number }[];
+  target: number;
+  title: string;
+}) {
+  const { t } = useTranslation();
+  const [table, setTable] = useState(false);
+  const { ref: wrap, width: W } = useWidth();
+  const n = categories.length;
+  const left = 44;
+  const right = 44;
+  const top = 14;
+  const plot = 180;
+  const bottom = 110;
+  const H = top + plot + bottom;
+  const x = (i: number) => left + ((i + 0.5) * (W - left - right)) / n;
+  const y = (v: number) => top + plot * (1 - v / 100);
+  return (
+    <div ref={wrap} className="grid gap-2">
+      <div className="flex justify-end">
+        <ViewSwitch table={table} onChange={setTable} />
+      </div>
+      {table ? (
+        <table className="w-full text-sm">
+          <thead>
+            <tr>
+              <th className={th}>{t('widgets.h.category')}</th>
+              <th className={th}>{t('widgets.h.average')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {categories.map((c) => (
+              <tr key={c.name} className="border-t border-bd">
+                <td className="py-1 pr-3">{c.name}</td>
+                <td className={td}>{pct(c.value)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={title} className="block font-sans">
+          {grid.map((v) => (
+            <g key={v}>
+              <line x1={left} x2={W - right} y1={y(v)} y2={y(v)} stroke="var(--bd)" />
+              <text x={left - 8} y={y(v) + 4} fontSize={12} textAnchor="end" fill="var(--mu)">
+                {v}%
+              </text>
+            </g>
+          ))}
+          <line x1={left} x2={W - right} y1={y(target)} y2={y(target)} stroke="var(--tx)" strokeWidth={1.5} />
+          <text x={W - right + 6} y={y(target) + 4} fontSize={12} fontWeight={600} fill="var(--tx)">
+            {target}%
+          </text>
+          {categories.map((c, i) => (
+            <g key={c.name}>
+              <circle
+                cx={x(i)}
+                cy={y(c.value)}
+                r={6}
+                fill={c.value >= target ? 'var(--ok)' : 'var(--bad)'}
+                stroke="var(--pn)"
+                strokeWidth={2}
+              >
+                <title>{`${c.name}: ${pct(c.value)}`}</title>
+              </circle>
+              <text
+                transform={`translate(${x(i)},${top + plot + 16}) rotate(-35)`}
+                textAnchor="end"
+                fontSize={12}
+                fill="var(--mu)"
+              >
+                {c.name.length > 24 ? `${c.name.slice(0, 23)}…` : c.name}
+              </text>
+            </g>
+          ))}
+        </svg>
+      )}
+    </div>
+  );
+}
