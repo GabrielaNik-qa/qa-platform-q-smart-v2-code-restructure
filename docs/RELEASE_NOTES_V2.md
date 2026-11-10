@@ -2,7 +2,10 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
-## 6 November 2026: Phase 2 (Quality), in progress, on branch `v2-phase-2`
+## 10 November 2026: Phase 2 (Quality), finished (tag `v2-phase-2`)
+
+Built from 6 to 10 November on branch `v2-phase-2`. Every step was checked in the browser as admin, reviewer, team lead, trainer and agent, and in English, Bulgarian and French. 140 automatic tests pass.
+
 
 - **Scoring, the same as today's:**
   - Yes/No/N/A per item; N/A leaves its points out.
