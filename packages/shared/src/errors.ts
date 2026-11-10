@@ -56,6 +56,8 @@ export const ERROR_MESSAGES = {
   reviewAgent: 'Choose an active agent of your workspaces.',
   reviewNotFound: 'This review is not there, or you cannot open it.',
   nothingToExport: 'Choose at least one review to export.',
+  pinInvalid: 'Choose a review and write what to talk about (up to 2000 characters). The moment looks like 02:15.',
+  pinNotFound: 'This pin is not there, or you cannot open it.',
   reviewerCheckInvalid: 'Choose a review and answer the four questions. The note is up to 2000 characters.',
   reviewerCheckOwn: 'Nobody checks their own reviews: someone else does.',
   reviewerCheckNotFound: 'This check is not there, or you cannot open it.',

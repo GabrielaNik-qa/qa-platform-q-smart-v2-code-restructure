@@ -33,6 +33,9 @@ export const PERMISSIONS = {
   // Reviewer QA: checks of reviews made by others (today: staff read them; admins, reviewers and team leads write them)
   'reviewerQa.read': STAFF_WS,
   'reviewerQa.write': { admin: 'all', reviewer: 'workspace', lead: 'workspace' },
+  // Pins: moments of conversations to talk about in coaching (today: staff write them; an agent reads their own)
+  'pins.read': STAFF_WS_AGENT_OWN,
+  'pins.write': STAFF_WS,
   'calibrations.take': { admin: 'all', reviewer: 'participant', lead: 'participant', trainer: 'participant' },
   'autoqa.read': STAFF_WS_AGENT_OWN,
   'autoqa.write': { admin: 'all', reviewer: 'workspace' },

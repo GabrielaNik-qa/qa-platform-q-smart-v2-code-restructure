@@ -65,6 +65,12 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - **Reviewers** shows each reviewer's score, the share of "yes" (green from 80%, orange from 60%), and **Latest checks** the last 50, with a link to each review.
   - **New in v2:** nobody checks their own reviews, or changes or deletes a check of them (tested). Staff see and change only the checks of their workspaces' agents, admins all (today everyone saw everything). Each review in the list starts with its lead ID, so two reviews of the same day can be told apart.
   - A check stays when its review is deleted, with the lead ID and the names as they were. Every check given, changed or deleted goes into the activity log.
+- **Pins** (Quality › Coaching › Pins), as today:
+  - Admins, reviewers, team leads and trainers pin a moment of a reviewed conversation to talk about with the agent in a coaching session: the review, the moment (like 02:15) and what to talk about.
+  - **To talk about** and **Talked about** (the last 40). Staff mark a pin "talked about", change it or delete it; marking it keeps everything else as it was (tested).
+  - **Agents see only their own pins** and can open the review; they change nothing. Staff see the pins of their workspaces' agents, admins all.
+  - A pin stays when its review is deleted, with the lead ID and the names. Pinning and deleting go into the activity log.
+  - Each review in the list starts with its lead ID.
 - **Tests on Windows:** a temporary test database folder that Windows keeps locked for a moment no longer fails the run.
 
 ## 6 November 2026: Phase 1 (foundation), finished (tag `v2-phase-1`)

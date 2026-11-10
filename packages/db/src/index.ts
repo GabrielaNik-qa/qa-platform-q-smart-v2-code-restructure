@@ -9,6 +9,7 @@ export * from './local-postgres.js';
 export * from './log.js';
 export * from './migrate.js';
 export * from './people.js';
+export * from './pins.js';
 export * from './platform.js';
 export * from './quality.js';
 export * from './reviewer-checks.js';

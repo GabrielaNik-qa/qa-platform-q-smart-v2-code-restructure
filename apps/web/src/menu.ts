@@ -23,6 +23,7 @@ export const BUILT = new Set([
   'quality/quick-flags',
   'quality/calibration',
   'quality/reviewer-qa',
+  'quality/pins',
   'admin/categories',
   'admin/root-causes',
   'admin/system-settings',

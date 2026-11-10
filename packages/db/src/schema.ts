@@ -754,3 +754,59 @@ export const reviewerChecks = pgTable(
     }),
   ],
 );
+
+export const pinStatus = pgEnum('pin_status', ['todo', 'done']);
+
+/**
+ * Pins (today's rule): a moment of a reviewed conversation, saved to talk about with the agent in a coaching session.
+ * Staff pin the conversations of their workspaces' agents; the agent sees their own. A pin keeps the lead ID and the
+ * names when its review, agent or team go.
+ */
+export const pins = pgTable(
+  'pins',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    reviewId: uuid('review_id'),
+    leadId: text('lead_id').notNull(),
+    reviewedOn: date('reviewed_on').notNull(),
+    agentId: uuid('agent_membership_id'),
+    agentName: text('agent_name').notNull(),
+    teamId: uuid('team_id'),
+    /** the moment in the conversation (mm:ss), or empty */
+    moment: text('moment').notNull().default(''),
+    /** what to talk about */
+    note: text('note').notNull(),
+    status: pinStatus('status').notNull().default('todo'),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('pins_company').on(t.companyId, t.createdAt),
+    index('pins_agent').on(t.agentId),
+    foreignKey({
+      name: 'pins_review_same_company',
+      columns: [t.reviewId, t.companyId],
+      foreignColumns: [reviews.id, reviews.companyId],
+    }),
+    foreignKey({
+      name: 'pins_agent_same_company',
+      columns: [t.agentId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'pins_team_same_company',
+      columns: [t.teamId, t.companyId],
+      foreignColumns: [teams.id, teams.companyId],
+    }),
+    foreignKey({
+      name: 'pins_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
