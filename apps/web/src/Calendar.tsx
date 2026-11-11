@@ -1,6 +1,7 @@
 // Planning › Calendar (today's planning.js `PG.calendar`): one month, Monday first, with what is planned on each day:
 // calibration sessions and improvement plans (start, end, check-ins). One-to-ones, coaching and task deadlines join
 // with their phases. Each person sees only what they may read (an agent: their own plans); staff can show "only mine".
+import { can } from '@qsmart/shared';
 import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -38,14 +39,17 @@ export function Calendar({ company }: { company: CompanyRef }) {
 
   useEffect(() => {
     void Promise.all([
-      api<Session[]>('/calibrations', company.id).catch(() => []),
+      // calibration sessions only for the roles who take part in them (an agent doesn't: no refused request)
+      can(company.role, 'calibrations.take')
+        ? api<Session[]>('/calibrations', company.id).catch(() => [])
+        : Promise.resolve([] as Session[]),
       api<Plan[]>('/improvement-plans', company.id).catch(() => []),
     ]).then(([s, p]) => {
       setSessions(s);
       setPlans(p);
       setLoaded(true);
     });
-  }, [company.id]);
+  }, [company.id, company.role]);
 
   const items: Item[] = [];
   for (const s of sessions)
