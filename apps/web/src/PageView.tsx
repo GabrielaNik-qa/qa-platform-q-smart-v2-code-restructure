@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Account } from './Account';
 import { Activity } from './Activity';
 import { Agents } from './Agents';
+import { AutoQA } from './AutoQA';
 import { AiProviders, AiSwitch, AiUsage } from './AiSettings';
 import { findPage, isBuilt, menuOf } from './menu';
 import { Calendar } from './Calendar';
@@ -82,6 +83,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'admin/ai-provider': (company) => <AiProviders company={company} />,
   'admin/fields': (company) => <Fields company={company} />,
   'quality/conversations': (company) => <Conversations company={company} />,
+  'quality/autoqa': (company) => <AutoQA company={company} />,
   'admin/ai-usage-limits': (company) => <AiUsage company={company} />,
   'admin/ai-on-or-off': (company) => <AiSwitch company={company} />,
   'admin/all-roles': (company) => <Roles company={company} />,

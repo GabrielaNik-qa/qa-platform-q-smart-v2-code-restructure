@@ -32,6 +32,9 @@ export interface PageSearch {
   team?: string;
   /** a saved report to open in the report builder */
   report?: string;
+  /** QA Entry: review this conversation (AutoQA's sample), with this scorecard */
+  conversation?: string;
+  scorecard?: string;
 }
 const pick = (v: unknown) => (typeof v === 'string' && v.length <= 64 ? v : undefined);
 const page = createRoute({
@@ -46,6 +49,10 @@ const page = createRoute({
     if (team) out.team = team;
     const report = pick(search.report);
     if (report) out.report = report;
+    const conversation = pick(search.conversation);
+    if (conversation) out.conversation = conversation;
+    const scorecard = pick(search.scorecard);
+    if (scorecard) out.scorecard = scorecard;
     return out;
   },
 });

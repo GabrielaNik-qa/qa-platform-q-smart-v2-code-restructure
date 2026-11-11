@@ -311,6 +311,8 @@ const en = {
       aiReviewNew: 'AutoQA (AI) reviewed your {{channel}} conversation {{lead}}: score {{score}}%. You can dispute it.',
       aiReviewNewNotScored:
         'AutoQA (AI) reviewed your {{channel}} conversation {{lead}} (not scored). You can dispute it.',
+      aiAccuracyLow:
+        'AutoQA agrees too rarely with reviewers in "{{category}}" ({{scorecard}}): under the bar of {{bar}}%. You can pause AI reviews for it on the AutoQA page.',
     },
   },
   roles: {
@@ -2359,6 +2361,69 @@ const en = {
     days_other: '{{count}} days',
   },
   autoqa: {
+    fromSample:
+      "You are reviewing a conversation from AutoQA's sample. AutoQA's answers stay hidden, so your review is your own; it feeds the accuracy score.",
+    page: {
+      intro: "AutoQA's AI reviews, and how often AutoQA agrees with your reviewers on the same conversations.",
+      introAgent: 'The AI reviews of your conversations. You can dispute any of them: a person then decides.',
+      tiles: {
+        reviews: 'AI reviews',
+        reviewsNote: 'of {{agents}} agents',
+        average: 'Average AI score',
+        accuracy: 'Accuracy score',
+        accuracyNote_one: 'agreement with reviewers, on {{count}} conversation',
+        accuracyNote_other: 'agreement with reviewers, on {{count}} conversations',
+        accuracyNone: 'needs conversations reviewed by both',
+        disputed: 'Disputed AI reviews',
+        held_one: '{{count}} conversation held for a person',
+        held_other: '{{count}} conversations held for a person',
+      },
+      accuracyTitle: 'Accuracy score',
+      accuracyIntro:
+        'On conversations reviewed by both AutoQA and a person with the same scorecard: how often they give the same answer (N/A left out). High 75-100%, medium 25-74%, low 0-24%. A category under {{bar}}% is flagged once at least {{min}} conversations were compared, and the admins are told.',
+      noPairs: 'No conversation is reviewed by both yet. Take a sample below and review it in QA Entry.',
+      category: 'Category',
+      agreement: 'Agreement',
+      band: 'Band',
+      compared: 'Compared',
+      brake: 'Brake',
+      bands: {
+        high: 'High',
+        medium: 'Medium',
+        low: 'Low',
+      },
+      conversations_one: '{{count}} conversation',
+      conversations_other: '{{count}} conversations',
+      underBar: 'Under the bar',
+      pause: 'Pause AI reviews',
+      paused: 'AI reviews paused',
+      bar: 'The bar (%)',
+      brakeSaved: 'The brake is saved.',
+      pauseHelp: 'Paused: no AI review with a scorecard that has this category, until you switch it back on.',
+      byModel: 'Per AI model',
+      byLanguage: 'Per language',
+      noLanguage: 'Language not given',
+      byScorecard: 'Per scorecard',
+      byMonth: 'Per month',
+      disagreements: 'Where AutoQA and people disagree most',
+      disagreementsHelp: 'Look at these questions first: the wording, or the scorecard, may need to be clearer.',
+      sampleTitle: 'Sample for reviewers',
+      sampleIntro:
+        'A random sample of conversations AutoQA reviewed and no person has yet, spread across agents, channels and languages. Your reviews of them make the accuracy score.',
+      takeSample: 'Take a sample',
+      sampleEmpty: 'Nothing to sample: every conversation AutoQA reviewed is also reviewed by a person.',
+      reviewIt: 'Review it',
+      categoriesTitle: 'AI score per category',
+      trendTitle: 'AI score, last 8 weeks',
+      thisWeek: 'This week',
+      weeksAgo_one: '{{count}} week ago',
+      weeksAgo_other: '{{count}} weeks ago',
+      agentsTitle: 'AI score per agent',
+      reviews_one: '{{count}} review',
+      reviews_other: '{{count}} reviews',
+      lowestTitle: 'Lowest AI scores',
+      none: 'No AI reviews yet.',
+    },
     badge: 'AI review',
     madeBy: 'Made by AutoQA with {{model}}',
     counts:
@@ -2769,6 +2834,8 @@ const bg: Messages = {
         'AutoQA (ИИ) оцени вашия разговор ({{channel}}) {{lead}}: резултат {{score}}%. Можете да го оспорите.',
       aiReviewNewNotScored:
         'AutoQA (ИИ) оцени вашия разговор ({{channel}}) {{lead}} (без резултат). Можете да го оспорите.',
+      aiAccuracyLow:
+        'AutoQA твърде рядко е съгласен с оценителите в „{{category}}“ ({{scorecard}}): под прага от {{bar}}%. Можете да спрете ИИ оценките за нея на страницата Автоматичен QA.',
     },
   },
   roles: {
@@ -4827,6 +4894,69 @@ const bg: Messages = {
     days_other: '{{count}} дни',
   },
   autoqa: {
+    fromSample:
+      'Оценявате разговор от извадката на AutoQA. Отговорите на AutoQA остават скрити, за да е оценката изцяло ваша; тя влиза в оценката за точност.',
+    page: {
+      intro: 'ИИ оценките на AutoQA и колко често AutoQA е съгласен с вашите оценители за същите разговори.',
+      introAgent: 'ИИ оценките на вашите разговори. Можете да оспорите всяка от тях: тогава решава човек.',
+      tiles: {
+        reviews: 'ИИ оценки',
+        reviewsNote: 'на {{agents}} агенти',
+        average: 'Среден ИИ резултат',
+        accuracy: 'Оценка за точност',
+        accuracyNote_one: 'съгласие с оценителите, по {{count}} разговор',
+        accuracyNote_other: 'съгласие с оценителите, по {{count}} разговора',
+        accuracyNone: 'нужни са разговори, оценени и от двамата',
+        disputed: 'Оспорени ИИ оценки',
+        held_one: '{{count}} разговор, задържан за човек',
+        held_other: '{{count}} разговора, задържани за човек',
+      },
+      accuracyTitle: 'Оценка за точност',
+      accuracyIntro:
+        'По разговори, оценени и от AutoQA, и от човек със същата карта: колко често дават същия отговор („Неприложимо“ не се брои). Висока 75-100%, средна 25-74%, ниска 0-24%. Категория под {{bar}}% се отбелязва, след като са сравнени поне {{min}} разговора, и администраторите се уведомяват.',
+      noPairs: 'Все още няма разговор, оценен и от двамата. Вземете извадка по-долу и го оценете в Въвеждане на QA.',
+      category: 'Категория',
+      agreement: 'Съгласие',
+      band: 'Ниво',
+      compared: 'Сравнени',
+      brake: 'Спирачка',
+      bands: {
+        high: 'Високо',
+        medium: 'Средно',
+        low: 'Ниско',
+      },
+      conversations_one: '{{count}} разговор',
+      conversations_other: '{{count}} разговора',
+      underBar: 'Под прага',
+      pause: 'Спри ИИ оценките',
+      paused: 'ИИ оценките са спрени',
+      bar: 'Прагът (%)',
+      brakeSaved: 'Спирачката е запазена.',
+      pauseHelp: 'Спряно: никаква ИИ оценка с карта, която има тази категория, докато не я включите отново.',
+      byModel: 'По ИИ модел',
+      byLanguage: 'По език',
+      noLanguage: 'Езикът не е посочен',
+      byScorecard: 'По оценъчна карта',
+      byMonth: 'По месец',
+      disagreements: 'Къде AutoQA и хората са най-несъгласни',
+      disagreementsHelp: 'Първо вижте тези въпроси: може формулировката или картата да трябва да са по-ясни.',
+      sampleTitle: 'Извадка за оценителите',
+      sampleIntro:
+        'Случайна извадка от разговори, оценени от AutoQA и още не от човек, разпределена между агенти, канали и езици. Вашите оценки на тях образуват оценката за точност.',
+      takeSample: 'Вземи извадка',
+      sampleEmpty: 'Няма какво да се изтегли: всеки разговор, оценен от AutoQA, е оценен и от човек.',
+      reviewIt: 'Оцени го',
+      categoriesTitle: 'ИИ резултат по категория',
+      trendTitle: 'ИИ резултат, последните 8 седмици',
+      thisWeek: 'Тази седмица',
+      weeksAgo_one: 'преди {{count}} седмица',
+      weeksAgo_other: 'преди {{count}} седмици',
+      agentsTitle: 'ИИ резултат по агент',
+      reviews_one: '{{count}} оценка',
+      reviews_other: '{{count}} оценки',
+      lowestTitle: 'Най-ниски ИИ резултати',
+      none: 'Все още няма ИИ оценки.',
+    },
     badge: 'ИИ оценка',
     madeBy: 'Направена от AutoQA с {{model}}',
     counts:
@@ -5039,6 +5169,8 @@ const bg: Messages = {
     aiReviewsNotAnnounced:
       'ИИ оценките започват едва след като агентите бъдат уведомени. Администратор потвърждава това в Администрация › AI › Включване и изключване на AI.',
     aiReviewsChannelOff: 'ИИ оценките са изключени за този канал (Администрация › AI › Включване и изключване на AI).',
+    aiCategoryPaused:
+      'ИИ оценките са спрени за категория от тази карта, защото AutoQA твърде рядко е бил съгласен с вашите оценители там (Качество › Автоматичен QA).',
   },
 };
 
@@ -5361,6 +5493,8 @@ const fr: Messages = {
         'AutoQA (IA) a évalué votre conversation ({{channel}}) {{lead}} : score {{score}} %. Vous pouvez la contester.',
       aiReviewNewNotScored:
         'AutoQA (IA) a évalué votre conversation ({{channel}}) {{lead}} (non notée). Vous pouvez la contester.',
+      aiAccuracyLow:
+        'AutoQA est trop rarement d’accord avec les évaluateurs dans « {{category}} » ({{scorecard}}) : sous le seuil de {{bar}} %. Vous pouvez y mettre en pause les évaluations par IA sur la page QA automatique.',
     },
   },
   roles: {
@@ -7430,6 +7564,74 @@ const fr: Messages = {
     days_other: '{{count}} jours',
   },
   autoqa: {
+    fromSample:
+      'Vous évaluez une conversation de l’échantillon d’AutoQA. Les réponses d’AutoQA restent cachées, pour que votre évaluation soit la vôtre ; elle alimente le score de précision.',
+    page: {
+      intro:
+        'Les évaluations par IA d’AutoQA, et la fréquence à laquelle AutoQA est d’accord avec vos évaluateurs sur les mêmes conversations.',
+      introAgent:
+        'Les évaluations par IA de vos conversations. Vous pouvez contester chacune : une personne décide alors.',
+      tiles: {
+        reviews: 'Évaluations par IA',
+        reviewsNote: 'de {{agents}} agents',
+        average: 'Score IA moyen',
+        accuracy: 'Score de précision',
+        accuracyNote_one: 'accord avec les évaluateurs, sur {{count}} conversation',
+        accuracyNote_other: 'accord avec les évaluateurs, sur {{count}} conversations',
+        accuracyNone: 'il faut des conversations évaluées par les deux',
+        disputed: 'Évaluations par IA contestées',
+        held_one: '{{count}} conversation réservée à une personne',
+        held_other: '{{count}} conversations réservées à une personne',
+      },
+      accuracyTitle: 'Score de précision',
+      accuracyIntro:
+        'Sur les conversations évaluées à la fois par AutoQA et par une personne avec la même grille : à quelle fréquence ils donnent la même réponse (N/A non compté). Élevé 75-100 %, moyen 25-74 %, faible 0-24 %. Une catégorie sous {{bar}} % est signalée dès qu’au moins {{min}} conversations ont été comparées, et les administrateurs sont prévenus.',
+      noPairs:
+        'Aucune conversation n’est encore évaluée par les deux. Prenez un échantillon ci-dessous et évaluez-le dans Saisie QA.',
+      category: 'Catégorie',
+      agreement: 'Accord',
+      band: 'Niveau',
+      compared: 'Comparées',
+      brake: 'Frein',
+      bands: {
+        high: 'Élevé',
+        medium: 'Moyen',
+        low: 'Faible',
+      },
+      conversations_one: '{{count}} conversation',
+      conversations_other: '{{count}} conversations',
+      underBar: 'Sous le seuil',
+      pause: 'Mettre en pause les évaluations par IA',
+      paused: 'Évaluations par IA en pause',
+      bar: 'Le seuil (%)',
+      brakeSaved: 'Le frein est enregistré.',
+      pauseHelp:
+        'En pause : aucune évaluation par IA avec une grille qui a cette catégorie, jusqu’à ce que vous la réactiviez.',
+      byModel: 'Par modèle d’IA',
+      byLanguage: 'Par langue',
+      noLanguage: 'Langue non indiquée',
+      byScorecard: 'Par grille',
+      byMonth: 'Par mois',
+      disagreements: 'Où AutoQA et les personnes sont le plus en désaccord',
+      disagreementsHelp:
+        'Regardez d’abord ces questions : leur formulation, ou la grille, doit peut-être être plus claire.',
+      sampleTitle: 'Échantillon pour les évaluateurs',
+      sampleIntro:
+        'Un échantillon aléatoire de conversations évaluées par AutoQA et pas encore par une personne, réparti entre agents, canaux et langues. Vos évaluations forment le score de précision.',
+      takeSample: 'Prendre un échantillon',
+      sampleEmpty: 'Rien à échantillonner : chaque conversation évaluée par AutoQA l’est aussi par une personne.',
+      reviewIt: 'L’évaluer',
+      categoriesTitle: 'Score IA par catégorie',
+      trendTitle: 'Score IA, 8 dernières semaines',
+      thisWeek: 'Cette semaine',
+      weeksAgo_one: 'il y a {{count}} semaine',
+      weeksAgo_other: 'il y a {{count}} semaines',
+      agentsTitle: 'Score IA par agent',
+      reviews_one: '{{count}} évaluation',
+      reviews_other: '{{count}} évaluations',
+      lowestTitle: 'Scores IA les plus bas',
+      none: 'Pas encore d’évaluation par IA.',
+    },
     badge: 'Évaluation par IA',
     madeBy: 'Faite par AutoQA avec {{model}}',
     counts:
@@ -7651,6 +7853,8 @@ const fr: Messages = {
       'Les évaluations par IA ne commencent qu’une fois les agents prévenus. Un administrateur le confirme dans Admin › IA › IA activée ou désactivée.',
     aiReviewsChannelOff:
       'Les évaluations par IA sont désactivées pour ce canal (Admin › IA › IA activée ou désactivée).',
+    aiCategoryPaused:
+      'Les évaluations par IA sont en pause pour une catégorie de cette grille, car AutoQA était trop rarement d’accord avec vos évaluateurs (Qualité › QA automatique).',
   },
 };
 

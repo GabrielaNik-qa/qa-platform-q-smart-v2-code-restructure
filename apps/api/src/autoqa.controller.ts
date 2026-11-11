@@ -24,6 +24,7 @@ import {
   withCompany,
 } from '@qsmart/db';
 import {
+  categoryKey,
   type FieldDef,
   fieldLabel,
   fieldsOf,
@@ -36,6 +37,7 @@ import {
 import { z } from 'zod';
 import { actorOf } from './activity.controller.js';
 import { AUTOQA_PROMPT_VERSION, autoqaJob, looksLikeTrick } from './ai/autoqa.js';
+import { checkBrake } from './autoqa-insights.js';
 import { AiError, type AiEngine } from './ai/engine.js';
 import { Allow, PermissionGuard } from './auth/permission.guard.js';
 import { SignedInGuard } from './auth/signed-in.guard.js';
@@ -107,6 +109,9 @@ export class AutoqaController {
         (s) => s.id === parsed.data.scorecardId,
       );
       if (!card) throw badRequest('reviewScorecard');
+      // the brake: an admin paused AI reviews for a category of this scorecard
+      const paused = new Set(rules.reviews.paused ?? []);
+      if (card.categories.some((c) => paused.has(categoryKey(card.id, c.name)))) throw badRequest('aiCategoryPaused');
       const defs = fieldsOf('conversation', await listStoredFields(tx)).filter((d) => d.ai && !d.hidden);
       const details = defs
         .map((d) => ({
@@ -223,6 +228,7 @@ export class AutoqaController {
         });
       if (!reviewId) throw new Error('The AI review was not saved.');
       await setAiHold(tx, conversation.id, '');
+      await checkBrake(tx);
       if (conversation.agentId)
         await notify(
           tx,

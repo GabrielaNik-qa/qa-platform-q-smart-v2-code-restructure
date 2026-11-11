@@ -23,6 +23,7 @@ import {
   type Db,
   deleteReview,
   findMembership,
+  getConversation,
   getReview,
   getPerson,
   listReviews,
@@ -58,6 +59,7 @@ import { CurrentMembership, CurrentScope } from './decorators.js';
 import { badRequest, notFound } from './errors.js';
 import { reviewsWorkbook } from './excel.js';
 import { logExport } from './exports-log.js';
+import { checkBrake } from './autoqa-insights.js';
 import { DB } from './tokens.js';
 
 const idParam = z.uuid();
@@ -95,6 +97,8 @@ const details = {
 const newReview = z.object({
   ...details,
   scorecardId: z.uuid(),
+  /** the conversation reviewed (Quality › Conversations, e.g. AutoQA's sample) */
+  conversationId: z.uuid().optional(),
   answers,
   /** how long QA Entry took, in seconds */
   reviewSeconds: z.number().int().positive().optional(),
@@ -241,6 +245,10 @@ export class ReviewsController {
       const card = (await visibleScorecards(tx, membership.userId, cardScope)).find((s) => s.id === input.scorecardId);
       if (!card) throw badRequest('reviewScorecard');
       const agent = await agentFor(tx, reach, input.agentId);
+      const conversationId = input.conversationId
+        ? (await getConversation(tx, input.conversationId, reach))?.id
+        : undefined;
+      if (input.conversationId && !conversationId) throw badRequest('conversationNotFound');
       const scored = score(card.categories, input.answers);
       const me = await membershipOfUser(tx, membership.userId);
       const id = await addReview(tx, {
@@ -269,7 +277,9 @@ export class ReviewsController {
         reviewerId: me?.id ?? null,
         reviewerName: membership.userName,
         reviewSeconds: input.reviewSeconds ? Math.min(4 * 3600, input.reviewSeconds) : null,
+        ...(conversationId ? { conversationId } : {}),
       });
+      if (conversationId) await checkBrake(tx);
       await notify(tx, agent.id, 'reviewNew', notifyScore({ ...input, ...scored }), `/review/${id}`);
       await logActivity(tx, actorOf(membership), {
         action: 'reviewAdded',

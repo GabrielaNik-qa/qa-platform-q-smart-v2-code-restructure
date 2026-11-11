@@ -120,6 +120,8 @@ export const ERROR_MESSAGES = {
   aiReviewsNotAnnounced:
     'AI reviews start only after the agents were told. An admin confirms it in Admin › AI › AI on or off.',
   aiReviewsChannelOff: 'AI reviews are switched off for this channel (Admin › AI › AI on or off).',
+  aiCategoryPaused:
+    'AI reviews are paused for a category of this scorecard, because AutoQA agreed too rarely with your reviewers there (Quality › AutoQA).',
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

@@ -58,6 +58,7 @@ export const BUILT = new Set([
   'admin/ai-on-or-off',
   'admin/fields',
   'quality/conversations',
+  'quality/autoqa',
 ]);
 
 export const pathOf = (app: AppId, page: MenuPage) => `/${app}/${page.id}`;

@@ -37,6 +37,7 @@ import { SkillsController, TeamsController, WorkspacesController } from './setup
 import { AI_ENGINE, DB, MASTER_KEY, TOKEN_VERIFIER } from './tokens.js';
 import { AiController } from './ai.controller.js';
 import { AutoqaController } from './autoqa.controller.js';
+import { AutoqaPageController } from './autoqa-page.controller.js';
 import { storedAccounts } from './ai/accounts.js';
 import { realAdapters } from './ai/adapters.js';
 import { AiEngine, type AiEngineParts } from './ai/engine.js';
@@ -93,6 +94,7 @@ export class AppModule {
         ConversationsController,
         TranscriptDaysController,
         AutoqaController,
+        AutoqaPageController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },

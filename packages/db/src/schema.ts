@@ -1306,6 +1306,12 @@ export interface AiReviewRules {
   announcedBy?: string;
   /** the channels AI reviews run on (empty or missing: all) */
   channels?: ('call' | 'chat' | 'email' | 'other')[];
+  /** the accuracy bar of the brake, 1-100 (missing: 75) */
+  bar?: number;
+  /** categories (scorecard id|category name) where an admin paused AI reviews */
+  paused?: string[];
+  /** categories under the bar the admins were already told about */
+  flagged?: string[];
 }
 
 /** One AI answer's proof. */

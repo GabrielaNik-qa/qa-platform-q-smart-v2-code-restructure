@@ -115,7 +115,10 @@ export function QAEntry({
 }) {
   const { t } = useTranslation();
   // a link may choose the agent (today's "Review now" of the Review planner)
-  const preset = (useSearch({ strict: false }) as { agent?: string }).agent;
+  const search = useSearch({ strict: false }) as { agent?: string; conversation?: string; scorecard?: string };
+  const preset = search.agent;
+  /** AutoQA's sample: a person reviews the same conversation (without seeing AutoQA's answers), linked on save */
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [teams, setTeams] = useState<TeamRow[]>([]);
   const [people, setPeople] = useState<PersonRow[]>([]);
   const [cards, setCards] = useState<ScorecardRow[] | null>(null);
@@ -142,6 +145,7 @@ export function QAEntry({
       setRates(rateRows);
       const first = cardRows[0];
       const chosen = personRows.find((p) => p.membershipId === preset && p.role === 'agent' && p.active);
+      const fromSample = !editing && search.conversation ? search.conversation : null;
       setForm(
         editing
           ? {
@@ -183,8 +187,39 @@ export function QAEntry({
               answers: first ? allYes(first.categories) : [],
             },
       );
+      if (fromSample)
+        void api<{
+          id: string;
+          channel: Channel;
+          channelName: string;
+          agentId: string | null;
+          link: string;
+          transcript: string | null;
+          values: Record<string, unknown>;
+        }>(`/conversations/${fromSample}`, company.id).then((c) => {
+          const agent = personRows.find((p) => p.membershipId === c.agentId);
+          const card = cardRows.find((x) => x.id === search.scorecard) ?? first;
+          setConversationId(c.id);
+          setForm((f) =>
+            f
+              ? {
+                  ...f,
+                  channel: c.channel,
+                  channelName: c.channelName,
+                  teamId: agent?.teamId ?? '',
+                  agentId: c.agentId ?? '',
+                  leadId: String(c.values['reference'] ?? '') || c.id.slice(0, 8),
+                  conversationLink: c.link,
+                  transcript: c.channel === 'call' ? '' : (c.transcript ?? ''),
+                  emailSubject: c.channel === 'email' ? String(c.values['subject'] ?? '') : '',
+                  scorecardId: card?.id ?? '',
+                  answers: card ? allYes(card.categories) : [],
+                }
+              : f,
+          );
+        }, fail);
     }, fail);
-  }, [company.id, editing, preset, fail]);
+  }, [company.id, editing, preset, search.conversation, search.scorecard, fail]);
   useEffect(load, [load]);
 
   // today's warning before leaving with unsaved changes
@@ -265,6 +300,7 @@ export function QAEntry({
                 ...body,
                 scorecardId: form.scorecardId,
                 reviewSeconds: Math.round((Date.now() - startedAt) / 1000),
+                ...(conversationId ? { conversationId } : {}),
               },
             }),
       editing ? t('reviews.changesSaved') : t('reviews.saved'),
@@ -272,6 +308,7 @@ export function QAEntry({
     setBusy(false);
     if (!ok) return;
     setDirty(false);
+    setConversationId(null);
     if (editing) onDone?.();
     // the next review: the same type, team and scorecard (as today), fresh answers
     else
@@ -301,6 +338,11 @@ export function QAEntry({
           {editing ? t('reviews.editTitle') : t('menu.pages.entry')}
         </h1>
         <p className="text-sm text-mu">{editing ? t('reviews.editIntro') : t('reviews.entryIntro')}</p>
+        {conversationId && (
+          <p role="status" className="rounded-s bg-ac/15 px-3 py-2 text-sm">
+            {t('autoqa.fromSample')}
+          </p>
+        )}
       </div>
       <div className="grid gap-4 xl:grid-cols-[1fr_300px] items-start">
         <div className="grid gap-4 min-w-0">
