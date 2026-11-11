@@ -21,12 +21,14 @@ export * from './reviews.js';
 export * from './seed.js';
 export * from './seed-reviews.js';
 export * from './teams.js';
+export * from './test-set.js';
 export type {
   AiAnswerProof,
   AiLimit,
   AiLimits,
   AiReviewDetails,
   AiReviewRules,
+  AnsweredCategory,
   CompanyDashboards,
   DashboardView,
   MyDashboards,

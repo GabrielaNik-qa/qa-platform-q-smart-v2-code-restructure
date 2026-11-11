@@ -13,6 +13,15 @@ import type { JobType } from './jobs.js';
 /** Changes whenever the instructions below change; kept with every AI review. */
 export const AUTOQA_PROMPT_VERSION = 'autoqa-1 (11 Nov 2026)';
 
+/** The models AutoQA may use, best first (the engine still picks the cheapest that passes everything). */
+export const AUTOQA_MODELS = [
+  'groq/openai/gpt-oss-120b',
+  'cloudflare/@cf/openai/gpt-oss-120b',
+  'groq/openai/gpt-oss-20b',
+  'cloudflare/@cf/mistralai/mistral-small-3.1-24b-instruct',
+  'cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+];
+
 const LANGUAGE_NAMES: Record<Language, string> = { en: 'English', bg: 'Bulgarian', fr: 'French' };
 
 /** The question ids the AI answers: c1q1, c1q2 … (category, then question, from 1). */
@@ -151,13 +160,10 @@ ${input.transcript}
     maxWaitMs: 120_000,
     // a review is worth some thinking: careful answers and exact quotes
     effort: 'medium',
-    candidates: [
-      'groq/openai/gpt-oss-120b',
-      'cloudflare/@cf/openai/gpt-oss-120b',
-      'groq/openai/gpt-oss-20b',
-      'cloudflare/@cf/mistralai/mistral-small-3.1-24b-instruct',
-      'cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-    ],
+    candidates: AUTOQA_MODELS,
+    // a model is used for AI reviews only if it agrees enough with the expert on the test set (once one has been
+    // tested on enough of it: until then the bar doesn't apply)
+    minQuality: 75,
   };
   return { type, system, prompt };
 }

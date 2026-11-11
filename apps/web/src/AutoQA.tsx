@@ -8,6 +8,7 @@ import { Link } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from './api';
+import { TestSet } from './TestSet';
 import { currentLanguage } from './i18n';
 import { card, type CompanyRef, field, Notice, primaryButton, smallButton, useAction } from './ui';
 
@@ -80,7 +81,7 @@ function Bar({ value }: { value: number | null }) {
   );
 }
 
-export function AutoQA({ company }: { company: CompanyRef }) {
+function AutoQAOverview({ company }: { company: CompanyRef }) {
   const { t } = useTranslation();
   const lang = currentLanguage();
   const admin = can(company.role, 'ai.manage');
@@ -431,5 +432,39 @@ export function AutoQA({ company }: { company: CompanyRef }) {
         </section>
       </div>
     </section>
+  );
+}
+
+/** The AutoQA page: the overview, and for admins and reviewers the test set (where AI models are measured). */
+export function AutoQA({ company }: { company: CompanyRef }) {
+  const { t } = useTranslation();
+  const writer = can(company.role, 'conversations.write');
+  const [tab, setTab] = useState<'overview' | 'testSet'>('overview');
+  if (!writer) return <AutoQAOverview company={company} />;
+  return (
+    <div className="grid gap-4">
+      <div role="tablist" aria-label={t('menu.pages.autoqa')} className="flex gap-1">
+        {(['overview', 'testSet'] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={tab === k}
+            className={`rounded-s border px-3 py-1.5 text-sm font-semibold ${tab === k ? 'border-brand text-brand' : 'border-bd'}`}
+            onClick={() => setTab(k)}
+          >
+            {t(`autoqa.tabs.${k}`)}
+          </button>
+        ))}
+      </div>
+      {tab === 'overview' ? (
+        <AutoQAOverview company={company} />
+      ) : (
+        <section className="grid gap-4">
+          <h1 className="lane font-display text-3xl font-bold uppercase tracking-wide">{t('menu.pages.autoqa')}</h1>
+          <TestSet company={company} />
+        </section>
+      )}
+    </div>
   );
 }

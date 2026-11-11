@@ -42,6 +42,8 @@ export interface AiJob<T> {
   prompt: string;
   /** only this AI company (Admin › AI's Test button) */
   onlyProvider?: string;
+  /** only this model (AutoQA's test set: each model is measured on its own, so its quality bar doesn't apply) */
+  onlyModel?: string;
 }
 
 export interface AiResult<T> {
@@ -70,8 +72,11 @@ export interface AiEngineParts {
   /** the company's accounts with AI companies, read behind its wall (step 2: Admin › AI, keys stored encrypted) */
   accounts: (tx: Tx, companyId: string) => Promise<ProviderAccount[]>;
   catalogue?: Catalogue;
-  /** a model's test-set score for a job type (step 6: the AutoQA test set) */
-  quality?: (modelId: string, feature: string) => number | undefined;
+  /**
+   * The models' test-set scores for a job type (AutoQA's test set): only models tested on enough of the expert's
+   * conversations are in it. Empty: no model is qualified yet, so the quality bar doesn't apply.
+   */
+  qualities?: (tx: Tx, feature: string) => Promise<Map<string, number>>;
   now?: () => number;
 }
 
@@ -149,21 +154,31 @@ export class AiEngine {
       const accounts = (await this.parts.accounts(tx, job.companyId)).filter(
         (a) => this.parts.adapters[a.provider] && (!job.onlyProvider || a.provider === job.onlyProvider),
       );
-      return { rules, accounts };
+      const qualities =
+        job.type.minQuality !== undefined && !job.onlyModel && this.parts.qualities
+          ? await this.parts.qualities(tx, job.type.feature)
+          : new Map<string, number>();
+      return { rules, accounts, qualities };
     });
     if (ready === 'off' || ready === 'limit') {
       await log({ ...blank, status: ready });
       throw new AiError(ready === 'off' ? 'aiOff' : 'aiLimit');
     }
+    // the quality bar applies once a model is qualified on the test set; one chosen model is measured as it is
+    const type = {
+      ...job.type,
+      candidates: job.onlyModel ? job.type.candidates.filter((c) => c === job.onlyModel) : job.type.candidates,
+      ...(ready.qualities.size ? {} : { minQuality: undefined }),
+    };
     const routing = route({
-      job: job.type,
+      job: type,
       dataClass: job.dataClass,
       ...(job.language ? { language: job.language } : {}),
       inputTokens,
       rules: ready.rules,
       accounts: ready.accounts,
       catalogue: this.catalogue,
-      quality: this.parts.quality ?? (() => undefined),
+      quality: (modelId) => ready.qualities.get(modelId),
       resting: (provider) => this.breaker.resting(breakerKey(provider)),
     });
     if (!routing.choices.length) {

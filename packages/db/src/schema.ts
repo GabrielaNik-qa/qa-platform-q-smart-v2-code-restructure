@@ -1352,3 +1352,68 @@ export const aiLimitsSeen = pgTable(
   },
   (t) => [primaryKey({ columns: [t.companyId, t.provider, t.model] })],
 );
+
+/** A scorecard's answers as given, kept by category name and question text (compared even if the scorecard changes). */
+export interface AnsweredCategory {
+  name: string;
+  questions: { text: string; answer: 'y' | 'n' | 'na' }[];
+}
+
+/**
+ * AutoQA's test set (V2_PLAN §7, "the quality check"): made-up conversations a QA expert scores once; every AI model
+ * runs on them, and a model is used for AI reviews only if it agrees closely enough with the expert.
+ */
+export const aiTestItems = pgTable(
+  'ai_test_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    key: text('key').notNull(),
+    language: text('language').notNull(),
+    industry: text('industry').notNull(),
+    title: text('title').notNull(),
+    channel: text('channel').notNull(),
+    text: text('text').notNull(),
+    scorecardId: uuid('scorecard_id').notNull(),
+    /** the expert's answers (the yardstick), empty until scored */
+    expected: jsonb('expected').$type<AnsweredCategory[]>(),
+    expectedScore: numeric('expected_score', { precision: 4, scale: 1, mode: 'number' }),
+    expectedBy: text('expected_by'),
+    expectedAt: timestamp('expected_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('ai_test_items_key').on(t.companyId, t.key),
+    unique('ai_test_items_id_company').on(t.id, t.companyId),
+  ],
+);
+
+/** One AI model's answers on one test conversation (the latest per model counts). */
+export const aiTestRuns = pgTable(
+  'ai_test_runs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    itemId: uuid('item_id').notNull(),
+    /** the catalogue's model id, e.g. groq/openai/gpt-oss-120b */
+    modelId: text('model_id').notNull(),
+    status: text('status').notNull(),
+    answers: jsonb('answers').$type<AnsweredCategory[]>(),
+    score: numeric('score', { precision: 4, scale: 1, mode: 'number' }),
+    waitMs: integer('wait_ms').notNull().default(0),
+    problem: text('problem'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('ai_test_runs_item').on(t.companyId, t.itemId, t.modelId, t.createdAt),
+    foreignKey({
+      name: 'ai_test_runs_item_same_company',
+      columns: [t.itemId, t.companyId],
+      foreignColumns: [aiTestItems.id, aiTestItems.companyId],
+    }).onDelete('cascade'),
+  ],
+);

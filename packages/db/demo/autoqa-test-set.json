@@ -1,0 +1,290 @@
+[
+ {
+  "key": "en-01",
+  "language": "en",
+  "industry": "Online shop",
+  "channel": "chat",
+  "title": "Parcel not delivered",
+  "text": "[09:02] Customer: Hi, my parcel was supposed to arrive yesterday but it's still not here.\n[09:03] Agent: Good morning, Sarah! My name is Leo, I'm happy to help. For your security, could you confirm your order number and the e-mail address on the order?\n[09:04] Customer: Order 48213, sarah.example@mail.test\n[09:05] Agent: Thank you, Sarah. I can see the courier tried to deliver it yesterday at 16:40 but nobody was home. It is now at the pick-up point on Green Street, open until 20:00 today and tomorrow. You only need the order number to collect it.\n[09:06] Customer: Oh, I didn't get any note. Can it be delivered again instead?\n[09:07] Agent: Of course. I have booked a second delivery for tomorrow between 9:00 and 13:00. You will get a text message one hour before the courier arrives.\n[09:07] Customer: Perfect, thank you!\n[09:08] Agent: You're welcome, Sarah. Is there anything else I can help you with today? Have a lovely day!"
+ },
+ {
+  "key": "en-02",
+  "language": "en",
+  "industry": "Telecoms",
+  "channel": "chat",
+  "title": "Phone bill",
+  "text": "[14:20] Customer: My bill this month is 89 euros, it's normally 25. Why??\n[14:31] Agent: hi. your account shows roaming charges in Turkey and 3 extra data packs, the number ending 4471 is registered to Ana Petrova at 12 Lake Road\n[14:32] Customer: Yes that's me but I never bought data packs!\n[14:40] Agent: they was added from the app, so its your responsability\n[14:41] Customer: That's not fair, I didn't even open the app.\n[14:45] Agent: nothing i can do"
+ },
+ {
+  "key": "en-03",
+  "language": "en",
+  "industry": "Banking",
+  "channel": "email",
+  "title": "Lost card",
+  "text": "From the customer:\nHello,\nI lost my debit card on the train this morning. Please block it and send me a new one. How long will it take and does it cost anything?\nThank you,\nDaniel Moore\n\nReply from Mia:\nDear Daniel,\nI am Mia from the card services team. For your security, I have checked the e-mail address and the phone number you wrote from: they match your account.\nI have blocked the card ending 3390 right away, so nobody can use it. A new card is on its way to your home address and will arrive within 5 working days.\nIf you need cash before then, you can withdraw money at any of our branches with your ID.\nKind regards,\nMia"
+ },
+ {
+  "key": "en-04",
+  "language": "en",
+  "industry": "Insurance",
+  "channel": "chat",
+  "title": "Car insurance question",
+  "text": "Customer: hello I want to know if it's covered\nAgent: Hello, I'm Nora from the claims team, thanks for writing to us! To check this for you, could you tell me what happened and which policy it is about: home, car or travel?\nCustomer: car. someone hit my mirror in the parking lot and left\nAgent: I'm sorry, that's annoying. May I have your policy number and date of birth to look at your cover?\nCustomer: CAR-77120, 3 May 1988\nAgent: Thank you. Your comprehensive cover includes damage by an unknown driver, with an excess of 150 euros. You can report it in the app under Claims, adding a photo of the mirror. A repair shop near you will contact you within 2 working days.\nCustomer: ok great\nAgent: Is there anything else I can help with? Take care and drive safely!"
+ },
+ {
+  "key": "en-05",
+  "language": "en",
+  "industry": "Travel",
+  "channel": "email",
+  "title": "Change of flight date",
+  "text": "[Monday 10:15] From the customer:\nHi, I need to move my flight to Lisbon (booking QX8812) from 14 June to 16 June. Is that possible and what is the price difference? I would like to know today if possible.\nTom\n\n[Thursday 17:40] Reply from Ines:\nHello Tom,\nI'm Ines from the bookings team. I apologise for our late answer.\nYour booking allows changes. The flight on 16 June costs 35 euros more, plus a change fee of 20 euros, so 55 euros in total. I can make the change as soon as you confirm, and you can pay with the card used for the booking.\nShall I go ahead?\nBest regards,\nInes"
+ },
+ {
+  "key": "en-06",
+  "language": "en",
+  "industry": "Energy",
+  "channel": "chat",
+  "title": "Meter reading",
+  "text": "Customer: This is the third time I'm writing!! Your estimate says I used 900 kWh, but my meter shows 412. I sent you a photo last week and nobody answered. I want a corrected bill and an apology.\nAgent: Hi. To send a meter reading you can use the form on our website.\nCustomer: Did you even read what I wrote? I ALREADY sent it.\nAgent: Estimates are normal when we have no reading. Please be patient.\nCustomer: Unbelievable.\nAgent: Is there anything else?"
+ },
+ {
+  "key": "en-07",
+  "language": "en",
+  "industry": "Medical clinic",
+  "channel": "chat",
+  "title": "Booking an appointment",
+  "text": "Customer: Hello, I'd like to book a check-up with Dr Lane next week.\nAgent: Good afternoon! I'm Ruth from the clinic's reception. I'd be glad to help. Dr Lane has free times on Tuesday at 10:30 and Thursday at 15:00. Which suits you better?\nCustomer: Thursday please.\nAgent: Lovely. Could I have your full name and date of birth to find your file?\nCustomer: Peter Grant, 12 February 1975.\nAgent: Thank you, Peter. You're booked with Dr Lane on Thursday at 15:00. Please come 10 minutes early and bring your health card. You'll get a reminder by text the day before.\nCustomer: Great, thanks.\nAgent: You're welcome. Anything else I can do for you? Have a good day!"
+ },
+ {
+  "key": "en-08",
+  "language": "en",
+  "industry": "Software support",
+  "channel": "email",
+  "title": "Export problem",
+  "text": "From the customer:\nHello,\nSince yesterday the export button does something strange. I get a file but it's empty, or sometimes nothing happens. We use the Team plan. Can you help?\nJulia\n\nReply from Max:\nHi Julia,\nPlease clear your cache and try again.\nRegards,\nMax"
+ },
+ {
+  "key": "en-09",
+  "language": "en",
+  "industry": "Fitness club",
+  "channel": "chat",
+  "title": "Wants to cancel the membership",
+  "text": "Customer: I want to cancel my membership.\nAgent: Hi Emma, I'm Chris from member services, thanks for getting in touch. I'm sorry to hear that. May I ask what made you decide to cancel?\nCustomer: I broke my wrist and can't train for two months, so I don't want to pay for nothing.\nAgent: Oh no, I'm sorry about your wrist, I hope it heals quickly! If you prefer, instead of cancelling I can freeze your membership for two months at no cost. You won't pay anything, and you'll keep your current price when you come back.\nCustomer: Oh, I didn't know that was possible. Yes, let's do that.\nAgent: Done: your membership is frozen from today until 15 August, and you'll get an e-mail confirming it. Is there anything else I can help with? Get well soon, Emma!"
+ },
+ {
+  "key": "en-10",
+  "language": "en",
+  "industry": "Food delivery",
+  "channel": "chat",
+  "title": "Missing item",
+  "text": "Customer: My order arrived but the dessert is missing.\nAgent: Sorry about that! I've refunded the dessert (6.50 euros) to your card, it will show in 3 to 5 days.\nCustomer: ok thanks\nAgent: Anything else I can help you with? Enjoy your meal!"
+ },
+ {
+  "key": "en-11",
+  "language": "en",
+  "industry": "Car rental",
+  "channel": "email",
+  "title": "Child seat question",
+  "text": "From the customer:\nHello, I have a booking for next Friday at the airport (RX-55102). Can I add a child seat for a 3-year-old, and how much is it?\nThanks, Laura\n\nReply from Sam:\nDear Laura,\nThank you for you're message, my name is Sam. Yes you can add a child seat for your booking RX-55102, the price are 8 euro per day and maximum 60 euro for the hole rental. I have add it to you're booking now, so it will be ready in the car when you pick it up at the airport.\nIf there is anything else, let me know.\nBest regards,\nSam"
+ },
+ {
+  "key": "en-12",
+  "language": "en",
+  "industry": "Online courses",
+  "channel": "chat",
+  "title": "Invoice and certificate",
+  "text": "Customer: Hi! Two questions: can I get an invoice for my company for the Excel course, and is the certificate recognised by employers?\nAgent: Hello Mark, I'm Zoe from the learning team, thanks for your message! Yes, you can get an invoice for your company: go to My account, then Payments, and enter the company's name and VAT number before you click Download invoice.\nCustomer: Great. And the certificate?\nAgent: You're welcome! Have a nice day!"
+ },
+ {
+  "key": "bg-01",
+  "language": "bg",
+  "industry": "Онлайн магазин",
+  "channel": "chat",
+  "title": "Грешен размер",
+  "text": "[11:05] Клиент: Здравейте, получих обувките, но размерът е грешен. Поръчах 39, а дойдоха 41.\n[11:06] Агент: Здравейте, Мария! Аз съм Ива от обслужване на клиенти. Съжалявам за неудобството. Можете ли да ми кажете номера на поръчката и имейла, с който сте поръчали?\n[11:07] Клиент: 77420, maria.example@mail.test\n[11:08] Агент: Благодаря! Виждам поръчката. Изпращам ви безплатно размер 39 още днес, ще пристигне до два работни дни. Куриерът ще вземе грешния чифт при доставката, просто го опаковайте в кутията.\n[11:09] Клиент: Супер, благодаря!\n[11:09] Агент: Моля! Мога ли да помогна с нещо друго? Приятен ден!"
+ },
+ {
+  "key": "bg-02",
+  "language": "bg",
+  "industry": "Банка",
+  "channel": "chat",
+  "title": "Наличност по сметка",
+  "text": "Клиент: Колко пари имам по сметката?\nАгент: Здравейте, по сметката ви с IBAN, завършващ на 2210, има 1 345,20 лв.\nКлиент: Благодаря. А мога ли да тегля в чужбина без такса?\nАгент: Да, без такса.\nКлиент: Сигурни ли сте? Миналия път ми взеха такса.\nАгент: Да."
+ },
+ {
+  "key": "bg-03",
+  "language": "bg",
+  "industry": "Мобилен оператор",
+  "channel": "email",
+  "title": "Смяна на тарифен план",
+  "text": "От клиента:\nЗдравейте,\nИскам да сменя плана си с по-евтин, защото почти не използвам интернет. Какво ми предлагате?\nГеорги Иванов\n\nОтговор от Петя:\nЗдравейте, г-н Иванов,\nКазвам се Петя и съм от екипа за обслужване на клиенти. Проверих имейла и номера, от които ни пишете: съвпадат с данните по договора ви.\nВ момента плащате 32 лв. на месец за 40 GB. Ако ползвате малко интернет, подходящ е планът „Лек“: 18 лв. на месец, с неограничени минути и 5 GB. Промяната важи от следващия месец, без такса и без нов договор.\nАко желаете, отговорете с „Да“ на този имейл и ще направя промяната.\nПоздрави,\nПетя"
+ },
+ {
+  "key": "bg-04",
+  "language": "bg",
+  "industry": "Застраховане",
+  "channel": "chat",
+  "title": "Въпрос за щета",
+  "text": "Клиент: здравейте покрива ли се\nАгент: Здравейте, казвам се Камен. Покрива се.\nКлиент: кое се покрива? аз още не съм казал какво е станало\nАгент: Всичко се покрива по застраховка Имущество.\nКлиент: ама аз питам за наводнение от съседите\nАгент: Да, покрива се. Приятен ден."
+ },
+ {
+  "key": "bg-05",
+  "language": "bg",
+  "industry": "Туризъм",
+  "channel": "email",
+  "title": "Анулиране на почивка",
+  "text": "[Вторник 09:30] От клиента:\nЗдравейте, трябва да анулираме почивката си в Банско (резервация BG-4410) за 20-25 февруари, защото детето е болно. Ще ни върнете ли парите?\nНели\n\n[Вторник 10:05] Отговор от Борис:\nЗдравейте, Нели,\nКазвам се Борис от екипа за резервации. Много съжалявам за детето, пожелавам му бързо оздравяване.\nТъй като анулирате повече от 14 дни преди настаняването, връщаме цялата сума от 860 лв. по картата, с която сте платили, до 5 работни дни. Ще получите потвърждение на имейла си до един час.\nАко решите да пътувате по-късно, с удоволствие ще ви помогна с нова резервация.\nПоздрави,\nБорис"
+ },
+ {
+  "key": "bg-06",
+  "language": "bg",
+  "industry": "Енергетика",
+  "channel": "chat",
+  "title": "Прекъснат ток",
+  "text": "Клиент: От сутринта нямаме ток на ул. „Липа“ 14 в Пловдив. Кога ще дойде?\nАгент: Здравейте, Ани съм. Съжалявам, че сте без ток. Проверих: в района има планов ремонт до 16:00 днес, обявен на сайта ни. Токът ще бъде пуснат до 16:00.\nКлиент: Аха, не бях видял. Благодаря.\nАгент: Моля. Ако до 16:30 още нямате ток, пишете ни отново и ще пратим екип. Приятен ден!"
+ },
+ {
+  "key": "bg-07",
+  "language": "bg",
+  "industry": "Медицински център",
+  "channel": "chat",
+  "title": "Резултати от изследвания",
+  "text": "Клиент: Здравейте, готови ли са ми изследванията на кръв от вчера?\nАгент: Здравейте! Казвам се Даниела. Да, готови са, хемоглобинът ви е малко нисък, 112, а всичко останало е в норма.\nКлиент: А как разбрахте кой съм? Не съм ви казал името си.\nАгент: Ами по телефона, от който пишете.\nКлиент: Това е телефонът на жена ми...\nАгент: Аха. Друго?"
+ },
+ {
+  "key": "bg-08",
+  "language": "bg",
+  "industry": "Софтуер",
+  "channel": "email",
+  "title": "Забравена парола",
+  "text": "От клиента:\nЗдравейте, не мога да вляза в профила си, забравих паролата, а не ми идва имейл за нова.\nСтефан\n\nОтговор от Радо:\nЗдравейте, Стефане,\nАз съм Радо от поддръжката. Съжалявам за неудобството.\nИмейлите за нова парола понякога отиват в папка „Спам“ или „Промоции“, моля, проверете там. Изпратих ви нов линк преди малко, той важи 30 минути.\nАко и сега не го получите, отговорете ми с имейла, с който сте се регистрирали, и ще проверя дали няма грешка в него.\nПоздрави,\nРадо"
+ },
+ {
+  "key": "bg-09",
+  "language": "bg",
+  "industry": "Фитнес",
+  "channel": "chat",
+  "title": "Прекратяване на картата",
+  "text": "Клиент: Искам да спра картата си, местя се в друг град.\nАгент: Добре, спряна е.\nКлиент: А ще ми върнете ли парите за остатъка от месеца?\nАгент: Не.\nКлиент: Защо?\nАгент: Такива са условията."
+ },
+ {
+  "key": "bg-10",
+  "language": "bg",
+  "industry": "Доставка на храна",
+  "channel": "chat",
+  "title": "Закъсняла поръчка",
+  "text": "[19:40] Клиент: Поръчката ми закъснява с 40 минути, къде е?\n[19:41] Агент: Здравейте, Николай! Казвам се Вики, много се извинявам за закъснението. Виждам, че куриерът е на 5 минути от вас, имаше задръстване на булеварда.\n[19:41] Агент: За неудобството ви връщаме таксата за доставка от 3,99 лв. по картата.\n[19:42] Клиент: Добре, благодаря.\n[19:42] Агент: Моля! Желая ви приятна вечеря. Пишете ни, ако имате нужда от още нещо."
+ },
+ {
+  "key": "bg-11",
+  "language": "bg",
+  "industry": "Коли под наем",
+  "channel": "email",
+  "title": "Депозит, който не е върнат",
+  "text": "От клиента:\nЗдравейте, върнах колата преди 10 дни (резервация RC-2207), но депозитът от 300 лв. още не е върнат.\nЕлена\n\nОтговор от Васил:\nЗдравейте Елена,\nказвам се Васил. депозита се връща автоматично до 14 работни дни след връщане на колата, така че е нормално още да не се е появил. Ако до 20 октомври няма, пишете ни отново.\nВасил"
+ },
+ {
+  "key": "bg-12",
+  "language": "bg",
+  "industry": "Онлайн курсове",
+  "channel": "chat",
+  "title": "Технически проблем с видеото",
+  "text": "Клиент: Видеата в курса не тръгват.\nАгент: Здравейте, аз съм Мила от екипа за обучение, благодаря, че ни писахте! За да ви помогна точно: от телефон или от компютър гледате, и показва ли се някакво съобщение за грешка?\nКлиент: От компютър, пише „Грешка при зареждане“.\nАгент: Благодаря! Обикновено помага да обновите браузъра до последната версия или да опитате с друг браузър, например Chrome или Firefox. Ако и тогава не тръгнат, изпратете ни снимка на екрана и ще го прегледа техническият екип до края на деня.\nКлиент: С Chrome тръгнаха, благодаря!\nАгент: Чудесно, радвам се! С какво друго мога да помогна? Приятно учене!"
+ },
+ {
+  "key": "fr-01",
+  "language": "fr",
+  "industry": "Boutique en ligne",
+  "channel": "chat",
+  "title": "Remboursement d’un retour",
+  "text": "[15:10] Client : Bonjour, j’ai renvoyé une veste il y a deux semaines et je n’ai toujours pas été remboursée.\n[15:11] Agent : Bonjour Claire ! Je m’appelle Hugo, du service client. Je suis désolé pour cette attente. Pour vérifier votre dossier, pouvez-vous me donner le numéro de commande et l’adresse e-mail de la commande ?\n[15:12] Client : 30915, claire.example@mail.test\n[15:13] Agent : Merci Claire. Le colis est bien arrivé à notre entrepôt le 3 mars. Le remboursement de 79 euros a été validé aujourd’hui et sera visible sur votre carte sous 3 à 5 jours ouvrés.\n[15:13] Client : Parfait, merci beaucoup.\n[15:14] Agent : Avec plaisir ! Puis-je vous aider pour autre chose ? Excellente journée !"
+ },
+ {
+  "key": "fr-02",
+  "language": "fr",
+  "industry": "Télécoms",
+  "channel": "chat",
+  "title": "Connexion internet",
+  "text": "Client : Internet ne marche plus depuis hier soir chez moi.\nAgent : bonjour il faut redemarer la box\nClient : Je l’ai déjà fait trois fois.\nAgent : alors attendez\nClient : Attendre quoi ? Combien de temps ?\nAgent : je sais pas"
+ },
+ {
+  "key": "fr-03",
+  "language": "fr",
+  "industry": "Banque",
+  "channel": "email",
+  "title": "Plafond de paiement",
+  "text": "Du client :\nBonjour,\nJe dois payer un meuble de 2 500 euros demain, mais ma carte est bloquée à 1 500 euros. Pouvez-vous augmenter mon plafond ?\nMerci,\nJulien Martin\n\nRéponse de Sophie :\nBonjour Monsieur Martin,\nJe suis Sophie, de l’équipe cartes. J’ai vérifié que l’adresse e-mail et le téléphone utilisés correspondent bien à votre compte.\nJ’ai relevé votre plafond de paiement à 3 000 euros pour les 7 prochains jours, sans frais. Il reviendra ensuite à 1 500 euros. Vous pourrez donc régler votre meuble demain sans problème.\nSi vous préférez un plafond plus élevé de façon permanente, je peux vous expliquer les options de carte.\nBien cordialement,\nSophie"
+ },
+ {
+  "key": "fr-04",
+  "language": "fr",
+  "industry": "Assurance",
+  "channel": "chat",
+  "title": "Attestation d’assurance",
+  "text": "Client : Bonjour, il me faut une attestation pour mon propriétaire.\nAgent : Bonjour, je suis Paul, de votre assurance habitation. Avec plaisir ! Pour vous l’envoyer, pouvez-vous me confirmer votre numéro de contrat et votre date de naissance ?\nClient : HAB-88231, 9 juillet 1990\nAgent : Merci ! Je viens de vous envoyer l’attestation par e-mail à l’adresse de votre contrat. Vous pouvez aussi la télécharger à tout moment dans votre espace client, rubrique Documents.\nClient : Super, je l’ai reçue.\nAgent : Parfait ! Avez-vous besoin d’autre chose ? Bonne journée !"
+ },
+ {
+  "key": "fr-05",
+  "language": "fr",
+  "industry": "Voyages",
+  "channel": "email",
+  "title": "Bagage perdu",
+  "text": "[Lundi 08:20] Du client :\nBonjour, ma valise n’est pas arrivée à Nice hier (vol NV2204). J’ai déclaré la perte à l’aéroport. Avez-vous des nouvelles ?\nAmélie\n\n[Vendredi 16:55] Réponse de Marc :\nBonjour Amélie,\nJe m’appelle Marc. Votre valise a été retrouvée à Lyon et elle sera livrée chez vous demain entre 10 h et 14 h.\nCordialement,\nMarc"
+ },
+ {
+  "key": "fr-06",
+  "language": "fr",
+  "industry": "Énergie",
+  "channel": "chat",
+  "title": "Mensualité trop élevée",
+  "text": "Client : Ma mensualité est passée de 60 à 95 euros, c’est énorme !\nAgent : Bonjour Nadia, je suis Léa, conseillère énergie. Je comprends votre surprise, c’est une hausse importante. Avant de regarder, pouvez-vous me confirmer votre numéro client et votre code postal ?\nClient : 551204, 69003\nAgent : Merci. Votre consommation de l’an dernier a été plus élevée que prévu, ce qui a augmenté la mensualité. Si vous le souhaitez, je peux la baisser à 80 euros et nous ferons le point dans 6 mois avec un relevé.\nClient : Oui, faites ça.\nAgent : C’est fait : 80 euros à partir du mois prochain. Vous recevrez un e-mail de confirmation. Puis-je vous aider pour autre chose ? Bonne journée Nadia !"
+ },
+ {
+  "key": "fr-07",
+  "language": "fr",
+  "industry": "Clinique",
+  "channel": "chat",
+  "title": "Annulation de rendez-vous",
+  "text": "Client : Bonjour, je dois annuler mon rendez-vous de jeudi.\nAgent : Bonjour, je suis Inès de l’accueil. Pas de souci. À quel nom est le rendez-vous, et avec quel médecin ?\nClient : Thomas Petit, avec le docteur Roux.\nAgent : Merci. C’est annulé. Souhaitez-vous un autre créneau ? Le docteur Roux est disponible lundi à 9 h ou mardi à 17 h.\nClient : Mardi 17 h, très bien.\nAgent : C’est noté, mardi à 17 h avec le docteur Roux. Vous recevrez un SMS de rappel la veille. Bonne journée !"
+ },
+ {
+  "key": "fr-08",
+  "language": "fr",
+  "industry": "Logiciel",
+  "channel": "email",
+  "title": "Prélèvement d’abonnement",
+  "text": "Du client :\nBonjour,\nNous avons été prélevés deux fois ce mois-ci pour notre abonnement (2 x 49 euros). Merci de corriger.\nSarah, société Lumen\n\nRéponse de Victor :\nBonjour Sarah,\nVictor, du service facturation. Votre abonnement est bien à 49 euros par mois.\nCordialement,\nVictor"
+ },
+ {
+  "key": "fr-09",
+  "language": "fr",
+  "industry": "Salle de sport",
+  "channel": "chat",
+  "title": "Changement de formule",
+  "text": "Client : Bonjour, je voudrais passer à la formule avec piscine.\nAgent : Bonjour Lucas, je m’appelle Emma, merci pour votre message ! Bonne idée, la piscine est très appréciée. La formule Premium coûte 39 euros par mois au lieu de 29, avec accès à la piscine et au sauna, sans frais de changement. Je peux l’activer dès aujourd’hui.\nClient : Oui, allez-y.\nAgent : C’est fait ! Votre carte donne accès à la piscine dès cet après-midi, et la nouvelle mensualité s’appliquera le mois prochain. Autre chose pour vous ? Bonne baignade !"
+ },
+ {
+  "key": "fr-10",
+  "language": "fr",
+  "industry": "Livraison de repas",
+  "channel": "chat",
+  "title": "Plat froid",
+  "text": "[20:15] Client : Mon plat est arrivé complètement froid.\n[20:16] Agent : Bonsoir Karim, je suis Jade. Je suis vraiment désolée, ce n’est pas l’expérience que nous voulons pour vous.\n[20:16] Agent : Je vous rembourse le plat (14,90 euros) sur votre carte, visible sous 3 à 5 jours, et je vous ajoute un bon de 5 euros pour votre prochaine commande.\n[20:17] Client : D’accord, merci.\n[20:17] Agent : Avec plaisir. Je signale aussi le problème au restaurant. Bonne soirée Karim !"
+ },
+ {
+  "key": "fr-11",
+  "language": "fr",
+  "industry": "Location de voitures",
+  "channel": "email",
+  "title": "Rayure facturée",
+  "text": "Du client :\nBonjour, vous m’avez facturé 250 euros pour une rayure, mais elle était déjà là quand j’ai pris la voiture (réservation LC-6611). J’ai des photos.\nOlivier\n\nRéponse de Nicolas :\nBonjour Olivier,\nJe suis Nicolas, du service réclamations. Merci pour votre message et désolé pour ce désagrément.\nPouvez-vous nous envoyer vos photos en réponse à cet e-mail, avec la date et l’heure où elles ont été prises ? Dès réception, je compare avec le rapport de départ de l’agence et je vous réponds sous 48 heures. Si la rayure était déjà notée ou visible sur vos photos, les 250 euros vous seront remboursés.\nBien cordialement,\nNicolas"
+ },
+ {
+  "key": "fr-12",
+  "language": "fr",
+  "industry": "Formation en ligne",
+  "channel": "chat",
+  "title": "Accès à la formation",
+  "text": "Client : Je n’ai plus accès à ma formation, alors que je l’ai payée.\nAgent : Bonjour, c’est normal, l’accès dure 6 mois.\nClient : On ne me l’a jamais dit ! Et je n’ai pas fini.\nAgent : C’est dans les conditions générales.\nClient : Il n’y a vraiment rien à faire ?\nAgent : Non. Au revoir."
+ }
+]

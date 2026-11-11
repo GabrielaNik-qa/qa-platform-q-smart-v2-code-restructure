@@ -38,6 +38,7 @@ import { AI_ENGINE, DB, MASTER_KEY, TOKEN_VERIFIER } from './tokens.js';
 import { AiController } from './ai.controller.js';
 import { AutoqaController } from './autoqa.controller.js';
 import { AutoqaPageController } from './autoqa-page.controller.js';
+import { autoqaQualities, TestSetController } from './test-set.controller.js';
 import { storedAccounts } from './ai/accounts.js';
 import { realAdapters } from './ai/adapters.js';
 import { AiEngine, type AiEngineParts } from './ai/engine.js';
@@ -95,6 +96,7 @@ export class AppModule {
         TranscriptDaysController,
         AutoqaController,
         AutoqaPageController,
+        TestSetController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },
@@ -105,6 +107,7 @@ export class AppModule {
           useValue: new AiEngine({
             adapters: realAdapters(),
             accounts: storedAccounts(parts.masterKey ?? null),
+            qualities: autoqaQualities,
             ...parts.ai,
             db: parts.db,
           }),

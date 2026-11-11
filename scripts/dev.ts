@@ -18,6 +18,7 @@ import {
   type LocalPostgres,
   runMigrations,
   seedDemo,
+  seedAutoqaTestSet,
   seedDemoConversations,
   seedDemoReviews,
   startLocalPostgres,
@@ -155,6 +156,8 @@ async function main(): Promise<void> {
   if (added) console.log(`  today's demo reviews added to the demo company: ${added}`);
   const talks = await seedDemoConversations(owner);
   if (talks) console.log(`  today's demo transcripts added as conversations: ${talks}`);
+  const tests = await seedAutoqaTestSet(owner);
+  if (tests) console.log(`  AutoQA's test set added to the demo company: ${tests} conversations`);
   if (REAL) {
     for (const person of await readInvites()) {
       await inviteToDemo(owner, person);

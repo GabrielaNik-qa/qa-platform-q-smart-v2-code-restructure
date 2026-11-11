@@ -50,24 +50,32 @@ const LOCALES = { en: 'en-GB', bg: 'bg-BG', fr: 'fr-FR' } as const;
 const th = 'py-1 pr-3 font-semibold';
 const td = 'py-2 pr-3';
 
-/** "Customer: …" / "Agent: …" lines as a conversation; anything else stays as written. */
-function Transcript({ text }: { text: string }) {
+/** A line "[09:02] Customer: …", "Agent: …" or, in French, "Client : …": the time, who speaks and what they say. */
+const LINE = /^(?:\[([^\]]{1,30})\]\s*)?([\p{L} .'’-]{1,30}?)\s?:\s(.+)$/u;
+
+/** "Customer: …" / "Agent: …" lines as a conversation; anything else (an e-mail) stays as written. */
+export function Transcript({ text }: { text: string }) {
   const lines = text.split(/\r?\n/);
-  const isChat = lines.filter((l) => /^[\p{L} .'-]{1,30}:\s/u.test(l)).length >= 2;
+  const isChat = lines.filter((l) => LINE.test(l)).length >= 2;
   if (!isChat) return <pre className="whitespace-pre-wrap rounded-s bg-sunk p-3 text-sm">{text}</pre>;
   return (
     <ol className="grid gap-2">
       {lines
         .filter((l) => l.trim())
         .map((line, i) => {
-          const m = /^([\p{L} .'-]{1,30}):\s?(.*)$/u.exec(line);
-          const who = m?.[1] ?? '';
+          const m = LINE.exec(line);
+          const who = m?.[2]?.trim() ?? '';
           const agent = /agent|агент/i.test(who);
           return (
             <li key={i} className={`flex ${agent ? 'justify-end' : ''}`}>
               <span className={`max-w-[85%] rounded-m px-3 py-2 text-sm ${agent ? 'bg-ac/15' : 'bg-sunk'}`}>
-                {who && <b className="block text-xs text-mu">{who}</b>}
-                {m ? m[2] : line}
+                {who && (
+                  <b className="block text-xs text-mu">
+                    {who}
+                    {m?.[1] && <span className="ml-2 font-mono font-normal">{m[1]}</span>}
+                  </b>
+                )}
+                {m ? m[3] : line}
               </span>
             </li>
           );
