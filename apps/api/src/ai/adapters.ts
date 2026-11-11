@@ -15,12 +15,22 @@ export interface AdapterUrls {
 }
 const CLOUDFLARE = 'https://api.cloudflare.com/client/v4/accounts/{accountId}/ai/v1';
 
+/** The AI company's figures about its limits, from an answer's headers (only those: nothing else is kept). */
+export const limitHeaders = (headers: Record<string, string> | undefined): Record<string, string> | undefined => {
+  const found = Object.entries(headers ?? {}).filter(
+    ([k]) => k.toLowerCase().startsWith('x-ratelimit-') || k.toLowerCase() === 'retry-after',
+  );
+  return found.length
+    ? Object.fromEntries(found.map(([k, v]) => [k.toLowerCase(), String(v).slice(0, 40)]))
+    : undefined;
+};
+
 /** What went wrong, in the engine's words, with a short code for the log (never the AI company's message). */
 export function toProviderError(e: unknown): ProviderError {
   if (e instanceof ProviderError) return e;
   if (APICallError.isInstance(e)) {
     const status = e.statusCode ?? 0;
-    if (status === 429) return new ProviderError('rateLimit', 'http429');
+    if (status === 429) return new ProviderError('rateLimit', 'http429', limitHeaders(e.responseHeaders));
     if (status === 408 || status === 504) return new ProviderError('timeout', `http${status}`);
     if (status === 401 || status === 403) return new ProviderError('error', `auth${status}`);
     return new ProviderError('error', status ? `http${status}` : 'network');
@@ -49,10 +59,12 @@ function sdkDoor(
             ? { output: r.jsonSchema ? Output.object({ schema: jsonSchema(r.jsonSchema) }) : Output.json() }
             : {}),
         });
+        const limits = limitHeaders(result.response.headers);
         return {
           text: result.text,
           inputTokens: result.usage.inputTokens ?? 0,
           outputTokens: result.usage.outputTokens ?? 0,
+          ...(limits ? { limits } : {}),
         };
       } catch (e) {
         // an answer that isn't the JSON asked for: the engine decides (it asks once more, then moves on)
@@ -61,6 +73,7 @@ function sdkDoor(
             text: e.text ?? '',
             inputTokens: e.usage?.inputTokens ?? 0,
             outputTokens: e.usage?.outputTokens ?? 0,
+            ...(limitHeaders(e.response?.headers) ? { limits: limitHeaders(e.response?.headers) } : {}),
           };
         throw toProviderError(e);
       }

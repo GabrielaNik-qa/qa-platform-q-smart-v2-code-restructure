@@ -7,6 +7,7 @@ import type { Language } from '@qsmart/shared';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from './api';
+import { durationMs } from './durations';
 import { currentLanguage } from './i18n';
 import {
   CheckList,
@@ -89,6 +90,13 @@ interface Overview {
   use: Use[];
   teams: { id: string; name: string }[];
   recent: Call[];
+  allowance: {
+    now: string;
+    nextUtcMidnight: string;
+    seen: { provider: string; model: string; limits: Record<string, string>; seenAt: string }[];
+    today: { provider: string; model: string; calls: number; inputTokens: number; outputTokens: number }[];
+    cloudflare: { neuronsUsed: number; neuronsFree: number };
+  };
 }
 
 const LOCALES: Record<Language, string> = { en: 'en-GB', bg: 'bg-BG', fr: 'fr-FR' };
@@ -639,6 +647,8 @@ export function AiUsage({ company }: { company: CompanyRef }) {
         )}
       </div>
 
+      <FreeAllowance data={data} />
+
       <form onSubmit={save} className={`${card} grid gap-3`}>
         <h2 className="text-lg font-semibold">{t('ai.limitsTitle')}</h2>
         <p className="text-sm text-mu">{t('ai.limitsIntro')}</p>
@@ -823,5 +833,128 @@ function AiReviewRules({
       </div>
       <Notice message={message} />
     </form>
+  );
+}
+
+function Meter({ used, of }: { used: number; of: number }) {
+  const share = of > 0 ? Math.min(1, used / of) : 0;
+  return (
+    <div className="h-2 overflow-hidden rounded-full bg-sunk" role="presentation">
+      <div
+        className={`h-full rounded-full ${share >= 0.9 ? 'bg-bad' : share >= 0.7 ? 'bg-wn' : 'bg-ok'}`}
+        style={{ width: `${share * 100}%` }}
+      />
+    </div>
+  );
+}
+
+/**
+ * The free plans' allowance: what is used, what is left and when it resets. Groq's figures are its own (sent with
+ * every answer); Cloudflare's Neurons are counted from Q-smart's own calls.
+ */
+function FreeAllowance({ data }: { data: Overview }) {
+  const { t } = useTranslation();
+  const lang = currentLanguage();
+  const a = data.allowance;
+  const connected = new Set(data.accounts.filter((x) => x.enabled).map((x) => x.provider));
+  const clock = (at: string | number) =>
+    new Intl.DateTimeFormat(LOCALES[lang], { hour: '2-digit', minute: '2-digit' }).format(new Date(at));
+  const inTime = (ms: number) => {
+    const min = Math.round(ms / 60_000);
+    if (ms < 60_000) return t('ai.free.seconds', { n: Math.max(1, Math.round(ms / 1000)) });
+    if (min < 60) return t('ai.free.minutes', { n: min });
+    return t('ai.free.hours', { h: Math.floor(min / 60), m: min % 60 });
+  };
+  const used = (provider: string) => {
+    const rows = a.today.filter((u) => u.provider === provider);
+    return {
+      calls: number(
+        rows.reduce((n, r) => n + r.calls, 0),
+        lang,
+      ),
+      tokens: number(
+        rows.reduce((n, r) => n + r.inputTokens + r.outputTokens, 0),
+        lang,
+      ),
+    };
+  };
+  if (!connected.size) return null;
+  const now = Date.parse(a.now);
+  const groqSeen = a.seen.filter((x) => x.provider === 'groq');
+  const neurons = a.cloudflare;
+  return (
+    <section className={`${card} grid gap-4`} aria-labelledby="free-title">
+      <div className="grid gap-1">
+        <h2 id="free-title" className="text-lg font-semibold">
+          {t('ai.free.title')}
+        </h2>
+        <p className="text-sm text-mu">{t('ai.free.intro')}</p>
+      </div>
+      {connected.has('groq') && (
+        <div className="grid gap-2">
+          <h3 className="font-semibold">Groq</h3>
+          <p className="text-sm">{t('ai.free.today', used('groq'))}</p>
+          {groqSeen.length === 0 && <p className="text-sm text-mu">{t('ai.free.noFigures')}</p>}
+          {groqSeen.map((g) => {
+            const seenAt = new Date(g.seenAt).getTime();
+            const rows = (['requests', 'tokens'] as const).flatMap((kind) => {
+              const limit = Number(g.limits[`x-ratelimit-limit-${kind}`]);
+              const left = Number(g.limits[`x-ratelimit-remaining-${kind}`]);
+              const reset = durationMs(g.limits[`x-ratelimit-reset-${kind}`]);
+              if (!Number.isFinite(limit) || !Number.isFinite(left) || limit <= 0) return [];
+              const resetAt = reset === null ? null : seenAt + reset;
+              const past = resetAt !== null && resetAt <= now;
+              return [
+                <div key={kind} className="grid gap-1">
+                  <p className="text-sm">
+                    <b>{t(`ai.free.groq.${kind}`)}</b>{' '}
+                    {past
+                      ? t('ai.free.fullAgain', { limit: number(limit, lang) })
+                      : t('ai.free.left', { left: number(left, lang), limit: number(limit, lang) })}
+                    {!past && resetAt !== null && (
+                      <span className="text-mu">
+                        {' '}
+                        · {t('ai.free.fullIn', { in: inTime(resetAt - now), at: clock(resetAt) })}
+                      </span>
+                    )}
+                  </p>
+                  <Meter used={past ? 0 : limit - left} of={limit} />
+                </div>,
+              ];
+            });
+            return (
+              <div key={g.model} className="grid gap-2 rounded-s border border-bd p-3">
+                <p className="text-sm font-semibold">
+                  <span className="font-mono">{g.model}</span>{' '}
+                  <small className="font-normal text-mu">{t('ai.free.asOf', { at: clock(g.seenAt) })}</small>
+                </p>
+                {rows.length ? rows : <p className="text-sm text-mu">{t('ai.free.noFigures')}</p>}
+              </div>
+            );
+          })}
+          <p className="text-xs text-mu">{t('ai.free.groqNote')}</p>
+        </div>
+      )}
+      {connected.has('cloudflare') && (
+        <div className="grid gap-2">
+          <h3 className="font-semibold">Cloudflare Workers AI</h3>
+          <p className="text-sm">{t('ai.free.today', used('cloudflare'))}</p>
+          <p className="text-sm">
+            <b>{t('ai.free.cf.neurons')}</b>{' '}
+            {t('ai.free.cf.used', {
+              used: number(neurons.neuronsUsed, lang),
+              free: number(neurons.neuronsFree, lang),
+              left: number(Math.max(0, neurons.neuronsFree - neurons.neuronsUsed), lang),
+            })}
+            <span className="text-mu">
+              {' '}
+              · {t('ai.free.resets', { in: inTime(Date.parse(a.nextUtcMidnight) - now), at: clock(a.nextUtcMidnight) })}
+            </span>
+          </p>
+          <Meter used={neurons.neuronsUsed} of={neurons.neuronsFree} />
+          <p className="text-xs text-mu">{t('ai.free.cfNote')}</p>
+        </div>
+      )}
+    </section>
   );
 }

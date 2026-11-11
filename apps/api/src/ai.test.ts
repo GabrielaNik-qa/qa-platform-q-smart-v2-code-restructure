@@ -34,7 +34,16 @@ const pretend: ProviderAdapter = {
   complete(r: CompletionRequest) {
     seenKeys.push(r.account.apiKey);
     if (refuseKey) return Promise.reject(new ProviderError('error', 'auth401'));
-    return Promise.resolve({ text: '{"reply":"OK"}', inputTokens: 30, outputTokens: 5 });
+    return Promise.resolve({
+      text: '{"reply":"OK"}',
+      inputTokens: 30,
+      outputTokens: 5,
+      limits: {
+        'x-ratelimit-limit-tokens': '8000',
+        'x-ratelimit-remaining-tokens': '7965',
+        'x-ratelimit-reset-tokens': '2s',
+      },
+    });
   },
 };
 
@@ -228,6 +237,33 @@ describe('Admin › AI', () => {
       (await call('PUT', '/ai/accounts/groq', 'admin', { plan: 'free', enabled: true }, DEMO_COMPANY, noKeyApp))
         .statusCode,
     ).toBe(200);
+  });
+
+  it("shows the free allowance: the AI company's own figures, and what each model did today", async () => {
+    await call('POST', '/ai/accounts/groq/test', 'admin');
+    const { allowance } = (await call('GET', '/ai', 'admin')).json<{
+      allowance: {
+        seen: { provider: string; model: string; limits: Record<string, string> }[];
+        today: { provider: string; calls: number; inputTokens: number }[];
+        cloudflare: { neuronsUsed: number; neuronsFree: number };
+        nextUtcMidnight: string;
+      };
+    }>();
+    expect(allowance.seen).toEqual([
+      expect.objectContaining({
+        provider: 'groq',
+        model: 'openai/gpt-oss-20b',
+        limits: expect.objectContaining({ 'x-ratelimit-remaining-tokens': '7965' }),
+      }),
+    ]);
+    expect(allowance.today.find((u) => u.provider === 'groq')?.calls).toBeGreaterThanOrEqual(1);
+    expect(allowance.cloudflare.neuronsFree).toBe(10_000);
+    expect(new Date(allowance.nextUtcMidnight).getUTCHours()).toBe(0);
+    // another company sees none of it
+    const other = (await call('GET', '/ai', 'admin', undefined, SECOND_COMPANY)).json<{
+      allowance: { seen: unknown[] };
+    }>();
+    expect(other.allowance.seen).toEqual([]);
   });
 
   it("never shows or uses another company's AI accounts", async () => {

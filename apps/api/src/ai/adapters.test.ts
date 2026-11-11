@@ -32,7 +32,17 @@ beforeAll(async () => {
     void read(req).then((text) => {
       seen.push({ url: req.url ?? '', auth: req.headers.authorization ?? '', body: JSON.parse(text) as Seen['body'] });
       const status = next.status ?? 200;
-      res.writeHead(status, { 'content-type': 'application/json' });
+      // Groq's own figures about its limits come with every answer, and with a refusal
+      res.writeHead(status, {
+        'content-type': 'application/json',
+        'x-ratelimit-limit-requests': '1000',
+        'x-ratelimit-remaining-requests': '997',
+        'x-ratelimit-reset-requests': '4m19.2s',
+        'x-ratelimit-limit-tokens': '8000',
+        'x-ratelimit-remaining-tokens': '4600',
+        'x-ratelimit-reset-tokens': '25.5s',
+        'x-request-id': 'not-kept',
+      });
       if (status !== 200) {
         res.end(JSON.stringify({ error: { message: 'Pretend failure: should never reach the log', type: 'x' } }));
         return;
@@ -83,7 +93,16 @@ describe('the Groq door', () => {
   it('sends the key, the model, temperature 0, the JSON schema and short thinking; reads the answer and tokens', async () => {
     next = {};
     const answer = await groq().complete(request());
-    expect(answer).toEqual({ text: '{"reply":"OK"}', inputTokens: 42, outputTokens: 7 });
+    expect(answer).toMatchObject({ text: '{"reply":"OK"}', inputTokens: 42, outputTokens: 7 });
+    // only the limit figures are kept
+    expect(answer.limits).toEqual({
+      'x-ratelimit-limit-requests': '1000',
+      'x-ratelimit-remaining-requests': '997',
+      'x-ratelimit-reset-requests': '4m19.2s',
+      'x-ratelimit-limit-tokens': '8000',
+      'x-ratelimit-remaining-tokens': '4600',
+      'x-ratelimit-reset-tokens': '25.5s',
+    });
     const sent = seen.at(-1);
     expect(sent?.url).toBe('/groq/v1/chat/completions');
     expect(sent?.auth).toBe('Bearer gsk_test_1234');
@@ -100,6 +119,10 @@ describe('the Groq door', () => {
   it('names failures for the engine, never with the AI company message', async () => {
     next = { status: 429 };
     expect(await failure(groq().complete(request()))).toBe('rateLimit:http429');
+    const refused = await groq()
+      .complete(request())
+      .catch((e: unknown) => e);
+    expect((refused as ProviderError).limits?.['x-ratelimit-remaining-tokens']).toBe('4600');
     next = { status: 401 };
     expect(await failure(groq().complete(request()))).toBe('error:auth401');
     next = { status: 500 };

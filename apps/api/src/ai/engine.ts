@@ -16,6 +16,7 @@ import {
   getAiRules,
   teamExists,
   logAiCall,
+  saveSeenLimits,
   type Tx,
   withCompany,
 } from '@qsmart/db';
@@ -212,6 +213,12 @@ export class AiEngine {
         );
         clearTimeout(timer);
         const waitMs = Math.max(0, this.now() - started);
+        // the AI company's own figures about its limits (Groq sends them with every answer and every refusal)
+        const limits = 'answer' in outcome ? outcome.answer.limits : outcome.failure.limits;
+        if (limits)
+          await withCompany(db, job.companyId, (tx) => saveSeenLimits(tx, model.provider, model.model, limits)).catch(
+            () => undefined,
+          );
         if ('failure' in outcome) {
           this.breaker.failed(breakerKey(model.provider), outcome.failure.kind);
           lastProblem = outcome.failure.code;

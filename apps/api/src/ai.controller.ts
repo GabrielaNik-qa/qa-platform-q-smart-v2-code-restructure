@@ -8,7 +8,10 @@ import {
   deleteAiAccount,
   getAiRules,
   listAiAccounts,
+  aiUseToday,
   listAiCalls,
+  listSeenLimits,
+  type Tx,
   listTeams,
   logActivity,
   type Membership,
@@ -20,7 +23,7 @@ import {
 } from '@qsmart/db';
 import { z } from 'zod';
 import { actorOf } from './activity.controller.js';
-import { CATALOGUE, type ProviderId, PROVIDERS } from './ai/catalogue.js';
+import { CATALOGUE, CLOUDFLARE_FREE_NEURONS, cloudflareNeurons, type ProviderId, PROVIDERS } from './ai/catalogue.js';
 import { AiError, type AiEngine } from './ai/engine.js';
 import { AI_TEST } from './ai/jobs.js';
 import { encryptKey, keyHint } from './ai/secrets.js';
@@ -68,6 +71,35 @@ const accountInput = z
   })
   .strict();
 
+/**
+ * The free plans' allowance today: Groq's own latest figures per model (what is left and when it resets), Cloudflare's
+ * Neurons counted from Q-smart's log, and what each model did since 00:00 UTC.
+ */
+async function allowanceOf(tx: Tx) {
+  const today = await aiUseToday(tx);
+  const neurons = today
+    .filter((u) => u.provider === 'cloudflare')
+    .reduce(
+      (sum, u) =>
+        sum +
+        cloudflareNeurons(
+          CATALOGUE.models.find((m) => m.model === u.model),
+          u.inputTokens,
+          u.outputTokens,
+        ),
+      0,
+    );
+  const midnight = new Date();
+  midnight.setUTCHours(24, 0, 0, 0);
+  return {
+    now: new Date().toISOString(),
+    nextUtcMidnight: midnight.toISOString(),
+    seen: await listSeenLimits(tx),
+    today,
+    cloudflare: { neuronsUsed: Math.round(neurons), neuronsFree: CLOUDFLARE_FREE_NEURONS },
+  };
+}
+
 /** What a page may see of an account: never the key, only its last 4 characters. */
 const shown = ({ keyCipher: _k, ...a }: StoredAiAccount) => a;
 
@@ -93,6 +125,7 @@ export class AiController {
       use: await aiUseSummary(tx),
       teams: (await listTeams(tx)).map((t) => ({ id: t.id, name: t.name })),
       recent: await listAiCalls(tx, 50),
+      allowance: await allowanceOf(tx),
     }));
   }
 

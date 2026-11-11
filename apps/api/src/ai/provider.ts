@@ -31,6 +31,8 @@ export interface Completion {
   text: string;
   inputTokens: number;
   outputTokens: number;
+  /** the AI company's own figures about its limits, when it sends them (Groq: x-ratelimit-… with every answer) */
+  limits?: Record<string, string>;
 }
 
 export interface ProviderAdapter {
@@ -43,6 +45,8 @@ export class ProviderError extends Error {
     readonly kind: 'rateLimit' | 'timeout' | 'error',
     /** a short code for the log (never the AI company's message: it could repeat what was sent) */
     readonly code: string,
+    /** the AI company's limit figures sent with the refusal ("too many requests" says when it resets) */
+    readonly limits?: Record<string, string>,
   ) {
     super(`${kind}: ${code}`);
   }

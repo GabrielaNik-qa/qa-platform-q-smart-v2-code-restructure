@@ -1328,3 +1328,21 @@ export interface AiReviewDetails {
   summary: string;
   attempt: number;
 }
+
+/**
+ * Admin › AI › AI usage limits, "Free allowance": the latest figures an AI company sent about its limits (Groq sends
+ * them with every answer: requests and tokens, what is left and when it resets), per model. Nothing else is kept.
+ */
+export const aiLimitsSeen = pgTable(
+  'ai_limits_seen',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    provider: text('provider').notNull(),
+    model: text('model').notNull(),
+    limits: jsonb('limits').$type<Record<string, string>>().notNull(),
+    seenAt: timestamp('seen_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.companyId, t.provider, t.model] })],
+);

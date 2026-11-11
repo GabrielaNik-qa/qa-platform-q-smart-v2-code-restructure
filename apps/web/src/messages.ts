@@ -2033,6 +2033,33 @@ const en = {
     note: 'A file is made again with today’s data, and only with what you may still see.',
   },
   ai: {
+    free: {
+      title: 'Free allowance',
+      intro:
+        'What the free plans allow, what is used and when it starts again. Groq tells its own figures with every answer; Cloudflare’s are counted from Q-smart’s calls.',
+      today: 'Today (since 00:00 UTC): {{calls}} AI calls, {{tokens}} tokens.',
+      noFigures: 'No figures yet: they arrive with the next answer from this AI company.',
+      asOf: 'Groq’s figures at {{at}}',
+      groq: {
+        requests: 'Requests per day:',
+        tokens: 'Tokens per minute:',
+      },
+      left: '{{left}} of {{limit}} left',
+      fullAgain: 'all {{limit}} available again',
+      resets: 'resets in {{in}} (at {{at}})',
+      fullIn: 'full again in {{in}} (at {{at}}): it refills as time passes',
+      seconds: '{{n}} s',
+      minutes: '{{n}} min',
+      hours: '{{h}} h {{m}} min',
+      groqNote:
+        'An AI review uses about 3,000 tokens. When Groq says "too many requests", Q-smart rests it for a minute and uses Cloudflare.',
+      cf: {
+        neurons: 'Neurons today:',
+        used: 'about {{used}} of {{free}} free used, about {{left}} left',
+      },
+      cfNote:
+        'Counted from Q-smart’s own calls at Cloudflare’s prices (an AI review uses about 180 Neurons). Cloudflare’s dashboard shows the exact figure: AI › Workers AI.',
+    },
     providerIntro:
       'The AI companies Q-smart may use. Only companies whose terms forbid training on what we send, with a data processing agreement, are listed. The key is stored encrypted and never shown again.',
     state: {
@@ -4471,6 +4498,33 @@ const bg: Messages = {
     note: 'Файлът се създава отново с днешните данни и само с това, което още можете да виждате.',
   },
   ai: {
+    free: {
+      title: 'Безплатен лимит',
+      intro:
+        'Какво позволяват безплатните планове, колко е използвано и кога започва отново. Groq съобщава собствените си стойности с всеки отговор; тези на Cloudflare се броят от заявките на Q-smart.',
+      today: 'Днес (от 00:00 UTC): {{calls}} заявки към ИИ, {{tokens}} токена.',
+      noFigures: 'Още няма стойности: идват със следващия отговор от тази ИИ компания.',
+      asOf: 'Стойностите на Groq в {{at}}',
+      groq: {
+        requests: 'Заявки на ден:',
+        tokens: 'Токени на минута:',
+      },
+      left: 'остават {{left}} от {{limit}}',
+      fullAgain: 'отново са налични всички {{limit}}',
+      resets: 'нулира се след {{in}} (в {{at}})',
+      fullIn: 'отново пълен след {{in}} (в {{at}}): възстановява се с времето',
+      seconds: '{{n}} с',
+      minutes: '{{n}} мин',
+      hours: '{{h}} ч {{m}} мин',
+      groqNote:
+        'Една ИИ оценка използва около 3000 токена. Когато Groq каже „твърде много заявки“, Q-smart го оставя да почине минута и използва Cloudflare.',
+      cf: {
+        neurons: 'Neurons днес:',
+        used: 'използвани около {{used}} от {{free}} безплатни, остават около {{left}}',
+      },
+      cfNote:
+        'Изчислено от собствените заявки на Q-smart по цените на Cloudflare (една ИИ оценка използва около 180 Neurons). Таблото на Cloudflare показва точната стойност: AI › Workers AI.',
+    },
     providerIntro:
       'ИИ компаниите, които Q-smart може да използва. Показани са само компании, чиито условия забраняват обучение върху изпратеното от нас, със споразумение за обработка на данни. Ключът се пази криптиран и не се показва повторно.',
     state: {
@@ -7044,6 +7098,33 @@ const fr: Messages = {
     note: 'Le fichier est recréé avec les données d’aujourd’hui, et seulement avec ce que vous pouvez encore voir.',
   },
   ai: {
+    free: {
+      title: 'Allocation gratuite',
+      intro:
+        'Ce que permettent les plans gratuits, ce qui est utilisé et quand cela recommence. Groq indique ses propres chiffres à chaque réponse ; ceux de Cloudflare sont comptés à partir des appels de Q-smart.',
+      today: 'Aujourd’hui (depuis 00:00 UTC) : {{calls}} appels à l’IA, {{tokens}} jetons.',
+      noFigures: 'Pas encore de chiffres : ils arrivent avec la prochaine réponse de cette entreprise d’IA.',
+      asOf: 'Chiffres de Groq à {{at}}',
+      groq: {
+        requests: 'Requêtes par jour :',
+        tokens: 'Jetons par minute :',
+      },
+      left: '{{left}} sur {{limit}} restants',
+      fullAgain: 'les {{limit}} de nouveau disponibles',
+      resets: 'se réinitialise dans {{in}} (à {{at}})',
+      fullIn: 'de nouveau plein dans {{in}} (à {{at}}) : il se recharge avec le temps',
+      seconds: '{{n}} s',
+      minutes: '{{n}} min',
+      hours: '{{h}} h {{m}} min',
+      groqNote:
+        'Une évaluation par IA utilise environ 3 000 jetons. Quand Groq répond « trop de requêtes », Q-smart le met au repos une minute et utilise Cloudflare.',
+      cf: {
+        neurons: 'Neurons aujourd’hui :',
+        used: 'environ {{used}} sur {{free}} gratuits utilisés, environ {{left}} restants',
+      },
+      cfNote:
+        'Compté à partir des appels de Q-smart aux prix de Cloudflare (une évaluation par IA utilise environ 180 Neurons). Le tableau de bord de Cloudflare donne le chiffre exact : AI › Workers AI.',
+    },
     providerIntro:
       'Les entreprises d’IA que Q-smart peut utiliser. Seules celles dont les conditions interdisent l’entraînement sur ce que nous envoyons, avec un accord de traitement des données, sont listées. La clé est stockée chiffrée et n’est plus jamais affichée.',
     state: {

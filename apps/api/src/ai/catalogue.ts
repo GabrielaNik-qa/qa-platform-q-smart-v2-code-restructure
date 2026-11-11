@@ -146,3 +146,17 @@ export interface Catalogue {
   models: ModelInfo[];
 }
 export const CATALOGUE: Catalogue = { providers: PROVIDERS, models: MODELS };
+
+/**
+ * The free plans' daily allowance, as each AI company states it. Groq sends its own figures with every answer (read
+ * from them, never guessed); Cloudflare counts "Neurons": 10,000 free a day, reset at 00:00 UTC, $0.011 per 1,000
+ * above that (https://developers.cloudflare.com/workers-ai/platform/pricing/, checked 11 November 2026). Q-smart
+ * estimates the Neurons used from its own log, at Cloudflare's token prices.
+ */
+export const CLOUDFLARE_FREE_NEURONS = 10_000;
+export const CLOUDFLARE_USD_PER_1000_NEURONS = 0.011;
+export function cloudflareNeurons(model: ModelInfo | undefined, inputTokens: number, outputTokens: number): number {
+  if (!model) return 0;
+  const usd = (inputTokens * model.priceIn + outputTokens * model.priceOut) / 1_000_000;
+  return (usd / CLOUDFLARE_USD_PER_1000_NEURONS) * 1000;
+}

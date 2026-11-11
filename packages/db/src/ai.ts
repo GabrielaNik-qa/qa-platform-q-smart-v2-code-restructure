@@ -2,7 +2,7 @@
 // sent to the AI or what it answered: only who, what for, which model, how much and how it went.
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import type { Tx } from './company.js';
-import { aiAccounts, aiCalls, type AiLimits, type AiReviewRules, aiSettings, teams } from './schema.js';
+import { aiAccounts, aiCalls, type AiLimits, aiLimitsSeen, type AiReviewRules, aiSettings, teams } from './schema.js';
 
 const thisCompany = sql<string>`app_company()`;
 
@@ -156,4 +156,60 @@ export async function aiUseSummary(tx: Tx): Promise<AiUseRow[]> {
     .from(aiCalls)
     .where(gte(aiCalls.createdAt, sql`date_trunc('month', now() at time zone 'UTC') at time zone 'UTC'`))
     .groupBy(aiCalls.feature, aiCalls.teamId, aiCalls.provider);
+}
+
+export interface SeenLimits {
+  provider: string;
+  model: string;
+  limits: Record<string, string>;
+  seenAt: Date;
+}
+
+/** Keeps the latest figures an AI company sent about its limits for one model. */
+export async function saveSeenLimits(
+  tx: Tx,
+  provider: string,
+  model: string,
+  limits: Record<string, string>,
+): Promise<void> {
+  await tx
+    .insert(aiLimitsSeen)
+    .values({ companyId: thisCompany, provider, model, limits })
+    .onConflictDoUpdate({
+      target: [aiLimitsSeen.companyId, aiLimitsSeen.provider, aiLimitsSeen.model],
+      set: { limits, seenAt: sql`now()` },
+    });
+}
+
+export async function listSeenLimits(tx: Tx): Promise<SeenLimits[]> {
+  const rows = await tx.select().from(aiLimitsSeen).orderBy(aiLimitsSeen.provider, aiLimitsSeen.model);
+  return rows.map(({ companyId: _c, ...r }) => r);
+}
+
+export interface AiUseToday {
+  provider: string;
+  model: string;
+  calls: number;
+  inputTokens: number;
+  outputTokens: number;
+}
+
+/** What each model did since 00:00 UTC today (the AI companies' free days start then). */
+export async function aiUseToday(tx: Tx): Promise<AiUseToday[]> {
+  return tx
+    .select({
+      provider: sql<string>`coalesce(${aiCalls.provider}, '')`,
+      model: sql<string>`coalesce(${aiCalls.model}, '')`,
+      calls: sql<number>`count(*) filter (where ${aiCalls.status} in ('ok', 'invalid'))::int`,
+      inputTokens: sql<number>`coalesce(sum(${aiCalls.inputTokens}), 0)::int`,
+      outputTokens: sql<number>`coalesce(sum(${aiCalls.outputTokens}), 0)::int`,
+    })
+    .from(aiCalls)
+    .where(
+      and(
+        gte(aiCalls.createdAt, sql`date_trunc('day', now() at time zone 'UTC') at time zone 'UTC'`),
+        sql`${aiCalls.provider} is not null`,
+      ),
+    )
+    .groupBy(aiCalls.provider, aiCalls.model);
 }
