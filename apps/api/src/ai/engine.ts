@@ -39,6 +39,8 @@ export interface AiJob<T> {
   system: string;
   /** the data to work on */
   prompt: string;
+  /** only this AI company (Admin › AI's Test button) */
+  onlyProvider?: string;
 }
 
 export interface AiResult<T> {
@@ -51,7 +53,11 @@ export interface AiResult<T> {
 
 type AiErrorCode = Extract<ErrorCode, 'aiOff' | 'aiLimit' | 'aiNoModel' | 'aiUnavailable'>;
 export class AiError extends Error {
-  constructor(readonly code: AiErrorCode) {
+  constructor(
+    readonly code: AiErrorCode,
+    /** the last AI company's short reason (e.g. auth401: the key was refused), for Admin › AI */
+    readonly detail?: string,
+  ) {
     super(code);
   }
 }
@@ -61,7 +67,7 @@ export interface AiEngineParts {
   /** one door per AI company (step 2 brings Groq's and Cloudflare's) */
   adapters: Record<string, ProviderAdapter>;
   /** the company's accounts with AI companies, read behind its wall (step 2: Admin › AI, keys stored encrypted) */
-  accounts: (tx: Tx) => Promise<ProviderAccount[]>;
+  accounts: (tx: Tx, companyId: string) => Promise<ProviderAccount[]>;
   catalogue?: Catalogue;
   /** a model's test-set score for a job type (step 6: the AutoQA test set) */
   quality?: (modelId: string, feature: string) => number | undefined;
@@ -130,7 +136,9 @@ export class AiEngine {
       if (reached(await aiUseThisMonth(tx), rules.limits.company)) return 'limit' as const;
       if (job.teamId && reached(await aiUseThisMonth(tx, job.teamId), rules.limits.teams?.[job.teamId]))
         return 'limit' as const;
-      const accounts = (await this.parts.accounts(tx)).filter((a) => this.parts.adapters[a.provider]);
+      const accounts = (await this.parts.accounts(tx, job.companyId)).filter(
+        (a) => this.parts.adapters[a.provider] && (!job.onlyProvider || a.provider === job.onlyProvider),
+      );
       return { rules, accounts };
     });
     if (ready === 'off' || ready === 'limit') {
@@ -151,13 +159,14 @@ export class AiEngine {
     if (!routing.choices.length) {
       const resting = Object.values(routing.skipped).includes('resting');
       await log({ ...blank, status: resting ? 'unavailable' : 'noModel' });
-      throw new AiError(resting ? 'aiUnavailable' : 'aiNoModel');
+      throw resting ? new AiError('aiUnavailable', 'resting') : new AiError('aiNoModel');
     }
 
     // 3-4. Each model in turn; an answer that doesn't fit is asked once more before moving on.
     const jsonSchema = job.type.structured ? (z.toJSONSchema(job.type.schema) as Record<string, unknown>) : undefined;
     const system = job.type.structured ? `${job.system}\n\nAnswer with JSON only.` : job.system;
     let attempt = 0;
+    let lastProblem: string | undefined;
     for (const { model, account } of routing.choices) {
       const adapter = this.parts.adapters[model.provider];
       if (!adapter) continue;
@@ -178,7 +187,7 @@ export class AiEngine {
             temperature: job.type.temperature,
             maxOutputTokens: job.type.maxOutputTokens,
             json: job.type.structured,
-            ...(jsonSchema && model.structured === 'strict' ? { jsonSchema } : {}),
+            ...(jsonSchema ? { jsonSchema } : {}),
             signal: ctrl.signal,
           }),
           new Promise<never>((_, reject) => {
@@ -195,6 +204,7 @@ export class AiEngine {
         const waitMs = Math.max(0, this.now() - started);
         if ('failure' in outcome) {
           this.breaker.failed(breakerKey(model.provider), outcome.failure.kind);
+          lastProblem = outcome.failure.code;
           await log({ ...call, waitMs, status: outcome.failure.kind, error: outcome.failure.code.slice(0, 60) });
           break; // an AI company that failed: straight to the next model
         }
@@ -212,8 +222,9 @@ export class AiEngine {
           return { data: read.data, provider: model.provider, model: model.model, attempt };
         }
         await log({ ...call, ...used, status: 'invalid', error: 'schema' });
+        lastProblem = 'schema';
       }
     }
-    throw new AiError('aiUnavailable');
+    throw new AiError('aiUnavailable', lastProblem);
   }
 }

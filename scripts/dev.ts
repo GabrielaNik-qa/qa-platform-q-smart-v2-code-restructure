@@ -5,7 +5,8 @@
 //                     people listed in invites.local.txt ("e-mail role" per line, kept out of Git) are invited
 import { type ChildProcess, spawn, type SpawnOptions, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { mkdir, readFile } from 'node:fs/promises';
+import { randomBytes } from 'node:crypto';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { connect } from 'node:net';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -35,6 +36,8 @@ const WEB_URL = 'http://localhost:5173/';
 const INVITES = 'invites.local.txt';
 // The database files live outside OneDrive, so OneDrive never touches a running database.
 const PG_DATA = join(process.env.LOCALAPPDATA ?? join(homedir(), '.local', 'share'), 'qsmart-v2', 'postgres');
+// The master key that encrypts the companies' AI keys: made once, kept on this PC only (outside OneDrive and Git).
+const MASTER_KEY_FILE = join(PG_DATA, '..', 'master-key.txt');
 const windows = process.platform === 'win32';
 
 const children: ChildProcess[] = [];
@@ -163,11 +166,14 @@ async function main(): Promise<void> {
     await startLocalSignIn();
   }
 
+  const masterKey = process.env.QSMART_MASTER_KEY ?? (await ensureMasterKey());
+
   console.log('3/4 The server…');
   run('server', 'node', ['--enable-source-maps', 'apps/api/dist/main.js'], {
     DATABASE_URL: database.appUrl,
     FIREBASE_PROJECT_ID: PROJECT,
     API_PORT: String(API_PORT),
+    QSMART_MASTER_KEY: masterKey,
     ...(REAL ? {} : { FIREBASE_AUTH_EMULATOR_HOST: AUTH_HOST }),
   });
   await waitFor(`http://127.0.0.1:${API_PORT}/api/health`, 'The server');
@@ -188,3 +194,12 @@ main().catch(async (error: unknown) => {
   console.error(`\nQ-smart v2 could not start: ${why}`);
   await stop(1);
 });
+
+/** The master key for AI keys: read from this PC, or made the first time (32 random bytes). */
+async function ensureMasterKey(): Promise<string> {
+  if (existsSync(MASTER_KEY_FILE)) return (await readFile(MASTER_KEY_FILE, 'utf8')).trim();
+  const key = randomBytes(32).toString('base64');
+  await writeFile(MASTER_KEY_FILE, `${key}\n`, { flag: 'wx' });
+  console.log('  a master key for AI keys was made on this PC (kept outside OneDrive and Git)');
+  return key;
+}

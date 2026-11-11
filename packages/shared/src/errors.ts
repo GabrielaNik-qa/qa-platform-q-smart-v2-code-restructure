@@ -96,10 +96,15 @@ export const ERROR_MESSAGES = {
   disputeResolveInvalid: 'Choose how the dispute ended. The closing note is up to 500 characters.',
   notificationNotFound: 'This notification is no longer there.',
   profileInvalid: 'Enter a name of 2 to 120 characters, or choose English, Bulgarian or French.',
-  aiOff: 'The AI is switched off for this company. An admin can switch it on in Admin › AI.',
-  aiLimit: "This month's AI limit is reached. An admin can raise it in Admin › AI.",
+  aiOff: 'The AI is switched off for this company. An admin can switch it on in Admin › AI › AI on or off.',
+  aiLimit: "This month's AI limit is reached. An admin can raise it in Admin › AI › AI usage limits.",
   aiNoModel: "No AI model is allowed for this task with the company's AI settings.",
   aiUnavailable: 'The AI is not available right now. Everything else keeps working: please try again later.',
+  aiNoMasterKey:
+    "The server has no master key for AI keys yet, so it can't store one. Restart Q-smart with its start file.",
+  aiAccountInvalid: 'Paste the whole key (no spaces). Cloudflare also needs its account ID.',
+  aiAccountNotFound: 'This AI company is not connected.',
+  aiRulesInvalid: "Check the AI settings: limits are whole numbers of 0 or more, and teams must be this company's.",
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

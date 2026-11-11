@@ -1002,19 +1002,19 @@ export const MENU: MenuApp[] = [
             id: 'ai-provider',
             key: 'cs_aiprov',
             roles: ['admin'],
-            phase: '8',
+            phase: '3b',
           },
           {
             id: 'ai-usage-limits',
             key: 'cs_ailimit',
             roles: ['admin'],
-            phase: '8',
+            phase: '3b',
           },
           {
             id: 'ai-on-or-off',
             key: 'cs_aionoff',
             roles: ['admin'],
-            phase: '8',
+            phase: '3b',
           },
           {
             id: 'ai-instructions',

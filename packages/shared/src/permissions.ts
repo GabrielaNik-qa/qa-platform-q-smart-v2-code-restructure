@@ -82,6 +82,8 @@ export const PERMISSIONS = {
   'surveys.read': { ...STAFF_ALL, agent: 'own' },
   'surveys.write': { admin: 'all', reviewer: 'all', lead: 'all' },
   'ai.import': STAFF_ALL,
+  // Admin › AI: the AI companies and their keys, the company's AI rules, limits and usage
+  'ai.manage': ADMIN,
 } as const satisfies Record<string, Rule>;
 
 export type Permission = keyof typeof PERMISSIONS;

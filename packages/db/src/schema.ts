@@ -20,6 +20,7 @@ import {
   numeric,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -1126,6 +1127,37 @@ export const aiCalls = pgTable(
     }),
     foreignKey({
       name: 'ai_calls_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/**
+ * Admin › AI › AI provider: the company's accounts with AI companies. The key is stored encrypted (AES-256-GCM, with
+ * the server's master key, bound to this company and AI company); only its last 4 characters are kept readable.
+ */
+export const aiAccounts = pgTable(
+  'ai_accounts',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    provider: text('provider').notNull(),
+    plan: text('plan').notNull().default('free'),
+    keyCipher: text('key_cipher').notNull(),
+    keyHint: text('key_hint').notNull(),
+    /** Cloudflare's account id (not a secret) */
+    accountId: text('account_id'),
+    enabled: boolean('enabled').notNull().default(true),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.companyId, t.provider] }),
+    foreignKey({
+      name: 'ai_accounts_by_same_company',
       columns: [t.byId, t.companyId],
       foreignColumns: [memberships.id, memberships.companyId],
     }),

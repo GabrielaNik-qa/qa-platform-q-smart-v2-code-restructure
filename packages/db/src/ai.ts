@@ -2,7 +2,7 @@
 // sent to the AI or what it answered: only who, what for, which model, how much and how it went.
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import type { Tx } from './company.js';
-import { aiCalls, type AiLimits, aiSettings, teams } from './schema.js';
+import { aiAccounts, aiCalls, type AiLimits, aiSettings, teams } from './schema.js';
 
 const thisCompany = sql<string>`app_company()`;
 
@@ -95,4 +95,62 @@ export async function aiUseThisMonth(tx: Tx, teamId?: string): Promise<AiUse> {
 export async function teamExists(tx: Tx, teamId: string): Promise<boolean> {
   const [row] = await tx.select({ id: teams.id }).from(teams).where(eq(teams.id, teamId));
   return !!row;
+}
+
+/** A company's account with an AI company, as stored: the key only encrypted, plus its last 4 characters. */
+export interface StoredAiAccount {
+  provider: string;
+  plan: 'free' | 'paid';
+  keyCipher: string;
+  keyHint: string;
+  accountId: string | null;
+  enabled: boolean;
+  byId: string | null;
+  byName: string;
+  updatedAt: Date;
+}
+
+export async function listAiAccounts(tx: Tx): Promise<StoredAiAccount[]> {
+  const rows = await tx.select().from(aiAccounts).orderBy(aiAccounts.provider);
+  return rows.map(({ companyId: _c, ...r }) => ({ ...r, plan: r.plan === 'paid' ? 'paid' : 'free' }));
+}
+
+export async function saveAiAccount(tx: Tx, account: Omit<StoredAiAccount, 'updatedAt'>): Promise<void> {
+  const { provider: _p, ...change } = account;
+  await tx
+    .insert(aiAccounts)
+    .values({ companyId: thisCompany, ...account })
+    .onConflictDoUpdate({
+      target: [aiAccounts.companyId, aiAccounts.provider],
+      set: { ...change, updatedAt: sql`now()` },
+    });
+}
+
+export async function deleteAiAccount(tx: Tx, provider: string): Promise<boolean> {
+  const gone = await tx
+    .delete(aiAccounts)
+    .where(eq(aiAccounts.provider, provider))
+    .returning({ provider: aiAccounts.provider });
+  return gone.length > 0;
+}
+
+export interface AiUseRow extends AiUse {
+  feature: string;
+  teamId: string | null;
+  provider: string | null;
+}
+
+/** This calendar month's use (UTC), per job type, team and AI company, for Admin › AI › AI usage limits. */
+export async function aiUseSummary(tx: Tx): Promise<AiUseRow[]> {
+  return tx
+    .select({
+      feature: aiCalls.feature,
+      teamId: aiCalls.teamId,
+      provider: aiCalls.provider,
+      microUsd: sql<number>`coalesce(sum(${aiCalls.costMicroUsd}), 0)::float8`,
+      calls: sql<number>`count(*) filter (where ${aiCalls.status} in ('ok', 'invalid'))::int`,
+    })
+    .from(aiCalls)
+    .where(gte(aiCalls.createdAt, sql`date_trunc('month', now() at time zone 'UTC') at time zone 'UTC'`))
+    .groupBy(aiCalls.feature, aiCalls.teamId, aiCalls.provider);
 }

@@ -53,6 +53,9 @@ export const BUILT = new Set([
   'quality/my-activity',
   'quality/sign-ins',
   'quality/exports-and-downloads',
+  'admin/ai-provider',
+  'admin/ai-usage-limits',
+  'admin/ai-on-or-off',
 ]);
 
 export const pathOf = (app: AppId, page: MenuPage) => `/${app}/${page.id}`;

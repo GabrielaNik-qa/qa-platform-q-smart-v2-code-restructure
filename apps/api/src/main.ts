@@ -1,6 +1,7 @@
 // Starts the Q-smart server.
 import 'reflect-metadata';
 import { createDb } from '@qsmart/db';
+import { readMasterKey } from './ai/secrets.js';
 import { createApp } from './app.js';
 import { firebaseVerifier } from './auth/token-verifier.js';
 import { loadConfig } from './config.js';
@@ -8,7 +9,9 @@ import { runScheduledReports } from './reports.controller.js';
 
 const config = loadConfig();
 const db = createDb(config.DATABASE_URL);
-const app = await createApp({ db, verifier: firebaseVerifier(config.FIREBASE_PROJECT_ID) });
+const masterKey = readMasterKey(config.QSMART_MASTER_KEY);
+if (!masterKey) console.log('No master key (QSMART_MASTER_KEY): AI keys cannot be stored.');
+const app = await createApp({ db, verifier: firebaseVerifier(config.FIREBASE_PROJECT_ID), masterKey });
 app.enableShutdownHooks();
 await app.listen({ port: config.API_PORT, host: '127.0.0.1' });
 console.log(`Q-smart server: http://localhost:${config.API_PORT}/api/health`);

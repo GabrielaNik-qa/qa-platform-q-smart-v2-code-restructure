@@ -3,3 +3,4 @@
 export const DB = Symbol('DB');
 export const TOKEN_VERIFIER = Symbol('TOKEN_VERIFIER');
 export const AI_ENGINE = Symbol('AI_ENGINE');
+export const MASTER_KEY = Symbol('MASTER_KEY');

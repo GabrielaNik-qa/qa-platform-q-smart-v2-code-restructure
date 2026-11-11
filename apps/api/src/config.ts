@@ -5,6 +5,8 @@ const settings = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is missing: the database address of qsmart_app'),
   FIREBASE_PROJECT_ID: z.string().min(1).default('demo-qsmart'),
   API_PORT: z.coerce.number().int().positive().default(3200),
+  /** encrypts the companies' AI keys: 32 random bytes in base64 (on your PC made once by the start file) */
+  QSMART_MASTER_KEY: z.string().optional(),
 });
 
 export type Config = z.infer<typeof settings>;

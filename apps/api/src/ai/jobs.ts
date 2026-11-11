@@ -27,7 +27,8 @@ export const AI_TEST: JobType<{ reply: string }> = {
   schema: z.object({ reply: z.string().min(1).max(200) }),
   structured: true,
   temperature: 0,
-  maxOutputTokens: 60,
+  // room for the models that think before answering (gpt-oss)
+  maxOutputTokens: 400,
   maxWaitMs: 20_000,
   candidates: [
     'groq/openai/gpt-oss-20b',

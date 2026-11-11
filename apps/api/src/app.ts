@@ -33,15 +33,20 @@ import { TeamAverageController } from './team-average.controller.js';
 import { ReviewerChecksController } from './reviewer-checks.controller.js';
 import { ReviewsController } from './reviews.controller.js';
 import { SkillsController, TeamsController, WorkspacesController } from './setup.controller.js';
-import { AI_ENGINE, DB, TOKEN_VERIFIER } from './tokens.js';
+import { AI_ENGINE, DB, MASTER_KEY, TOKEN_VERIFIER } from './tokens.js';
+import { AiController } from './ai.controller.js';
+import { storedAccounts } from './ai/accounts.js';
+import { realAdapters } from './ai/adapters.js';
 import { AiEngine, type AiEngineParts } from './ai/engine.js';
 
 /** The parts the server is built from: the real ones in main.ts, test ones in the tests. */
 export interface AppParts {
   db: Db;
   verifier: TokenVerifier;
-  /** the AI companies' doors and the company's accounts (none until step 2 of Phase 3b; the tests give pretend ones) */
-  ai?: Omit<AiEngineParts, 'db'>;
+  /** the master key that encrypts the companies' AI keys (QSMART_MASTER_KEY); without it, no key can be stored */
+  masterKey?: Buffer | null;
+  /** the AI engine's parts (the tests give a pretend AI company): by default Groq, Cloudflare and the stored keys */
+  ai?: Partial<Omit<AiEngineParts, 'db'>>;
 }
 
 @Module({})
@@ -81,13 +86,20 @@ export class AppModule {
         ReportsController,
         ExportsController,
         JobsController,
+        AiController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },
         { provide: TOKEN_VERIFIER, useValue: parts.verifier },
+        { provide: MASTER_KEY, useValue: parts.masterKey ?? null },
         {
           provide: AI_ENGINE,
-          useValue: new AiEngine({ adapters: {}, accounts: async () => [], ...parts.ai, db: parts.db }),
+          useValue: new AiEngine({
+            adapters: realAdapters(),
+            accounts: storedAccounts(parts.masterKey ?? null),
+            ...parts.ai,
+            db: parts.db,
+          }),
         },
         SignedInGuard,
         CompanyMemberGuard,

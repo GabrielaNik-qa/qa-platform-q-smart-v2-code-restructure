@@ -1,6 +1,6 @@
 // Quality › Home › Getting started (today's help.js `PG.cs_start`, admins only): what to set up so Q-smart works for
 // the teams, each line checked on the company's real settings, with the page to do it. The lines whose pages come in
-// later phases (attendance, the CRM link, the AI) say which phase brings them.
+// later phases (attendance, the CRM link) say which phase brings them.
 import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +17,6 @@ interface Step {
 const LATER = [
   { id: 'attendance', phase: '6' },
   { id: 'crm', phase: '9' },
-  { id: 'ai', phase: '3b' },
 ];
 
 export function GettingStarted({ company }: { company: CompanyRef }) {
@@ -30,12 +29,14 @@ export function GettingStarted({ company }: { company: CompanyRef }) {
       api<TeamRow[]>('/teams', company.id).catch(() => []),
       api<PersonRow[]>('/people', company.id).catch(() => []),
       api<ReviewRow[]>('/reviews', company.id).catch(() => []),
-    ]).then(([cards, teams, people, reviews]) =>
+      api<{ accounts: { enabled: boolean }[] }>('/ai', company.id).catch(() => ({ accounts: [] })),
+    ]).then(([cards, teams, people, reviews, ai]) =>
       setSteps([
         { id: 'scorecard', done: cards.length > 0, app: 'admin', page: 'scorecards' },
         { id: 'teams', done: teams.some((x) => !x.isAdministration), app: 'admin', page: 'teams' },
         { id: 'agents', done: people.some((p) => p.role === 'agent' && p.teamId), app: 'admin', page: 'users' },
         { id: 'review', done: reviews.length > 0, app: 'quality', page: 'qa-entry' },
+        { id: 'ai', done: ai.accounts.some((a) => a.enabled), app: 'admin', page: 'ai-provider' },
       ]),
     );
   }, [company.id]);

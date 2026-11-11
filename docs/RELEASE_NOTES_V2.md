@@ -13,6 +13,15 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
   - **Every call is recorded:** task, team, person, AI company, model, tokens, cost, wait, result and fallback, but never what was sent or answered. The record can't be changed or deleted, and each company sees only its own.
   - **Monthly limits** for the company and per team, in calls or in money, checked before every call. A company can also switch its AI off.
   - **Tested with a pretend AI company** (24 new tests): the choice of model, fallbacks, the retry, time limits, resting, the limits, the off switch, the "EU only" rule, that a test conversation's details never reach the record, and that another company's AI record and teams stay out of reach. 232 automatic tests pass.
+- **Step 2: Admin › AI** (admins only; today's app has these three pages as "coming soon", and its one AI key in Integrations):
+  - **AI provider:** Groq and Cloudflare Workers AI, each with its data terms (no training, data agreement, outside the EU), the date they were checked and the sources, and the steps to get a free key. Paste the key, choose the plan and connect. **Test** asks the AI company for one short answer with no company data and says plainly what went wrong (for example "Groq refused the key"). **Remove** deletes the key from Q-smart.
+  - **The keys are stored encrypted** (AES-256-GCM) with a master key that the start file makes once on this PC and keeps outside OneDrive and Git. Each key is bound to its company and AI company, so a copied key can't be opened anywhere else. A page never gets a key back, only its last 4 characters; the activity log never holds one.
+  - **Which AI may see clients' data:** the allowed AI companies, "EU only", and paid plans (off: €0). The rule that never changes is shown too: never an AI company that may train on what it gets.
+  - **AI usage limits:** this month's calls and cost, per task, AI company and team; monthly limits for the company and each team, in calls or US dollars; and the last 50 AI calls (task, model, result, tokens, wait, cost, and "try 2" when the first choice failed).
+  - **AI on or off:** the company's switch. Switching off one feature, channel or category comes with AutoQA.
+  - **Getting started** now checks the AI line for real: done once an AI company is connected.
+  - **The real connections** go through the open-source AI SDK named in the plan (versions from 27 October, fixed), tested against a pretend AI company on this PC: the key, the model, temperature 0 and the JSON form are sent, and failures are named without the AI company's own message. In the browser, a made-up key was refused by the real Groq and the page said so.
+  - Checked in the browser as admin (English and Bulgarian): connect, test, limits, the switch and remove; the reviewer, team lead, trainer and agent can't open the pages and don't see them in the menu. 248 automatic tests pass.
 
 ## 11 November 2026: Phase 3 (Home & Analytics), finished (tag `v2-phase-3`)
 

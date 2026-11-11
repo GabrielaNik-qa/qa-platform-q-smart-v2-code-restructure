@@ -9,11 +9,14 @@
     "start": "node --enable-source-maps dist/main.js"
   },
   "dependencies": {
+    "@ai-sdk/groq": "4.0.72",
+    "@ai-sdk/openai-compatible": "3.0.80",
     "@nestjs/common": "12.3.3",
     "@nestjs/core": "12.3.3",
     "@nestjs/platform-fastify": "12.3.3",
     "@qsmart/db": "0.0.0",
     "@qsmart/shared": "0.0.0",
+    "ai": "7.0.155",
     "exceljs": "4.4.0",
     "firebase-admin": "14.5.0",
     "reflect-metadata": "0.2.2",
