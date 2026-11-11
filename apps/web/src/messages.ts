@@ -4250,6 +4250,10 @@ const bg: Messages = {
     disputeResolveInvalid: 'Изберете как е приключило оспорването. Заключителната бележка е до 500 знака.',
     notificationNotFound: 'Това известие вече го няма.',
     profileInvalid: 'Въведете име от 2 до 120 знака или изберете английски, български или френски.',
+    aiOff: 'ИИ е изключен за тази компания. Администратор може да го включи в Администрация › ИИ.',
+    aiLimit: 'Месечният лимит за ИИ е достигнат. Администратор може да го увеличи в Администрация › ИИ.',
+    aiNoModel: 'С настройките за ИИ на компанията няма разрешен ИИ модел за тази задача.',
+    aiUnavailable: 'ИИ не е достъпен в момента. Всичко останало работи: опитайте отново по-късно.',
   },
 };
 
@@ -6445,6 +6449,10 @@ const fr: Messages = {
     disputeResolveInvalid: 'Choisissez l’issue de la contestation. La note de clôture fait 500 caractères au plus.',
     notificationNotFound: 'Cette notification n’existe plus.',
     profileInvalid: 'Saisissez un nom de 2 à 120 caractères, ou choisissez l’anglais, le bulgare ou le français.',
+    aiOff: 'L’IA est désactivée pour cette entreprise. Un administrateur peut l’activer dans Admin › IA.',
+    aiLimit: 'La limite mensuelle d’IA est atteinte. Un administrateur peut l’augmenter dans Admin › IA.',
+    aiNoModel: 'Aucun modèle d’IA n’est autorisé pour cette tâche avec les paramètres d’IA de l’entreprise.',
+    aiUnavailable: 'L’IA n’est pas disponible pour le moment. Tout le reste fonctionne : réessayez plus tard.',
   },
 };
 

@@ -96,6 +96,10 @@ export const ERROR_MESSAGES = {
   disputeResolveInvalid: 'Choose how the dispute ended. The closing note is up to 500 characters.',
   notificationNotFound: 'This notification is no longer there.',
   profileInvalid: 'Enter a name of 2 to 120 characters, or choose English, Bulgarian or French.',
+  aiOff: 'The AI is switched off for this company. An admin can switch it on in Admin › AI.',
+  aiLimit: "This month's AI limit is reached. An admin can raise it in Admin › AI.",
+  aiNoModel: "No AI model is allowed for this task with the company's AI settings.",
+  aiUnavailable: 'The AI is not available right now. Everything else keeps working: please try again later.',
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

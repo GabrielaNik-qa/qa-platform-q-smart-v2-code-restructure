@@ -1,5 +1,6 @@
 // @qsmart/db: the tables, the company wall and the migrations.
 export * from './account.js';
+export * from './ai.js';
 export * from './client.js';
 export * from './calibrations.js';
 export * from './company.js';
@@ -20,6 +21,8 @@ export * from './seed.js';
 export * from './seed-reviews.js';
 export * from './teams.js';
 export type {
+  AiLimit,
+  AiLimits,
   CompanyDashboards,
   DashboardView,
   MyDashboards,

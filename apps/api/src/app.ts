@@ -33,12 +33,15 @@ import { TeamAverageController } from './team-average.controller.js';
 import { ReviewerChecksController } from './reviewer-checks.controller.js';
 import { ReviewsController } from './reviews.controller.js';
 import { SkillsController, TeamsController, WorkspacesController } from './setup.controller.js';
-import { DB, TOKEN_VERIFIER } from './tokens.js';
+import { AI_ENGINE, DB, TOKEN_VERIFIER } from './tokens.js';
+import { AiEngine, type AiEngineParts } from './ai/engine.js';
 
 /** The parts the server is built from: the real ones in main.ts, test ones in the tests. */
 export interface AppParts {
   db: Db;
   verifier: TokenVerifier;
+  /** the AI companies' doors and the company's accounts (none until step 2 of Phase 3b; the tests give pretend ones) */
+  ai?: Omit<AiEngineParts, 'db'>;
 }
 
 @Module({})
@@ -82,6 +85,10 @@ export class AppModule {
       providers: [
         { provide: DB, useValue: parts.db },
         { provide: TOKEN_VERIFIER, useValue: parts.verifier },
+        {
+          provide: AI_ENGINE,
+          useValue: new AiEngine({ adapters: {}, accounts: async () => [], ...parts.ai, db: parts.db }),
+        },
         SignedInGuard,
         CompanyMemberGuard,
         PermissionGuard,

@@ -239,6 +239,20 @@
       "when": 1794382578754,
       "tag": "0033_reports",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794395123737,
+      "tag": "0034_ai_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794395126848,
+      "tag": "0035_ai",
+      "breakpoints": true
     }
   ]
 }

@@ -217,8 +217,8 @@ The rule for clients costs little: a small paid model costs well under one cent 
 | **Google (Gemini)** | The paid Gemini API, or Gemini on Google Cloud (Vertex AI) in Belgium | The free Gemini API: people may read what is sent, and Google may use it to improve its products |
 | **OpenAI (GPT)** | The API: no training unless we opt in, and a data agreement is available. A Europe region with nothing stored is available for eligible customers | Personal ChatGPT chats |
 | **Mistral** (France) | Paid plans (no training by default). The free plan only with training switched off, once Mistral confirms its data agreement covers it | The free plan with training on |
-| **Groq** | Its standard terms forbid training and include a data agreement (it runs in the USA; to confirm for the free plan) | - |
-| **Cloudflare Workers AI** | It says it never trains on customer content (to confirm the data agreement and where it runs) | - |
+| **Groq** | Its standard terms forbid training and include a data agreement, with no exception for free accounts (confirmed 11 November 2026; it runs in the USA, so not for companies that choose "EU only") | - |
+| **Cloudflare Workers AI** | It never trains on customer content, and its data agreement is part of the standard terms, with no exception for the free plan (confirmed 11 November 2026; no EU-only option, so not for companies that choose "EU only") | - |
 | **ElevenLabs** (voices) | Q Trainer's customer voice: it only reads lines the AI made up, so no client data is involved and any plan is fine | Agents' real voices or clients' recordings, unless on its business plan with training off and a data agreement (voices can count as sensitive "biometric" data) |
 
 **The AI companies at the start:**

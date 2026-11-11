@@ -1057,3 +1057,77 @@ export const exportsLog = pgTable(
     }),
   ],
 );
+
+/** Admin › AI, the company's own rules for the AI engine (one row per company; no row: the defaults). */
+export const aiSettings = pgTable('ai_settings', {
+  companyId: uuid('company_id')
+    .primaryKey()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  /** the AI switched off for the whole company: every AI feature says so, everything else keeps working */
+  enabled: boolean('enabled').notNull().default(true),
+  /** clients' data only to AI that runs in the EU */
+  euOnly: boolean('eu_only').notNull().default(false),
+  /** the AI companies allowed for clients' data (empty: all that pass the engine's rules) */
+  allowedProviders: text('allowed_providers').array().notNull().default([]),
+  /** paid AI plans allowed (off until the company pays: €0 until the first paying client) */
+  allowPaid: boolean('allow_paid').notNull().default(false),
+  /** monthly limits: for the company and per team, in US dollars (millionths) and in calls */
+  limits: jsonb('limits').$type<AiLimits>().notNull().default({}),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export interface AiLimit {
+  /** millionths of a US dollar (AI companies price in dollars) */
+  microUsd?: number;
+  calls?: number;
+}
+export interface AiLimits {
+  company?: AiLimit;
+  teams?: Record<string, AiLimit>;
+}
+
+/**
+ * Every AI call (and every refusal before one), for the usage figures, the monthly limits and the AI Act's logs. It
+ * never keeps what was sent or answered: only who, what for, which model, how much and how it went.
+ */
+export const aiCalls = pgTable(
+  'ai_calls',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    teamId: uuid('team_id'),
+    byId: uuid('by_membership_id'),
+    /** the job type, e.g. autoqa.score */
+    feature: text('feature').notNull(),
+    /** test (the demo, the tests) or client (a client's data) */
+    dataClass: text('data_class').notNull(),
+    provider: text('provider'),
+    model: text('model'),
+    inputTokens: integer('input_tokens').notNull().default(0),
+    outputTokens: integer('output_tokens').notNull().default(0),
+    /** millionths of a US dollar (0 on a free plan) */
+    costMicroUsd: integer('cost_micro_usd').notNull().default(0),
+    waitMs: integer('wait_ms').notNull().default(0),
+    status: text('status').notNull(),
+    /** the try number within one job: 1 is the first choice, more means a fallback */
+    attempt: integer('attempt').notNull().default(1),
+    /** a short error code, never the AI company's message (it could repeat what was sent) */
+    error: text('error'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('ai_calls_company').on(t.companyId, t.createdAt),
+    foreignKey({
+      name: 'ai_calls_team_same_company',
+      columns: [t.teamId, t.companyId],
+      foreignColumns: [teams.id, teams.companyId],
+    }),
+    foreignKey({
+      name: 'ai_calls_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);

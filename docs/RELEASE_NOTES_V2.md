@@ -2,6 +2,18 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
+## Phase 3b (AutoQA, first version): in progress on branch `v2-phase-3b`
+
+- **The free AI plans are confirmed (11 November):** Groq's and Cloudflare Workers AI's own terms forbid training on what we send and include a data processing agreement, with no exception for free accounts. Both process data outside the EU, so a company that chooses "EU only" won't use them. The plan's table now says so (no decision changed).
+- **Step 1: the AI engine core** (no page yet: Admin › AI comes in step 2, and nothing calls an AI company until a key is entered there):
+  - **One entrance for all AI.** Every AI task in Q-smart (AutoQA first, Quinn and the others later) goes through the engine. Each task type says what the answer must look like and which models may do it, best first.
+  - **The model catalogue:** Groq's gpt-oss 20B and 120B, and Cloudflare's gpt-oss 120B, Mistral Small 3.1 and Llama 3.3 70B. Each has its price, size, JSON support and the data terms of its AI company, checked on 11 November with the sources written next to them. Their pages state no languages, so the AutoQA test set (step 6) will show which ones are good enough in Bulgarian and French.
+  - **The rules, checked before every call:** never an AI company that may train on the data, for clients' data and the demo alike; only AI companies the company has an account with; paid plans only once the company allows them (off by default: €0); for clients' data, also the company's own list of AI companies and "EU only"; and the model must manage the task (JSON answers, size, language, the quality bar once the test sets exist).
+  - **The cheapest that passes goes first.** If a model fails, is too slow or says "too many requests", the next one is tried at once. An answer that doesn't have the expected shape is asked for once more, then the next model is tried. An AI company that fails 3 times in a row (or is over its limit) rests for a minute. When no model can answer, the task says so and everything else keeps working.
+  - **Every call is recorded:** task, team, person, AI company, model, tokens, cost, wait, result and fallback, but never what was sent or answered. The record can't be changed or deleted, and each company sees only its own.
+  - **Monthly limits** for the company and per team, in calls or in money, checked before every call. A company can also switch its AI off.
+  - **Tested with a pretend AI company** (24 new tests): the choice of model, fallbacks, the retry, time limits, resting, the limits, the off switch, the "EU only" rule, that a test conversation's details never reach the record, and that another company's AI record and teams stay out of reach. 232 automatic tests pass.
+
 ## 11 November 2026: Phase 3 (Home & Analytics), finished (tag `v2-phase-3`)
 
 Built on 10 and 11 November on branch `v2-phase-3`. Every step was checked in the browser as admin, reviewer, team lead, trainer and agent, and in English and Bulgarian; the automatic tests check that every French text is there too. 208 automatic tests pass.
