@@ -22,6 +22,7 @@ import {
   ScorecardsController,
 } from './quality.controller.js';
 import { CalibrationsController } from './calibrations.controller.js';
+import { ConversationsController, FieldsController, TranscriptDaysController } from './conversations.controller.js';
 import { DashboardsController } from './dashboards.controller.js';
 import { DisputesController } from './disputes.controller.js';
 import { FlagsController } from './flags.controller.js';
@@ -87,6 +88,9 @@ export class AppModule {
         ExportsController,
         JobsController,
         AiController,
+        FieldsController,
+        ConversationsController,
+        TranscriptDaysController,
       ],
       providers: [
         { provide: DB, useValue: parts.db },

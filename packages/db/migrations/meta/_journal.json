@@ -267,6 +267,20 @@
       "when": 1794396831108,
       "tag": "0037_ai_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1794404370590,
+      "tag": "0038_conversations_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1794404374984,
+      "tag": "0039_conversations",
+      "breakpoints": true
     }
   ]
 }

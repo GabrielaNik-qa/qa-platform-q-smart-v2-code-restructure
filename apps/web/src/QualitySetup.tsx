@@ -4,6 +4,7 @@ import { can, type ScorecardQuestion } from '@qsmart/shared';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from './api';
+import { TranscriptDaysCard } from './Conversations';
 import { emptyQuestion, type LibraryRow, QuestionsEditor } from './Scorecards';
 import {
   card,
@@ -409,6 +410,7 @@ export function SystemSettings({ company }: { company: CompanyRef }) {
           <Notice message={message} />
         </form>
       )}
+      <TranscriptDaysCard company={company} />
     </section>
   );
 }

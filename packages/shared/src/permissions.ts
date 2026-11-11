@@ -37,6 +37,10 @@ export const PERMISSIONS = {
   'pins.read': STAFF_WS_AGENT_OWN,
   'pins.write': STAFF_WS,
   'calibrations.take': { admin: 'all', reviewer: 'participant', lead: 'participant', trainer: 'participant' },
+  // Quality › Conversations: the same reach as reviews (agents their own, staff their workspaces); admins and
+  // reviewers add, change and delete them
+  'conversations.read': STAFF_WS_AGENT_OWN,
+  'conversations.write': { admin: 'all', reviewer: 'workspace' },
   'autoqa.read': STAFF_WS_AGENT_OWN,
   'autoqa.write': { admin: 'all', reviewer: 'workspace' },
   // Company, people and settings
@@ -84,6 +88,8 @@ export const PERMISSIONS = {
   'ai.import': STAFF_ALL,
   // Admin › AI: the AI companies and their keys, the company's AI rules, limits and usage
   'ai.manage': ADMIN,
+  // Admin › Fields: the company's fields for customers and conversations
+  'fields.manage': ADMIN,
 } as const satisfies Record<string, Rule>;
 
 export type Permission = keyof typeof PERMISSIONS;

@@ -4,6 +4,7 @@ export * from './ai.js';
 export * from './client.js';
 export * from './calibrations.js';
 export * from './company.js';
+export * from './conversations.js';
 export * from './disputes.js';
 export * from './flags.js';
 export * from './local-postgres.js';

@@ -18,6 +18,7 @@ import {
   type LocalPostgres,
   runMigrations,
   seedDemo,
+  seedDemoConversations,
   seedDemoReviews,
   startLocalPostgres,
 } from '@qsmart/db';
@@ -152,6 +153,8 @@ async function main(): Promise<void> {
   await seedDemo(owner);
   const added = await seedDemoReviews(owner);
   if (added) console.log(`  today's demo reviews added to the demo company: ${added}`);
+  const talks = await seedDemoConversations(owner);
+  if (talks) console.log(`  today's demo transcripts added as conversations: ${talks}`);
   if (REAL) {
     for (const person of await readInvites()) {
       await inviteToDemo(owner, person);

@@ -1,6 +1,6 @@
 // Starts the Q-smart server.
 import 'reflect-metadata';
-import { createDb } from '@qsmart/db';
+import { createDb, deleteOldTranscripts } from '@qsmart/db';
 import { readMasterKey } from './ai/secrets.js';
 import { createApp } from './app.js';
 import { firebaseVerifier } from './auth/token-verifier.js';
@@ -25,4 +25,13 @@ if (process.env['QSMART_TIMERS'] !== 'off') {
     );
   setTimeout(tick, 20_000);
   setInterval(tick, 10 * 60_000);
+  // transcripts older than each company's days: deleted every 12 hours (as today), and once at the start
+  const purge = () =>
+    void deleteOldTranscripts(db)
+      .then((n) => n && console.log(`Old transcripts deleted: ${n}`))
+      .catch((error: unknown) =>
+        console.log('Transcript deletion problem:', error instanceof Error ? error.message : error),
+      );
+  setTimeout(purge, 30_000);
+  setInterval(purge, 12 * 60 * 60_000);
 }

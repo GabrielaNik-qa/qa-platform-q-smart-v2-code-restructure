@@ -105,6 +105,17 @@ export const ERROR_MESSAGES = {
   aiAccountInvalid: 'Paste the whole key (no spaces). Cloudflare also needs its account ID.',
   aiAccountNotFound: 'This AI company is not connected.',
   aiRulesInvalid: "Check the AI settings: limits are whole numbers of 0 or more, and teams must be this company's.",
+  conversationInvalid:
+    'Choose the channel, the agent and the date. A transcript has at most 100,000 characters, and a link starts with https://.',
+  conversationNotFound: 'This conversation is not there, or you cannot open it.',
+  fieldValues: 'Some fields are missing or not filled in correctly. Check the fields marked in red.',
+  fieldInvalid:
+    'Give the field a name (up to 80 characters) and, for a drop-down or multiple choice, at least one option.',
+  fieldNotFound: 'This field is not there any more.',
+  fieldBuiltIn: "Q-smart's built-in fields can be hidden, but not deleted.",
+  fieldNotHidden:
+    'Hide the field first. A hidden field keeps its values and can come back; only then can it be deleted for good.',
+  transcriptDaysInvalid: 'Choose how long transcripts are kept from the list.',
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

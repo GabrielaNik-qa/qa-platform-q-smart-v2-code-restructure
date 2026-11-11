@@ -25,6 +25,7 @@ import {
   addReport,
   type Db,
   deleteExport,
+  deleteOldTranscripts,
   deleteReport,
   findMembership,
   getExport,
@@ -404,5 +405,14 @@ export class JobsController {
     const expected = process.env['QSMART_JOB_KEY'];
     if (!expected || key !== expected) throw forbidden('notAllowed');
     return { sent: await runScheduledReports(this.db, Date.now()) };
+  }
+
+  /** Deletes the transcripts older than each company's days (Cloud Scheduler online, a timer on your PC). */
+  @Post('transcripts')
+  @HttpCode(200)
+  async transcripts(@Headers('x-job-key') key?: string) {
+    const expected = process.env['QSMART_JOB_KEY'];
+    if (!expected || key !== expected) throw forbidden('notAllowed');
+    return { deleted: await deleteOldTranscripts(this.db) };
   }
 }

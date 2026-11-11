@@ -8,6 +8,8 @@ import { Agents } from './Agents';
 import { AiProviders, AiSwitch, AiUsage } from './AiSettings';
 import { findPage, isBuilt, menuOf } from './menu';
 import { Calendar } from './Calendar';
+import { Conversations } from './Conversations';
+import { Fields } from './Fields';
 import { Calibrations } from './Calibration';
 import { CategoryStats } from './CategoryStats';
 import { Dashboard } from './Dashboard';
@@ -78,6 +80,8 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'admin/root-causes': (company) => <RootCauses company={company} />,
   'admin/system-settings': (company) => <SystemSettings company={company} />,
   'admin/ai-provider': (company) => <AiProviders company={company} />,
+  'admin/fields': (company) => <Fields company={company} />,
+  'quality/conversations': (company) => <Conversations company={company} />,
   'admin/ai-usage-limits': (company) => <AiUsage company={company} />,
   'admin/ai-on-or-off': (company) => <AiSwitch company={company} />,
   'admin/all-roles': (company) => <Roles company={company} />,

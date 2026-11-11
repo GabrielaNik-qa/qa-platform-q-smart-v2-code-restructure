@@ -24,6 +24,8 @@ export class ApiError extends Error {
     message: string,
     /** the server's reason, shown in the person's language */
     readonly code?: ErrorCode,
+    /** the fields to mark (Quality › Conversations) */
+    readonly fields?: string[],
   ) {
     super(message);
   }
@@ -56,11 +58,12 @@ export async function api<T>(
   });
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) {
-    const { message, code } = (body ?? {}) as { message?: unknown; code?: unknown };
+    const { message, code, fields } = (body ?? {}) as { message?: unknown; code?: unknown; fields?: unknown };
     throw new ApiError(
       response.status,
       typeof message === 'string' ? message : response.statusText,
       isErrorCode(code) ? code : undefined,
+      Array.isArray(fields) ? fields.filter((f): f is string => typeof f === 'string') : undefined,
     );
   }
   return body as T;

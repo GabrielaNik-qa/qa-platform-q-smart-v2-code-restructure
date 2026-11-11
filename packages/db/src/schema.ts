@@ -3,6 +3,8 @@
 // People are the one exception: a person can belong to several companies, so `users` is shared and
 // reaches companies through `memberships`; its wall rule shows a person only to the companies they belong to.
 import {
+  type FieldOption,
+  type Labels,
   type PlannerSettings,
   ROLES,
   type ScoredCategory,
@@ -42,6 +44,8 @@ export const companies = pgTable('companies', {
   planner: jsonb('planner').$type<PlannerSettings>().notNull().default({}),
   /** Quality set-up › System settings: a review passes at this score or above (today's default: 85) */
   passRate: integer('pass_rate').notNull().default(85),
+  /** Data protection: transcripts are deleted this many days after the conversation (0: kept until deleted by hand) */
+  transcriptDays: integer('transcript_days').notNull().default(90),
   createdAt: createdAt(),
 });
 
@@ -444,6 +448,8 @@ export const reviews = pgTable(
     seenAt: timestamp('seen_at', { withTimezone: true }),
     /** how long QA Entry took, in seconds (at most 4 hours) */
     reviewSeconds: integer('review_seconds'),
+    /** the conversation it reviewed, when it is in Q-smart (Quality › Conversations) */
+    conversationId: uuid('conversation_id'),
     createdAt: createdAt(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -1161,5 +1167,127 @@ export const aiAccounts = pgTable(
       columns: [t.byId, t.companyId],
       foreignColumns: [memberships.id, memberships.companyId],
     }),
+  ],
+);
+
+/**
+ * Admin › Fields: the company's changes to Q-smart's built-in fields (name, order, hidden, options, AI may read) and
+ * its own fields (packages/shared/src/fields.ts). One row per field; built-in fields get a row when first changed.
+ */
+export const fields = pgTable(
+  'fields',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    object: text('object').notNull(),
+    key: text('key').notNull(),
+    labels: jsonb('labels').$type<Labels>().notNull().default({}),
+    type: text('type').notNull(),
+    options: jsonb('options').$type<FieldOption[]>().notNull().default([]),
+    required: boolean('required').notNull().default(false),
+    ai: boolean('ai').notNull().default(false),
+    hidden: boolean('hidden').notNull().default(false),
+    position: integer('position').notNull().default(0),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.companyId, t.object, t.key] })],
+);
+
+/** A customer of the company (the person its agents talk to), with the universal fields and the company's own. */
+export const customers = pgTable(
+  'customers',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    /** the customer's ID in the company's own system */
+    externalId: text('external_id').notNull().default(''),
+    /** the universal fields and the company's own, each checked against Admin › Fields */
+    values: jsonb('values').$type<Record<string, unknown>>().notNull().default({}),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('customers_id_company').on(t.id, t.companyId),
+    index('customers_company_external').on(t.companyId, t.externalId),
+  ],
+);
+
+/**
+ * Quality › Conversations: a call, chat, e-mail or other conversation of one agent. Its transcript is kept apart
+ * (transcripts) and deleted after the company's days; the conversation itself (who, when, the fields) stays.
+ * Recordings are never stored, only a link.
+ */
+export const conversations = pgTable(
+  'conversations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    channel: channel('channel').notNull().default('call'),
+    /** the "other" channel's name (e.g. WhatsApp) */
+    channelName: text('channel_name').notNull().default(''),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    agentId: uuid('agent_membership_id'),
+    agentName: text('agent_name').notNull(),
+    teamId: uuid('team_id'),
+    teamName: text('team_name').notNull().default(''),
+    customerId: uuid('customer_id'),
+    /** the link to the conversation in the company's own system (never the recording itself) */
+    link: text('link').notNull().default(''),
+    /** the other universal fields (direction, duration, language, outcome …) and the company's own */
+    values: jsonb('values').$type<Record<string, unknown>>().notNull().default({}),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('conversations_id_company').on(t.id, t.companyId),
+    index('conversations_company_date').on(t.companyId, t.startedAt),
+    index('conversations_agent').on(t.agentId),
+    foreignKey({
+      name: 'conversations_agent_same_company',
+      columns: [t.agentId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'conversations_team_same_company',
+      columns: [t.teamId, t.companyId],
+      foreignColumns: [teams.id, teams.companyId],
+    }),
+    foreignKey({
+      name: 'conversations_customer_same_company',
+      columns: [t.customerId, t.companyId],
+      foreignColumns: [customers.id, customers.companyId],
+    }),
+    foreignKey({
+      name: 'conversations_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/** A conversation's transcript: only the text, deleted after the company's days (or by hand). */
+export const transcripts = pgTable(
+  'transcripts',
+  {
+    conversationId: uuid('conversation_id').primaryKey(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    text: text('text').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'transcripts_conversation_same_company',
+      columns: [t.conversationId, t.companyId],
+      foreignColumns: [conversations.id, conversations.companyId],
+    }).onDelete('cascade'),
   ],
 );

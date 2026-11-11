@@ -56,6 +56,8 @@ export const BUILT = new Set([
   'admin/ai-provider',
   'admin/ai-usage-limits',
   'admin/ai-on-or-off',
+  'admin/fields',
+  'quality/conversations',
 ]);
 
 export const pathOf = (app: AppId, page: MenuPage) => `/${app}/${page.id}`;
