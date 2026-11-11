@@ -69,6 +69,8 @@ export const PERMISSIONS = {
   'simulations.save': STAFF_WS_AGENT_OWN,
   // Performance, reports and CX
   'reports.read': { admin: 'all', reviewer: 'own', lead: 'own', trainer: 'own' },
+  // a saved report: your own (an admin: anyone's); the shared ones are read by the staff too
+  'reports.write': { admin: 'all', reviewer: 'own', lead: 'own', trainer: 'own' },
   'goals.read': { ...STAFF_ALL, agent: 'own' },
   'goals.write': { admin: 'all', reviewer: 'all', lead: 'all' },
   'improvementPlans.read': { ...STAFF_ALL, agent: 'own' },

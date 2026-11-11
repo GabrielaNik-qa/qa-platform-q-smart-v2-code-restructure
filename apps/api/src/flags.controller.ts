@@ -41,6 +41,7 @@ import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { CurrentMembership, CurrentScope } from './decorators.js';
 import { badRequest, notFound } from './errors.js';
 import { type FlagRow, flagsWorkbook } from './excel.js';
+import { logExport } from './exports-log.js';
 import { agentFor, link, reachOf } from './reviews.controller.js';
 import { DB } from './tokens.js';
 
@@ -199,6 +200,12 @@ export class FlagsController {
         action: 'exportFlags',
         targetName: 'Quick Flags',
         details: { rows: String(picked.length) },
+      });
+      await logExport(tx, membership, {
+        kind: 'flags',
+        name: 'Quick Flags',
+        request: { rows: input.data.rows },
+        rows: picked.length,
       });
       return picked;
     });

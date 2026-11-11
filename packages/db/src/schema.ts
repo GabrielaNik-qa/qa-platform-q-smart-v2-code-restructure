@@ -985,3 +985,75 @@ export const kudos = pgTable(
     }),
   ],
 );
+
+// ---- Reports (Phase 3, step 7): saved and scheduled reports, and the export centre
+
+/** When a saved report arrives by itself (today's schedule), in the time zone of the person who chose it. */
+export interface ReportSchedule {
+  freq: 'none' | 'daily' | 'weekly' | 'monthly';
+  /** 0 Sunday … 6 Saturday */
+  weekday?: number;
+  /** 1-28 */
+  day?: number;
+  /** 0-23 */
+  hour?: number;
+  timeZone?: string;
+  /** also by e-mail (once Q-smart sends e-mails), to these addresses of the company's accounts */
+  email?: boolean;
+  to?: string;
+}
+
+/** A saved report: its settings (the report builder's), whether it is shared, and its schedule. */
+export const reports = pgTable(
+  'reports',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    cfg: jsonb('cfg').$type<Record<string, unknown>>().notNull(),
+    shared: boolean('shared').notNull().default(false),
+    schedule: jsonb('schedule').$type<ReportSchedule>().notNull().default({ freq: 'none' }),
+    lastSentAt: timestamp('last_sent_at', { withTimezone: true }),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('reports_company').on(t.companyId, t.createdAt),
+    foreignKey({
+      name: 'reports_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/** One Excel file made in the app (the export centre): what it was, so it can be made again with today's data. */
+export const exportsLog = pgTable(
+  'exports',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(),
+    name: text('name').notNull(),
+    /** the reviews (their ids) or the report's settings; null when it was too big to keep (over 5000 rows) */
+    request: jsonb('request').$type<Record<string, unknown>>(),
+    rows: integer('rows').notNull(),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('exports_company').on(t.companyId, t.createdAt),
+    foreignKey({
+      name: 'exports_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);

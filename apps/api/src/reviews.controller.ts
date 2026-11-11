@@ -57,6 +57,7 @@ import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { CurrentMembership, CurrentScope } from './decorators.js';
 import { badRequest, notFound } from './errors.js';
 import { reviewsWorkbook } from './excel.js';
+import { logExport } from './exports-log.js';
 import { DB } from './tokens.js';
 
 const idParam = z.uuid();
@@ -212,10 +213,16 @@ export class ReviewsController {
         targetName: name,
         details: { rows: String(rows.length) },
       });
+      await logExport(tx, membership, {
+        kind: 'reviews',
+        name,
+        request: { ids: rows.map((r) => r.id) },
+        rows: rows.length,
+      });
       return rows;
     });
     const file = await reviewsWorkbook(picked, name);
-    const fileName = `${name.replace(/[^p{L}p{N}]+/gu, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const fileName = `${name.replace(/[^\p{L}\p{N}]+/gu, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
     reply.header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     reply.header('Content-Disposition', `attachment; filename="${encodeURIComponent(fileName)}"`);
     return new StreamableFile(file);

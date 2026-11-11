@@ -57,7 +57,8 @@ export class PlannerController {
     if (!input.success) throw badRequest('plannerInvalid');
     const p = input.data;
     return withCompany(this.db, membership.companyId, async (tx) => {
-      const [people, teams] = await Promise.all([listPeople(tx), listTeams(tx)]);
+      const people = await listPeople(tx);
+      const teams = await listTeams(tx);
       const agents = new Set(people.filter((x) => x.role === 'agent').map((x) => x.membershipId));
       const reviewers = new Set(
         people.filter((x) => x.active && (x.role === 'admin' || x.role === 'reviewer')).map((x) => x.membershipId),

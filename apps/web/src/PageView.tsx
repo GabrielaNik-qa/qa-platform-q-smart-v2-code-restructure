@@ -11,6 +11,7 @@ import { Calibrations } from './Calibration';
 import { CategoryStats } from './CategoryStats';
 import { Dashboard } from './Dashboard';
 import { Disputes } from './Disputes';
+import { ExportCentre } from './ExportCentre';
 import { Goals } from './Goals';
 import { ImprovementPlans } from './ImprovementPlans';
 import { People } from './People';
@@ -21,10 +22,12 @@ import { Prefs } from './Prefs';
 import { QAEntry } from './QAEntry';
 import { QuickFlags } from './QuickFlags';
 import { Recognition } from './Recognition';
+import { ReportBuilder } from './ReportBuilder';
 import { ReviewerQA } from './ReviewerQA';
 import { Reviews } from './Reviews';
 import { Library, RootCauses, SystemSettings } from './QualitySetup';
 import { Roles } from './Roles';
+import { SavedReports } from './SavedReports';
 import { Scorecards } from './Scorecards';
 import { useSession } from './session';
 import { Skills } from './Skills';
@@ -65,6 +68,9 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'quality/review-planner': (company) => <Planner company={company} />,
   'quality/qa-workload': (company) => <Workload company={company} />,
   'quality/calendar': (company) => <Calendar company={company} />,
+  'quality/report-builder': (company) => <ReportBuilder company={company} />,
+  'quality/saved-and-scheduled': (company) => <SavedReports company={company} />,
+  'quality/export-centre': (company) => <ExportCentre company={company} />,
   'admin/categories': (company) => <Library company={company} />,
   'admin/root-causes': (company) => <RootCauses company={company} />,
   'admin/system-settings': (company) => <SystemSettings company={company} />,

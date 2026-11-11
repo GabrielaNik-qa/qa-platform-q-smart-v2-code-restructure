@@ -4,5 +4,6 @@ export * from './permissions.js';
 export * from './scoring.js';
 export * from './performance.js';
 export * from './planner.js';
+export * from './reports.js';
 export * from './stats.js';
 export * from './roles.js';

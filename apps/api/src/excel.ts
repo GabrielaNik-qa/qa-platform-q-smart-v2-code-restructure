@@ -147,3 +147,20 @@ export async function flagsWorkbook(rows: FlagRow[]): Promise<Buffer> {
   });
   return Buffer.from(await book.xlsx.writeBuffer());
 }
+
+/** A report as an Excel file (today's report export): the table as it is, numbers as numbers. */
+export async function tableWorkbook(name: string, table: (string | number)[][]): Promise<Buffer> {
+  const book = new ExcelJS.Workbook();
+  // Excel refuses these characters in a sheet's name: * ? : / \ [ ]
+  const sheet = book.addWorksheet(name.slice(0, 31).replace(/[*?:/\\[\]]/g, ' ') || 'Report');
+  for (const row of table) sheet.addRow(row);
+  sheet.eachRow((row, rowNumber) =>
+    row.eachCell((cell) => {
+      cell.font = { name: 'Calibri', size: 12, bold: rowNumber === 1 };
+    }),
+  );
+  sheet.columns.forEach((c) => {
+    c.width = 18;
+  });
+  return Buffer.from(await book.xlsx.writeBuffer());
+}

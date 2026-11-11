@@ -144,12 +144,11 @@ export class GoalsController {
       const reach = scope === 'own' ? { agentId: me?.id ?? '', teamId: me?.teamId ?? null } : null;
       const list = await listGoals(tx, reach, m.data);
       if (!list.length) return [];
-      const [reviews, rates, people, kudos] = await Promise.all([
-        scoredReviews(tx),
-        passRates(tx),
-        listPeople(tx),
-        listKudos(tx),
-      ]);
+      // one question at a time: a transaction is one connection
+      const reviews = await scoredReviews(tx);
+      const rates = await passRates(tx);
+      const people = await listPeople(tx);
+      const kudos = await listKudos(tx);
       const teamOf = new Map(people.map((p) => [p.membershipId, p.teamId]));
       return list.map((g) => ({ ...g, ...progress(g, reviews, rates, teamOf, kudos) }));
     });
@@ -405,13 +404,12 @@ export class KudosController {
     const m = month.safeParse(asked ?? thisMonth());
     if (!m.success) throw badRequest('nothingToChange');
     return withCompany(this.db, membership.companyId, async (tx) => {
-      const [people, reviews, flags, kudos, rates] = await Promise.all([
-        listPeople(tx),
-        scoredReviews(tx),
-        listQuickFlags(tx, { all: true }),
-        listKudos(tx),
-        passRates(tx),
-      ]);
+      // one question at a time: a transaction is one connection
+      const people = await listPeople(tx);
+      const reviews = await scoredReviews(tx);
+      const flags = await listQuickFlags(tx, { all: true });
+      const kudos = await listKudos(tx);
+      const rates = await passRates(tx);
       return people
         .filter((p) => p.role === 'agent' && p.active)
         .map((p) => {

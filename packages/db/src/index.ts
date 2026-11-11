@@ -13,6 +13,7 @@ export * from './performance.js';
 export * from './pins.js';
 export * from './platform.js';
 export * from './quality.js';
+export * from './reports.js';
 export * from './reviewer-checks.js';
 export * from './reviews.js';
 export * from './seed.js';
@@ -25,6 +26,7 @@ export type {
   PageRules,
   PlanCheckIn,
   PlanGoal,
+  ReportSchedule,
   Prefs,
   SharedDashboard,
 } from './schema.js';

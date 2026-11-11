@@ -30,6 +30,8 @@ const owner = createRoute({ getParentRoute: () => root, path: '/owner', componen
 export interface PageSearch {
   agent?: string;
   team?: string;
+  /** a saved report to open in the report builder */
+  report?: string;
 }
 const pick = (v: unknown) => (typeof v === 'string' && v.length <= 64 ? v : undefined);
 const page = createRoute({
@@ -42,6 +44,8 @@ const page = createRoute({
     const team = pick(search.team);
     if (agent) out.agent = agent;
     if (team) out.team = team;
+    const report = pick(search.report);
+    if (report) out.report = report;
     return out;
   },
 });

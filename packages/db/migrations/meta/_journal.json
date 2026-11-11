@@ -225,6 +225,20 @@
       "when": 1794325731580,
       "tag": "0031_company_planner",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794382576175,
+      "tag": "0032_reports_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794382578754,
+      "tag": "0033_reports",
+      "breakpoints": true
     }
   ]
 }
