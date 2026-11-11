@@ -271,7 +271,9 @@ describe('the AI engine', () => {
     await engine.run(demo());
     const all = await withCompany(db, company[DEMO_COMPANY] ?? '', (tx) => listAiCalls(tx, 1000));
     const text = JSON.stringify(all);
-    expect(text).not.toContain('4242');
+    // words a random record id (letters a-f and digits) can never contain
+    expect(text).not.toContain('card ending');
+    expect(text).not.toContain('Ivan');
     expect(text).not.toContain('says OK');
   });
 
