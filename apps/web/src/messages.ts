@@ -271,6 +271,10 @@ const en = {
       conversationChanged: 'Changed a conversation of {{target}}',
       conversationDeleted: 'Deleted a conversation of {{target}}',
       transcriptDaysChanged: 'Changed how long transcripts are kept ({{days}} days; 0: until deleted by hand)',
+      aiReviewAdded: 'AutoQA reviewed a conversation of {{target}} ({{model}})',
+      aiReviewAgain: 'AutoQA reviewed a conversation of {{target}} again ({{model}})',
+      aiReviewHeld: 'A conversation of {{target}} was held for a person: it may contain instructions to the AI',
+      aiReviewsChanged: 'Changed the AI review settings',
     },
   },
   bell: {
@@ -304,6 +308,9 @@ const en = {
       workspacesChanged: 'Your workspaces: {{workspaces}}.',
       workspaceAdded: 'You were added to the workspace {{workspace}}.',
       leadOf: 'You are now the team lead of {{team}}.',
+      aiReviewNew: 'AutoQA (AI) reviewed your {{channel}} conversation {{lead}}: score {{score}}%. You can dispute it.',
+      aiReviewNewNotScored:
+        'AutoQA (AI) reviewed your {{channel}} conversation {{lead}} (not scored). You can dispute it.',
     },
   },
   roles: {
@@ -2161,7 +2168,7 @@ const en = {
     switchOn: 'Switch the AI on',
     switchedOff: 'The AI is switched off.',
     switchedOn: 'The AI is switched on.',
-    switchLater: 'Switching off one AI feature, channel or category comes with AutoQA (later steps of this phase).',
+    switchLater: 'Pausing AI reviews for one category comes with the accuracy score (a later step of this phase).',
   },
   cfields: {
     intro:
@@ -2323,6 +2330,43 @@ const en = {
     oneYear: '1 year',
     days_one: '{{count}} day',
     days_other: '{{count}} days',
+  },
+  autoqa: {
+    badge: 'AI review',
+    madeBy: 'Made by AutoQA with {{model}}',
+    counts:
+      'It counts on its own, like a review by a person. If you think an answer is wrong, dispute it: a person then decides.',
+    versions: 'Instructions: {{prompt}}. Each answer rests on the quote shown under it.',
+    quote: 'The words of the conversation this answer rests on',
+    title: 'AI review (AutoQA)',
+    scorecard: 'Scorecard',
+    sameAsPerson: 'as the person’s review',
+    sameAsPersonAll: 'The same as each one’s review by a person',
+    score: 'Score with AI',
+    again: 'Score again with AI',
+    running: 'The AI is reviewing…',
+    done: 'Done: {{score}}%. The agent was told.',
+    doneNotScored: 'Done (not scored). The agent was told.',
+    open: 'Open the AI review',
+    held: 'Held for a person: this conversation seems to contain instructions to the AI. A person should review it.',
+    heldNote: 'Held for a person: it seems to contain instructions to the AI.',
+    heldShort: 'held',
+    note: 'The AI answers every question of the scorecard with a quote from the conversation; N/A only with a reason. Its review counts on its own and the agent can dispute it.',
+    bulkTitle: 'Score several with AI',
+    bulkHelp_one: '{{count}} conversation shown has a transcript and no AI review yet.',
+    bulkHelp_other: '{{count}} conversations shown have a transcript and no AI review yet.',
+    howMany: 'How many',
+    bulkRun: 'Score them with AI',
+    progress: '{{done}} of {{of}} done · {{held}} held for a person · {{failed}} not done',
+    rulesTitle: 'AI reviews (AutoQA)',
+    rulesIntro:
+      'AI reviews count on their own. Agents must be told before they start (GDPR and the EU AI Act): tell them how AutoQA works, that its reviews are marked as AI and that they can dispute any of them.',
+    announced: 'The agents were told: confirmed on {{when}} by {{name}}. AI reviews can run.',
+    notAnnounced: 'Not confirmed yet: AI reviews can’t run.',
+    announce: 'The agents have been told that AI reviews start',
+    channels: 'Channels AI reviews run on',
+    channelsHelp: 'None ticked: all channels.',
+    rulesSaved: 'The AI review settings are saved.',
   },
   start: {
     intro: 'What to set up so Q-smart works for your teams. Each line is checked on your real settings.',
@@ -2657,6 +2701,10 @@ const bg: Messages = {
       conversationDeleted: 'Изтри разговор на {{target}}',
       transcriptDaysChanged:
         'Промени колко дълго се пазят транскрипциите ({{days}} дни; 0: докато не бъдат изтрити ръчно)',
+      aiReviewAdded: 'AutoQA оцени разговор на {{target}} ({{model}})',
+      aiReviewAgain: 'AutoQA оцени отново разговор на {{target}} ({{model}})',
+      aiReviewHeld: 'Разговор на {{target}} е задържан за човек: може да съдържа указания към ИИ',
+      aiReviewsChanged: 'Промени настройките за ИИ оценки',
     },
   },
   bell: {
@@ -2690,6 +2738,10 @@ const bg: Messages = {
       workspacesChanged: 'Вашите работни пространства: {{workspaces}}.',
       workspaceAdded: 'Добавени сте в работното пространство {{workspace}}.',
       leadOf: 'Вече сте тийм лидер на {{team}}.',
+      aiReviewNew:
+        'AutoQA (ИИ) оцени вашия разговор ({{channel}}) {{lead}}: резултат {{score}}%. Можете да го оспорите.',
+      aiReviewNewNotScored:
+        'AutoQA (ИИ) оцени вашия разговор ({{channel}}) {{lead}} (без резултат). Можете да го оспорите.',
     },
   },
   roles: {
@@ -4556,7 +4608,7 @@ const bg: Messages = {
     switchedOff: 'ИИ е изключен.',
     switchedOn: 'ИИ е включен.',
     switchLater:
-      'Изключването на отделна функция с ИИ, канал или категория идва с AutoQA (следващите стъпки на тази фаза).',
+      'Спирането на ИИ оценките за една категория идва с оценката за точност (следваща стъпка от тази фаза).',
   },
   cfields: {
     intro:
@@ -4719,6 +4771,43 @@ const bg: Messages = {
     oneYear: '1 година',
     days_one: '{{count}} ден',
     days_other: '{{count}} дни',
+  },
+  autoqa: {
+    badge: 'ИИ оценка',
+    madeBy: 'Направена от AutoQA с {{model}}',
+    counts:
+      'Важи самостоятелно, като оценка от човек. Ако смятате, че отговор е грешен, оспорете го: тогава решава човек.',
+    versions: 'Указания: {{prompt}}. Всеки отговор се основава на цитата под него.',
+    quote: 'Думите от разговора, на които се основава този отговор',
+    title: 'ИИ оценка (AutoQA)',
+    scorecard: 'Оценъчна карта',
+    sameAsPerson: 'като в оценката от човек',
+    sameAsPersonAll: 'Същата като в оценката от човек на всеки',
+    score: 'Оцени с ИИ',
+    again: 'Оцени отново с ИИ',
+    running: 'ИИ оценява…',
+    done: 'Готово: {{score}}%. Агентът е уведомен.',
+    doneNotScored: 'Готово (без резултат). Агентът е уведомен.',
+    open: 'Отвори ИИ оценката',
+    held: 'Задържан за човек: този разговор изглежда съдържа указания към ИИ. Трябва да го оцени човек.',
+    heldNote: 'Задържан за човек: изглежда съдържа указания към ИИ.',
+    heldShort: 'задържан',
+    note: 'ИИ отговаря на всеки въпрос от картата с цитат от разговора; „Неприложимо“ само с причина. Оценката му важи самостоятелно и агентът може да я оспори.',
+    bulkTitle: 'Оцени няколко с ИИ',
+    bulkHelp_one: '{{count}} показан разговор има транскрипция и още няма ИИ оценка.',
+    bulkHelp_other: '{{count}} показани разговора имат транскрипция и още нямат ИИ оценка.',
+    howMany: 'Колко',
+    bulkRun: 'Оцени ги с ИИ',
+    progress: '{{done}} от {{of}} готови · {{held}} задържани за човек · {{failed}} неизпълнени',
+    rulesTitle: 'ИИ оценки (AutoQA)',
+    rulesIntro:
+      'ИИ оценките важат самостоятелно. Агентите трябва да бъдат уведомени преди началото им (GDPR и Законът за ИИ на ЕС): кажете им как работи AutoQA, че оценките му са отбелязани като ИИ и че могат да оспорят всяка от тях.',
+    announced: 'Агентите са уведомени: потвърдено на {{when}} от {{name}}. ИИ оценките могат да се изпълняват.',
+    notAnnounced: 'Още не е потвърдено: ИИ оценките не могат да се изпълняват.',
+    announce: 'Агентите са уведомени, че ИИ оценките започват',
+    channels: 'Канали за ИИ оценки',
+    channelsHelp: 'Нищо не е отметнато: всички канали.',
+    rulesSaved: 'Настройките за ИИ оценки са запазени.',
   },
   start: {
     intro: 'Какво да настроите, за да работи Q-smart за екипите ви. Всеки ред се проверява по истинските ви настройки.',
@@ -4892,6 +4981,10 @@ const bg: Messages = {
     fieldNotHidden:
       'Първо скрийте полето. Скритото поле пази стойностите си и може да се върне; едва тогава може да се изтрие завинаги.',
     transcriptDaysInvalid: 'Изберете от списъка колко дълго се пазят транскрипциите.',
+    aiReviewNoTranscript: 'Този разговор няма транскрипция за оценяване.',
+    aiReviewsNotAnnounced:
+      'ИИ оценките започват едва след като агентите бъдат уведомени. Администратор потвърждава това в Администрация › AI › Включване и изключване на AI.',
+    aiReviewsChannelOff: 'ИИ оценките са изключени за този канал (Администрация › AI › Включване и изключване на AI).',
   },
 };
 
@@ -5172,6 +5265,11 @@ const fr: Messages = {
       conversationDeleted: 'A supprimé une conversation de {{target}}',
       transcriptDaysChanged:
         'A modifié la durée de conservation des transcriptions ({{days}} jours ; 0 : jusqu’à suppression manuelle)',
+      aiReviewAdded: 'AutoQA a évalué une conversation de {{target}} ({{model}})',
+      aiReviewAgain: 'AutoQA a réévalué une conversation de {{target}} ({{model}})',
+      aiReviewHeld:
+        'Une conversation de {{target}} est réservée à une personne : elle contient peut-être des instructions pour l’IA',
+      aiReviewsChanged: 'A modifié les paramètres des évaluations par IA',
     },
   },
   bell: {
@@ -5205,6 +5303,10 @@ const fr: Messages = {
       workspacesChanged: 'Vos espaces de travail : {{workspaces}}.',
       workspaceAdded: 'Vous avez été ajouté(e) à l’espace de travail {{workspace}}.',
       leadOf: 'Vous êtes maintenant chef d’équipe de {{team}}.',
+      aiReviewNew:
+        'AutoQA (IA) a évalué votre conversation ({{channel}}) {{lead}} : score {{score}} %. Vous pouvez la contester.',
+      aiReviewNewNotScored:
+        'AutoQA (IA) a évalué votre conversation ({{channel}}) {{lead}} (non notée). Vous pouvez la contester.',
     },
   },
   roles: {
@@ -7081,7 +7183,7 @@ const fr: Messages = {
     switchedOff: 'L’IA est désactivée.',
     switchedOn: 'L’IA est activée.',
     switchLater:
-      'Désactiver une seule fonction d’IA, un canal ou une catégorie arrive avec AutoQA (prochaines étapes de cette phase).',
+      'La mise en pause des évaluations par IA pour une catégorie arrive avec le score de précision (une prochaine étape de cette phase).',
   },
   cfields: {
     intro:
@@ -7245,6 +7347,44 @@ const fr: Messages = {
     oneYear: '1 an',
     days_one: '{{count}} jour',
     days_other: '{{count}} jours',
+  },
+  autoqa: {
+    badge: 'Évaluation par IA',
+    madeBy: 'Faite par AutoQA avec {{model}}',
+    counts:
+      'Elle compte à elle seule, comme une évaluation par une personne. Si une réponse vous semble fausse, contestez-la : une personne décide alors.',
+    versions: 'Instructions : {{prompt}}. Chaque réponse repose sur la citation affichée dessous.',
+    quote: 'Les mots de la conversation sur lesquels repose cette réponse',
+    title: 'Évaluation par IA (AutoQA)',
+    scorecard: 'Grille',
+    sameAsPerson: 'comme l’évaluation par une personne',
+    sameAsPersonAll: 'La même que l’évaluation par une personne de chacune',
+    score: 'Évaluer avec l’IA',
+    again: 'Réévaluer avec l’IA',
+    running: 'L’IA évalue…',
+    done: 'Terminé : {{score}} %. L’agent a été prévenu.',
+    doneNotScored: 'Terminé (non noté). L’agent a été prévenu.',
+    open: 'Ouvrir l’évaluation par IA',
+    held: 'Réservée à une personne : cette conversation semble contenir des instructions pour l’IA. Une personne devrait l’évaluer.',
+    heldNote: 'Réservée à une personne : elle semble contenir des instructions pour l’IA.',
+    heldShort: 'réservée',
+    note: 'L’IA répond à chaque question de la grille avec une citation de la conversation ; N/A seulement avec une raison. Son évaluation compte à elle seule et l’agent peut la contester.',
+    bulkTitle: 'En évaluer plusieurs avec l’IA',
+    bulkHelp_one: '{{count}} conversation affichée a une transcription et pas encore d’évaluation par IA.',
+    bulkHelp_other: '{{count}} conversations affichées ont une transcription et pas encore d’évaluation par IA.',
+    howMany: 'Combien',
+    bulkRun: 'Les évaluer avec l’IA',
+    progress: '{{done}} sur {{of}} faites · {{held}} réservées à une personne · {{failed}} non faites',
+    rulesTitle: 'Évaluations par IA (AutoQA)',
+    rulesIntro:
+      'Les évaluations par IA comptent à elles seules. Les agents doivent être prévenus avant qu’elles commencent (RGPD et règlement européen sur l’IA) : expliquez-leur comment fonctionne AutoQA, que ses évaluations sont marquées comme IA et qu’ils peuvent contester chacune.',
+    announced:
+      'Les agents ont été prévenus : confirmé le {{when}} par {{name}}. Les évaluations par IA peuvent avoir lieu.',
+    notAnnounced: 'Pas encore confirmé : les évaluations par IA ne peuvent pas avoir lieu.',
+    announce: 'Les agents ont été prévenus que les évaluations par IA commencent',
+    channels: 'Canaux des évaluations par IA',
+    channelsHelp: 'Aucun coché : tous les canaux.',
+    rulesSaved: 'Les paramètres des évaluations par IA sont enregistrés.',
   },
   start: {
     intro:
@@ -7425,6 +7565,11 @@ const fr: Messages = {
     fieldNotHidden:
       'Masquez d’abord le champ. Un champ masqué garde ses valeurs et peut revenir ; ce n’est qu’ensuite qu’il peut être supprimé définitivement.',
     transcriptDaysInvalid: 'Choisissez dans la liste combien de temps les transcriptions sont gardées.',
+    aiReviewNoTranscript: 'Cette conversation n’a pas de transcription à évaluer.',
+    aiReviewsNotAnnounced:
+      'Les évaluations par IA ne commencent qu’une fois les agents prévenus. Un administrateur le confirme dans Admin › IA › IA activée ou désactivée.',
+    aiReviewsChannelOff:
+      'Les évaluations par IA sont désactivées pour ce canal (Admin › IA › IA activée ou désactivée).',
   },
 };
 

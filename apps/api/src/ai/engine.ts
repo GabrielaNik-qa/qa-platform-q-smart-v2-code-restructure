@@ -80,17 +80,26 @@ const reached = (use: AiUse, limit: AiLimit | undefined) =>
     (limit.calls !== undefined && use.calls >= limit.calls));
 
 /** The answer as JSON, checked against the job's schema (a ```json fence around it is accepted). */
-export function readAnswer<T>(text: string, schema: z.ZodType<T>): { ok: true; data: T } | { ok: false } {
+export function readAnswer<T>(
+  text: string,
+  schema: z.ZodType<T>,
+): { ok: true; data: T } | { ok: false; problem: string } {
   const bare = text
     .trim()
     .replace(/^```(?:json)?\s*/i, '')
     .replace(/\s*```$/, '');
+  let parsed: unknown;
   try {
-    const checked = schema.safeParse(JSON.parse(bare));
-    return checked.success ? { ok: true, data: checked.data } : { ok: false };
+    parsed = JSON.parse(bare);
   } catch {
-    return { ok: false };
+    return { ok: false, problem: bare ? 'not JSON' : 'empty answer' };
   }
+  const checked = schema.safeParse(parsed);
+  if (checked.success) return { ok: true, data: checked.data };
+  // the first check that failed, in the job's own words (they name question ids, never the conversation's text)
+  const issue = checked.error.issues[0];
+  const where = issue?.path.length ? `${issue.path.join('.')}: ` : '';
+  return { ok: false, problem: issue?.code === 'custom' ? issue.message : `${where}${issue?.code ?? 'check'}` };
 }
 
 export class AiEngine {
@@ -188,6 +197,7 @@ export class AiEngine {
             maxOutputTokens: job.type.maxOutputTokens,
             json: job.type.structured,
             ...(jsonSchema ? { jsonSchema } : {}),
+            ...(job.type.effort ? { effort: job.type.effort } : {}),
             signal: ctrl.signal,
           }),
           new Promise<never>((_, reject) => {
@@ -221,7 +231,7 @@ export class AiEngine {
           await log({ ...call, ...used, status: 'ok' });
           return { data: read.data, provider: model.provider, model: model.model, attempt };
         }
-        await log({ ...call, ...used, status: 'invalid', error: 'schema' });
+        await log({ ...call, ...used, status: 'invalid', error: `schema: ${read.problem}`.slice(0, 60) });
         lastProblem = 'schema';
       }
     }

@@ -75,7 +75,7 @@ export const groqAdapter = (urls: AdapterUrls = {}) =>
     (r) => ({
       groq: {
         ...(r.jsonSchema ? { structuredOutputs: true } : {}),
-        ...(r.model.startsWith('openai/gpt-oss') ? { reasoningEffort: 'low' } : {}),
+        ...(r.model.startsWith('openai/gpt-oss') ? { reasoningEffort: r.effort ?? 'low' } : {}),
       },
     }),
   );

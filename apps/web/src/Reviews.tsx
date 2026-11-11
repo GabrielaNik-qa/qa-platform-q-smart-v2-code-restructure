@@ -230,7 +230,7 @@ export function Reviews({ company }: { company: CompanyRef }) {
     agent: (r) => r.agentName,
     team: (r) => r.teamName || '-',
     campaign: (r) => campaignOf(r),
-    reviewer: (r) => r.reviewerName || '-',
+    reviewer: (r) => (r.source === 'ai' ? `${r.reviewerName} (AI)` : r.reviewerName || '-'),
     score: (r) =>
       r.notScored ? (
         <span className="text-mu" title={t('list.notScoredHelp')}>

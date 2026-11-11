@@ -130,11 +130,17 @@ export interface ConversationRow {
   customerId: string | null;
   link: string;
   values: Record<string, unknown>;
+  /** held for a person: AutoQA found what looks like instructions to the AI ('' when not held) */
+  aiHold: string;
   byName: string;
   createdAt: Date;
   hasTranscript: boolean;
   /** the reviews made of it */
   reviewIds: string[];
+  /** AutoQA reviewed it */
+  aiReviewed: boolean;
+  /** the scorecard of its first review by a person (AutoQA uses the same, so the two can be compared) */
+  humanScorecardId: string | null;
 }
 export interface Conversation extends ConversationRow {
   transcript: string | null;
@@ -160,6 +166,7 @@ const listColumns = {
   customerId: conversations.customerId,
   link: conversations.link,
   values: conversations.values,
+  aiHold: conversations.aiHold,
   byName: conversations.byName,
   createdAt: conversations.createdAt,
   // the outer table named in full: inside a sub-query a bare id would be the sub-query's own
@@ -167,6 +174,10 @@ const listColumns = {
   reviewIds: sql<
     string[]
   >`coalesce((select array_agg(r.id::text order by r.reviewed_on) from reviews r where r.conversation_id = "conversations"."id"), '{}')`,
+  aiReviewed: sql<boolean>`exists (select 1 from reviews r where r.conversation_id = "conversations"."id" and r.source = 'ai')`,
+  humanScorecardId: sql<
+    string | null
+  >`(select r.scorecard_id::text from reviews r where r.conversation_id = "conversations"."id" and r.source = 'human' order by r.created_at limit 1)`,
 };
 
 /** Newest first, at most 2000 (filtered by date, agent and channel). */
@@ -338,4 +349,26 @@ export async function seedDemoConversations(owner: Db): Promise<number> {
     }
     return added;
   });
+}
+
+/** Holds a conversation for a person (AutoQA found what looks like instructions to the AI), or releases it (''). */
+export async function setAiHold(tx: Tx, id: string, hold: '' | 'injection'): Promise<void> {
+  await tx.update(conversations).set({ aiHold: hold }).where(eq(conversations.id, id));
+}
+
+/** The AI review of a conversation with a scorecard, when there is one (scored again, it is updated). */
+export async function aiReviewOf(tx: Tx, conversationId: string, scorecardId: string): Promise<string | undefined> {
+  const [row] = await tx
+    .select({ id: reviews.id })
+    .from(reviews)
+    .where(
+      and(eq(reviews.conversationId, conversationId), eq(reviews.scorecardId, scorecardId), eq(reviews.source, 'ai')),
+    );
+  return row?.id;
+}
+
+/** The company is the demo (its data is made up: the AI counts it as test data, not a client's). */
+export async function isDemoCompany(tx: Tx): Promise<boolean> {
+  const [row] = await tx.select({ name: companies.name }).from(companies);
+  return row?.name === DEMO_COMPANY;
 }

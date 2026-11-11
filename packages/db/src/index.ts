@@ -22,8 +22,11 @@ export * from './seed.js';
 export * from './seed-reviews.js';
 export * from './teams.js';
 export type {
+  AiAnswerProof,
   AiLimit,
   AiLimits,
+  AiReviewDetails,
+  AiReviewRules,
   CompanyDashboards,
   DashboardView,
   MyDashboards,

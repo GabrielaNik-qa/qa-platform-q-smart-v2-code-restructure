@@ -1,6 +1,7 @@
 // Reviews (QA Entry and Reviews), always behind the company wall (inside withCompany). Who may see or change which
 // review is decided by the server (today's rules: agents their own, staff their workspaces, admins all).
 import type { ScoredCategory } from '@qsmart/shared';
+import type { AiReviewDetails } from './schema.js';
 import { and, type AnyColumn, desc, eq, inArray, isNull, type SQL, sql } from 'drizzle-orm';
 import type { Tx } from './company.js';
 import { reviews } from './schema.js';
@@ -39,10 +40,19 @@ export interface Review {
   reviewerName: string;
   seenAt: Date | null;
   reviewSeconds: number | null;
+  /** the conversation it reviewed (Quality › Conversations) */
+  conversationId: string | null;
+  /** a person's review, or AutoQA's (marked as AI, with its proof) */
+  source: 'human' | 'ai';
+  ai: AiReviewDetails | null;
   createdAt: Date;
   updatedAt: Date;
 }
-export type NewReview = Omit<Review, 'id' | 'status' | 'seenAt' | 'createdAt' | 'updatedAt'>;
+export type NewReview = Omit<
+  Review,
+  'id' | 'status' | 'seenAt' | 'createdAt' | 'updatedAt' | 'conversationId' | 'source' | 'ai'
+> &
+  Partial<Pick<Review, 'conversationId' | 'source' | 'ai'>>;
 export type ReviewChange = Partial<
   Pick<
     Review,
@@ -67,6 +77,7 @@ export type ReviewChange = Partial<
     | 'conversationLink'
     | 'transcript'
     | 'emailSubject'
+    | 'ai'
   >
 >;
 

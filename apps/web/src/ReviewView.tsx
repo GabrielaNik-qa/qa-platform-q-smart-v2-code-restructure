@@ -172,6 +172,16 @@ export function ReviewView() {
           ))}
         </dl>
       </div>
+      {review.source === 'ai' && review.ai && (
+        <section className={`${card} grid gap-1 border-ac`} aria-label={t('autoqa.badge')}>
+          <p className="flex flex-wrap items-center gap-2 font-semibold">
+            <span className="rounded-full bg-ac/15 px-2 py-0.5 text-xs">{t('autoqa.badge')}</span>
+            {t('autoqa.madeBy', { model: review.ai.model })}
+          </p>
+          <p className="text-sm text-mu">{t('autoqa.counts')}</p>
+          <p className="text-xs text-mu">{t('autoqa.versions', { prompt: review.ai.promptVersion })}</p>
+        </section>
+      )}
       {review.categories.map((c, ci) => (
         <section key={ci} className={`${card} grid gap-2`} aria-label={c.name}>
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -189,6 +199,11 @@ export function ReviewView() {
                     {answer(q.answer)}
                   </b>
                 </div>
+                {review.ai?.proof[ci]?.[qi]?.quote && (
+                  <q className="text-xs italic text-mu" title={t('autoqa.quote')}>
+                    {review.ai.proof[ci]?.[qi]?.quote}
+                  </q>
+                )}
                 {(q.comment || q.rootCause) && (
                   <small className="text-mu">
                     {q.comment}

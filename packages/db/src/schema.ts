@@ -450,6 +450,10 @@ export const reviews = pgTable(
     reviewSeconds: integer('review_seconds'),
     /** the conversation it reviewed, when it is in Q-smart (Quality › Conversations) */
     conversationId: uuid('conversation_id'),
+    /** who made it: a person (QA Entry) or AutoQA (an AI review, which counts on its own and is marked as AI) */
+    source: text('source').notNull().default('human'),
+    /** an AI review's proof: the model, the prompt and scorecard versions, a quote for every answer */
+    ai: jsonb('ai').$type<AiReviewDetails>(),
     createdAt: createdAt(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -1080,6 +1084,8 @@ export const aiSettings = pgTable('ai_settings', {
   allowPaid: boolean('allow_paid').notNull().default(false),
   /** monthly limits: for the company and per team, in US dollars (millionths) and in calls */
   limits: jsonb('limits').$type<AiLimits>().notNull().default({}),
+  /** AI reviews (AutoQA): when the agents were told, and the channels they run on (empty: all) */
+  reviews: jsonb('reviews').$type<AiReviewRules>().notNull().default({}),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -1238,6 +1244,8 @@ export const conversations = pgTable(
     customerId: uuid('customer_id'),
     /** the link to the conversation in the company's own system (never the recording itself) */
     link: text('link').notNull().default(''),
+    /** held for a person: AutoQA found what looks like instructions to the AI in it (empty: not held) */
+    aiHold: text('ai_hold').notNull().default(''),
     /** the other universal fields (direction, duration, language, outcome …) and the company's own */
     values: jsonb('values').$type<Record<string, unknown>>().notNull().default({}),
     byId: uuid('by_membership_id'),
@@ -1291,3 +1299,32 @@ export const transcripts = pgTable(
     }).onDelete('cascade'),
   ],
 );
+
+export interface AiReviewRules {
+  /** when an admin confirmed the agents were told (AI reviews run only after it) */
+  announcedAt?: string;
+  announcedBy?: string;
+  /** the channels AI reviews run on (empty or missing: all) */
+  channels?: ('call' | 'chat' | 'email' | 'other')[];
+}
+
+/** One AI answer's proof. */
+export interface AiAnswerProof {
+  /** the exact words of the conversation the answer rests on */
+  quote: string;
+  /** why: for N/A, why the situation never came up */
+  why: string;
+  /** for a No: how to do it better */
+  tip: string;
+}
+export interface AiReviewDetails {
+  provider: string;
+  model: string;
+  promptVersion: string;
+  /** when the scorecard last changed, as it was scored */
+  scorecardUpdatedAt: string;
+  /** per category, per question */
+  proof: AiAnswerProof[][];
+  summary: string;
+  attempt: number;
+}

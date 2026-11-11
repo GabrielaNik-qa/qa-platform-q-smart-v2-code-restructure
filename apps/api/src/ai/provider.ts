@@ -22,6 +22,8 @@ export interface CompletionRequest {
   /** answer in JSON; with a schema when the model follows one strictly */
   json: boolean;
   jsonSchema?: Record<string, unknown>;
+  /** how much a model that thinks before answering may think */
+  effort?: 'low' | 'medium' | 'high';
   signal: AbortSignal;
 }
 

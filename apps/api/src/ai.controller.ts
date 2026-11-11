@@ -110,6 +110,35 @@ export class AiController {
     });
   }
 
+  /**
+   * AI reviews (AutoQA): the admin confirms the agents were told (they start only then; the date and who confirmed
+   * are kept), and chooses the channels they run on (none ticked: all).
+   */
+  @Put('reviews')
+  @Allow('ai.manage')
+  async saveReviewRules(@CurrentMembership() membership: Membership, @Body() body: unknown) {
+    const input = z
+      .object({ announced: z.boolean(), channels: z.array(z.enum(['call', 'chat', 'email', 'other'])).max(4) })
+      .strict()
+      .safeParse(body);
+    if (!input.success) throw badRequest('aiRulesInvalid');
+    return withCompany(this.db, membership.companyId, async (tx) => {
+      const before = (await getAiRules(tx)).reviews;
+      const reviews = {
+        ...(input.data.announced
+          ? {
+              announcedAt: before.announcedAt ?? new Date().toISOString(),
+              announcedBy: before.announcedBy ?? membership.userName,
+            }
+          : {}),
+        channels: [...new Set(input.data.channels)],
+      };
+      await saveAiRules(tx, { reviews });
+      await logActivity(tx, actorOf(membership), { action: 'aiReviewsChanged' });
+      return (await getAiRules(tx)).reviews;
+    });
+  }
+
   /** Connect an AI company, or change its plan, account id, switch or key. */
   @Put('accounts/:provider')
   @Allow('ai.manage')

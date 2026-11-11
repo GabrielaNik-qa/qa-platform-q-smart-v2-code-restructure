@@ -7,6 +7,7 @@ import { Link } from '@tanstack/react-router';
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from './api';
+import { AiReviewBulk, AiReviewPanel, type ScorecardChoice } from './AiReview';
 import { type FieldLists, FieldInput, useFieldNames, useFieldValue } from './Fields';
 import { currentLanguage } from './i18n';
 import {
@@ -35,6 +36,9 @@ interface Row {
   values: Record<string, unknown>;
   hasTranscript: boolean;
   reviewIds: string[];
+  aiReviewed: boolean;
+  aiHold: string;
+  humanScorecardId: string | null;
 }
 interface Full extends Row {
   transcript: string | null;
@@ -108,6 +112,7 @@ export function Conversations({ company }: { company: CompanyRef }) {
   const [open, setOpen] = useState<Full | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [bad, setBad] = useState<string[]>([]);
+  const [scorecards, setScorecards] = useState<ScorecardChoice[]>([]);
   const { message, run, fail } = useAction();
 
   const load = useCallback(() => {
@@ -117,6 +122,7 @@ export function Conversations({ company }: { company: CompanyRef }) {
   useEffect(load, [load]);
   useEffect(() => {
     api<FieldLists>('/fields', company.id).then(setFields, fail);
+    if (writer) api<ScorecardChoice[]>('/scorecards', company.id).then(setScorecards, () => setScorecards([]));
     if (writer || company.role !== 'agent')
       api<PersonRow[]>('/people', company.id)
         .then((p) => setAgents(p.filter((x) => x.role === 'agent' && x.active)))
@@ -533,6 +539,18 @@ export function Conversations({ company }: { company: CompanyRef }) {
                   </div>
                 )}
               </dl>
+              {writer && (
+                <AiReviewPanel
+                  key={open.id}
+                  company={company}
+                  conversation={open}
+                  scorecards={scorecards}
+                  onDone={() => {
+                    load();
+                    void api<Full>(`/conversations/${open.id}`, company.id).then(setOpen, fail);
+                  }}
+                />
+              )}
               {open.customer && (
                 <dl className="grid gap-1.5">
                   <h3 className="text-sm font-semibold">{t('conversations.customerTitle')}</h3>
@@ -543,6 +561,8 @@ export function Conversations({ company }: { company: CompanyRef }) {
           </div>
         </article>
       )}
+
+      {writer && rows && !draft && <AiReviewBulk company={company} rows={rows} scorecards={scorecards} onDone={load} />}
 
       {!rows ? (
         <p className="text-mu">{t('common.loading')}</p>
@@ -591,6 +611,12 @@ export function Conversations({ company }: { company: CompanyRef }) {
                     ) : (
                       <span className="text-mu">-</span>
                     )}
+                    {r.aiReviewed && (
+                      <span className="ml-1 rounded-full bg-ac/15 px-1.5 text-xs" title={t('autoqa.badge')}>
+                        AI
+                      </span>
+                    )}
+                    {r.aiHold && <span className="ml-1 text-xs text-bad">{t('autoqa.heldShort')}</span>}
                   </td>
                 </tr>
               ))}

@@ -116,6 +116,10 @@ export const ERROR_MESSAGES = {
   fieldNotHidden:
     'Hide the field first. A hidden field keeps its values and can come back; only then can it be deleted for good.',
   transcriptDaysInvalid: 'Choose how long transcripts are kept from the list.',
+  aiReviewNoTranscript: 'This conversation has no transcript to review.',
+  aiReviewsNotAnnounced:
+    'AI reviews start only after the agents were told. An admin confirms it in Admin › AI › AI on or off.',
+  aiReviewsChannelOff: 'AI reviews are switched off for this channel (Admin › AI › AI on or off).',
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

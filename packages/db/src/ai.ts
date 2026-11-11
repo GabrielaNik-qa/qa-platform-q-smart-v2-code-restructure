@@ -2,7 +2,7 @@
 // sent to the AI or what it answered: only who, what for, which model, how much and how it went.
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import type { Tx } from './company.js';
-import { aiAccounts, aiCalls, type AiLimits, aiSettings, teams } from './schema.js';
+import { aiAccounts, aiCalls, type AiLimits, type AiReviewRules, aiSettings, teams } from './schema.js';
 
 const thisCompany = sql<string>`app_company()`;
 
@@ -12,6 +12,8 @@ export interface AiRules {
   allowedProviders: string[];
   allowPaid: boolean;
   limits: AiLimits;
+  /** AI reviews (AutoQA): when the agents were told, and the channels */
+  reviews: AiReviewRules;
 }
 /** A company that never changed them: AI on, any allowed AI company, free plans only, no monthly limit. */
 export const DEFAULT_AI_RULES: AiRules = {
@@ -20,6 +22,7 @@ export const DEFAULT_AI_RULES: AiRules = {
   allowedProviders: [],
   allowPaid: false,
   limits: {},
+  reviews: {},
 };
 
 export async function getAiRules(tx: Tx): Promise<AiRules> {

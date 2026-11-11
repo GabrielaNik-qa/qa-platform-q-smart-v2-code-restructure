@@ -47,6 +47,17 @@ export interface ReviewRow {
   reviewerName: string;
   seenAt: string | null;
   reviewSeconds: number | null;
+  /** the conversation it reviewed (Quality › Conversations) */
+  conversationId?: string | null;
+  /** a person's review, or AutoQA's: marked as AI, with its proof */
+  source?: 'human' | 'ai';
+  ai?: {
+    provider: string;
+    model: string;
+    promptVersion: string;
+    proof: { quote: string; why: string; tip: string }[][];
+    summary: string;
+  } | null;
   createdAt: string;
 }
 interface RootCause {

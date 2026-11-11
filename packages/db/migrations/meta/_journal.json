@@ -281,6 +281,20 @@
       "when": 1794404374984,
       "tag": "0039_conversations",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1794412201057,
+      "tag": "0040_ai_reviews_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794412206682,
+      "tag": "0041_ai_reviews",
+      "breakpoints": true
     }
   ]
 }

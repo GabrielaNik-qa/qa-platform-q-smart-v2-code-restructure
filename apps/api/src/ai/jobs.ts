@@ -15,6 +15,8 @@ export interface JobType<T = unknown> {
   maxOutputTokens: number;
   /** how long one model may take before the next is tried */
   maxWaitMs: number;
+  /** how much a model that thinks before answering may think (default: low, the quickest) */
+  effort?: 'low' | 'medium' | 'high';
   /** the lowest test-set score (0-100) a model needs for this job; none: no test set yet */
   minQuality?: number;
   /** the models to choose from, best first (the engine still picks the cheapest that passes everything) */

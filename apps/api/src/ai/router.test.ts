@@ -199,7 +199,7 @@ describe('reading the answer', () => {
   it('accepts JSON, also inside a ```json fence, and refuses anything that does not fit', () => {
     expect(readAnswer('{"reply":"OK"}', schema)).toEqual({ ok: true, data: { reply: 'OK' } });
     expect(readAnswer('```json\n{"reply":"OK"}\n```', schema)).toEqual({ ok: true, data: { reply: 'OK' } });
-    expect(readAnswer('Sure! {"reply":"OK"}', schema)).toEqual({ ok: false });
-    expect(readAnswer('{"answer":"OK"}', schema)).toEqual({ ok: false });
+    expect(readAnswer('Sure! {"reply":"OK"}', schema)).toEqual({ ok: false, problem: 'not JSON' });
+    expect(readAnswer('{"answer":"OK"}', schema)).toEqual({ ok: false, problem: 'reply: invalid_type' });
   });
 });

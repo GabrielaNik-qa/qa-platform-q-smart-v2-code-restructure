@@ -30,7 +30,9 @@ interface Rules {
   allowedProviders: string[];
   allowPaid: boolean;
   limits: { company?: AiLimit; teams?: Record<string, AiLimit> };
+  reviews: { announcedAt?: string; announcedBy?: string; channels?: Channel[] };
 }
+type Channel = 'call' | 'chat' | 'email' | 'other';
 interface Account {
   provider: string;
   plan: 'free' | 'paid';
@@ -752,7 +754,74 @@ export function AiSwitch({ company }: { company: CompanyRef }) {
           <p className="text-xs text-mu">{t('ai.switchLater')}</p>
         </div>
       )}
+      {data && <AiReviewRules company={company} rules={data.rules.reviews} reload={load} />}
       <Notice message={message} />
     </section>
+  );
+}
+
+/** AI reviews (AutoQA): they start only after an admin confirms the agents were told; the channels they run on. */
+function AiReviewRules({
+  company,
+  rules,
+  reload,
+}: {
+  company: CompanyRef;
+  rules: Rules['reviews'];
+  reload: () => void;
+}) {
+  const { t } = useTranslation();
+  const lang = currentLanguage();
+  const [announced, setAnnounced] = useState(!!rules.announcedAt);
+  const [channels, setChannels] = useState<string[]>(rules.channels ?? []);
+  const { message, run } = useAction();
+  return (
+    <form
+      className={`${card} grid gap-3`}
+      aria-labelledby="ai-reviews-title"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void run(
+          () => api('/ai/reviews', company.id, { method: 'PUT', body: { announced, channels } }),
+          t('autoqa.rulesSaved'),
+          reload,
+        );
+      }}
+    >
+      <h2 id="ai-reviews-title" className="text-lg font-semibold">
+        {t('autoqa.rulesTitle')}
+      </h2>
+      <p className="text-sm text-mu">{t('autoqa.rulesIntro')}</p>
+      <p className={`text-sm font-semibold ${rules.announcedAt ? 'text-ok' : 'text-bad'}`}>
+        {rules.announcedAt
+          ? t('autoqa.announced', { when: when(rules.announcedAt, lang), name: rules.announcedBy ?? '' })
+          : t('autoqa.notAnnounced')}
+      </p>
+      <label className="inline-flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="accent-[var(--brand)]"
+          checked={announced}
+          onChange={(e) => setAnnounced(e.target.checked)}
+        />
+        {t('autoqa.announce')}
+      </label>
+      <CheckList
+        legend={t('autoqa.channels')}
+        options={(['call', 'chat', 'email', 'other'] as const).map((c) => ({
+          id: c,
+          label: t(`cfields.options.channel.${c}`),
+        }))}
+        value={channels}
+        onChange={setChannels}
+      />
+      <p className="text-xs text-mu">{t('autoqa.channelsHelp')}</p>
+      <div>
+        <button type="submit" className={primaryButton}>
+          {t('common.save')}
+        </button>
+      </div>
+      <Notice message={message} />
+    </form>
   );
 }
