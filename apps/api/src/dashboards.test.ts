@@ -54,7 +54,7 @@ const call = (method: 'GET' | 'PUT' | 'DELETE', url: string, who: string, payloa
     headers: { authorization: `Bearer ${who}`, 'x-company-id': company[at] ?? '' },
     ...(payload ? { payload } : {}),
   });
-type Shared = { id: string; name: string; roles: string[]; byName: string };
+type Shared = { id: string; name: string; roles: string[]; byName: string; items: string[] };
 const list = async (who: string, at = DEMO_COMPANY) =>
   (await call('GET', '/api/dashboards', who, undefined, at)).json<{
     shared: Shared[];
@@ -133,6 +133,28 @@ describe('Personalize', () => {
     expect(me.prefs.dashboards).toEqual(mine.dashboards);
     const bad = { dashboards: { [company[DEMO_COMPANY] ?? '']: { home: ['DROP TABLE'] } } };
     expect((await call('PUT', '/api/me/prefs', 'lead', bad)).statusCode).toBe(400);
+  });
+
+  it('keeps a dashboard an admin arranged by hand (widths and heights), and refuses impossible sizes', async () => {
+    const items = ['heat@30x400', 'kpi_avg@15', 'qtime@60'];
+    const saved = await call('PUT', '/api/dashboards/shared/arranged', 'admin', {
+      name: 'Arranged',
+      items,
+      roles: ['lead'],
+    });
+    expect(saved.statusCode).toBe(200);
+    expect((await list('lead')).shared.find((d) => d.id === 'arranged')?.items).toEqual(items);
+    for (const bad of ['heat@3', 'heat@61', 'heat@30x50', 'heat@30x9999', 'heat@'])
+      expect(
+        (
+          await call('PUT', '/api/dashboards/shared/arranged', 'admin', {
+            name: 'Arranged',
+            items: [bad],
+            roles: ['lead'],
+          })
+        ).statusCode,
+        bad,
+      ).toBe(400);
   });
 
   it("never shows another company's dashboards", async () => {

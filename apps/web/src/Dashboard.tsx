@@ -38,6 +38,8 @@ import { currentLanguage } from './i18n';
 import type { PassRates, ReviewRow } from './QAEntry';
 import type { QuickFlag } from './QuickFlags';
 import { type MyDashboards, useSession } from './session';
+import type { Goal } from './Goals';
+import type { Kudos } from './Recognition';
 import { planOf, type WidgetContext, WIDGETS } from './widgets';
 import {
   card,
@@ -111,6 +113,8 @@ const WORD = [
   'qflags',
   'targets',
   'planner',
+  'goals',
+  'kudos',
 ];
 /** today's width of each widget, of 60 columns */
 const WIDTH: Record<WidgetId, number> = {
@@ -134,11 +138,40 @@ export const DEFAULTS: Record<string, string[]> = {
 };
 const isWidget = (id: string): boolean => ORDER.includes(id);
 
+/** One widget of a saved dashboard: "heat", or arranged by an admin "heat@30" or "heat@30x400" (width, height). */
+export function parseItem(item: string): { id: WidgetId; size?: number; h?: number } {
+  const [id = '', rest] = item.split('@');
+  const m = rest ? /^(\d{1,2})(?:x(\d{2,4}))?$/.exec(rest) : null;
+  return { id, ...(m?.[1] ? { size: Number(m[1]) } : {}), ...(m?.[2] ? { h: Number(m[2]) } : {}) };
+}
+/** Arranged by an admin: the dashboard keeps its own order and sizes. */
+export const isArranged = (items: string[]) => items.some((x) => x.includes('@'));
+/** The widgets' names, without their sizes. */
+export const itemIds = (items: string[]) => items.map((x) => parseItem(x).id);
+/** A widget switched on or off: on an arranged dashboard it comes last, at its preset width (as today). */
+export const toggleItem = (items: string[], id: WidgetId, on: boolean): string[] => {
+  const rest = items.filter((x) => parseItem(x).id !== id);
+  if (!on) return isArranged(items) ? rest : ordered(rest);
+  return isArranged(items) ? [...rest, `${id}@${WIDTH[id] ?? 30}`] : ordered([...rest, id]);
+};
+/** The dashboard as it is shown, fixed: the first move or resize keeps every widget's place and width. */
+export const arrangedOf = (items: string[]): string[] =>
+  pack(ordered(items)).map((x) => {
+    const p = parseItem(x.id);
+    return `${p.id}@${x.span}${p.h ? `x${p.h}` : ''}`;
+  });
+
 /**
  * Today's layout: a run of number tiles takes the fewest rows of at most five, as even as possible; other cards fill
  * their row (each grows in proportion, so no row has an empty end). Returns each widget's width of 60 columns.
  */
-export function pack(ids: WidgetId[]): { id: WidgetId; span: number }[] {
+export function pack(ids: WidgetId[]): { id: WidgetId; span: number; h?: number }[] {
+  // arranged by an admin: each widget keeps its own width (and height)
+  if (isArranged(ids))
+    return ids.map((x) => {
+      const p = parseItem(x);
+      return { id: x, span: Math.max(6, Math.min(60, p.size ?? WIDTH[p.id] ?? 30)), ...(p.h ? { h: p.h } : {}) };
+    });
   const out: { id: WidgetId; span: number }[] = [];
   const fill = (row: { id: WidgetId; w: number }[]) => {
     const total = row.reduce((a, x) => a + x.w, 0);
@@ -212,6 +245,7 @@ export function Board({
   base,
   grouping,
   personalize = true,
+  arrange,
 }: {
   company: CompanyRef;
   /** the widgets, in today's order */
@@ -220,6 +254,8 @@ export function Board({
   grouping: Grouping;
   /** the "Personalize" button (not on the Personalize page itself) */
   personalize?: boolean;
+  /** an admin arranging the dashboard by hand (Home › Personalize): every change is saved at once */
+  arrange?: (items: string[]) => void;
 }) {
   const { t } = useTranslation();
   const lang = currentLanguage();
@@ -235,6 +271,8 @@ export function Board({
   const [scorecards, setScorecards] = useState<{ id: string; name: string }[]>([]);
   const [workspaces, setWorkspaces] = useState<WorkspaceRow[]>([]);
   const [plan, setPlan] = useState<PlannerSettings | null>(null);
+  const [goals, setGoals] = useState<Goal[] | null>(null);
+  const [kudos, setKudos] = useState<Kudos[] | null>(null);
   const [filters, setFilters] = useState<Filters>({ ...NO_FILTERS, from: daysAgo(30), to: daysAgo(0) });
   const [added, setAdded] = useState<FilterKey[]>([]);
   const [menu, setMenu] = useState(false);
@@ -253,8 +291,10 @@ export function Board({
       can(company.role, 'planner.read')
         ? api<PlannerSettings>('/planner', company.id).catch(() => null)
         : Promise.resolve(null),
+      api<Goal[]>(`/goals?month=${new Date().toLocaleDateString('sv-SE').slice(0, 7)}`, company.id).catch(() => null),
+      api<Kudos[]>('/kudos', company.id).catch(() => null),
     ]).then(
-      ([r, pr, f, d, tm, ppl, sc, ws, pl]) => {
+      ([r, pr, f, d, tm, ppl, sc, ws, pl, gl, kd]) => {
         setNow(Date.now());
         setReviews(r);
         setRates(pr);
@@ -265,6 +305,8 @@ export function Board({
         setScorecards(sc);
         setWorkspaces(ws);
         setPlan(pl);
+        setGoals(gl);
+        setKudos(kd);
       },
       () => setReviews([]),
     );
@@ -416,6 +458,8 @@ export function Board({
     now,
     plan,
     reviews: all,
+    goals,
+    kudos,
   };
   const widget = (id: WidgetId, span: number): ReactNode => {
     const more = WIDGETS[id];
@@ -714,15 +758,25 @@ export function Board({
         // is narrower than 42rem, number tiles take half the width and the other cards all of it
         <div className="@container">
           <div className="-mx-[7px] grid grid-cols-60 gap-y-3.5">
-            {pack(ids).map(({ id, span }) => (
-              <div
-                key={id}
-                className="min-w-0 px-[7px] [grid-column:span_var(--sp)/span_var(--sp)] @max-2xl:[grid-column:span_var(--spm)/span_var(--spm)]"
-                style={{ '--sp': span, '--spm': (WIDTH[id] ?? 30) <= 15 ? 30 : 60 } as React.CSSProperties}
-              >
-                {widget(id, span)}
-              </div>
-            ))}
+            {pack(ids).map(({ id: item, span, h }, index) => {
+              const id = parseItem(item).id;
+              return (
+                <div
+                  key={item}
+                  className={`relative min-w-0 px-[7px] [grid-column:span_var(--sp)/span_var(--sp)] @max-2xl:[grid-column:span_var(--spm)/span_var(--spm)] ${h ? '[&>*:first-child]:h-full [&>*:first-child]:overflow-auto' : ''}`}
+                  style={
+                    {
+                      '--sp': span,
+                      '--spm': (WIDTH[id] ?? 30) <= 15 ? 30 : 60,
+                      ...(h ? { height: h } : {}),
+                    } as React.CSSProperties
+                  }
+                >
+                  {widget(id, span)}
+                  {arrange && <Handles items={ids} index={index} onChange={arrange} />}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -781,8 +835,18 @@ export const TEMPLATES: { id: string; items: string[] }[] = [
   { id: 't-learn', items: ['learn_prog', 'needs', 'cat0', 'strong', 'todo'] },
 ];
 /** The widgets of a list that exist so far, in today's order on the page. */
-export const ordered = (items: string[]) =>
-  [...new Set(items)].filter(isWidget).sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+export const ordered = (items: string[]): string[] => {
+  if (isArranged(items)) {
+    const seen = new Set<string>();
+    return items.filter((x) => {
+      const { id } = parseItem(x);
+      if (!isWidget(id) || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }
+  return [...new Set(items)].filter(isWidget).sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+};
 /** Every widget built so far, in today's order (Home › Personalize › Display). */
 export const ALL_WIDGETS = ORDER;
 /** A widget's group in Home › Personalize › Display. */
@@ -844,5 +908,154 @@ export function Dashboard({ company }: { company: CompanyRef }) {
         />
       )}
     </section>
+  );
+}
+
+/**
+ * Today's arranging handles (admins, in Home › Personalize): drag ⠿ onto another widget to move it there, drag the right
+ * or bottom edge to resize it (double-click the edge: automatic height), ✕ hides it. The small buttons do the same with
+ * the keyboard. The first change fixes the dashboard as it is shown; every change is saved at once.
+ */
+function Handles({ items, index, onChange }: { items: string[]; index: number; onChange: (items: string[]) => void }) {
+  const { t } = useTranslation();
+  const fixed = isArranged(items) ? items : arrangedOf(items);
+  const me = parseItem(fixed[index] ?? '');
+  const width = me.size ?? 30;
+  const write = (next: { id: string; size?: number; h?: number }[]) =>
+    onChange(next.map((x) => `${x.id}@${x.size ?? 30}${x.h ? `x${x.h}` : ''}`));
+  const all = fixed.map(parseItem);
+  const move = (to: number) => {
+    if (to < 0 || to >= all.length || to === index) return;
+    const next = [...all];
+    const [x] = next.splice(index, 1);
+    if (x) next.splice(to, 0, x);
+    write(next);
+  };
+  const resize = (size: number, h?: number) =>
+    write(
+      all.map((x, i) => (i === index ? { id: x.id, size: Math.max(6, Math.min(60, size)), ...(h ? { h } : {}) } : x)),
+    );
+  const drag = (e: React.PointerEvent<HTMLElement>, mode: 'x' | 'y' | 'xy') => {
+    if (e.button) return;
+    e.preventDefault();
+    const cell = e.currentTarget.parentElement;
+    const grid = cell?.parentElement;
+    if (!cell || !grid) return;
+    const column = grid.clientWidth / 60;
+    const box = cell.getBoundingClientRect();
+    const x0 = e.clientX;
+    const y0 = e.clientY;
+    let size = width;
+    let h = me.h ?? 0;
+    const onMove = (ev: PointerEvent) => {
+      if (mode !== 'y' && Math.abs(ev.clientX - x0) > 6) {
+        size = Math.max(6, Math.min(60, Math.round((box.width + ev.clientX - x0) / column)));
+        cell.style.setProperty('--sp', String(size));
+      }
+      if (mode !== 'x' && Math.abs(ev.clientY - y0) > 6) {
+        h = Math.max(90, Math.min(1400, Math.round((box.height + ev.clientY - y0) / 10) * 10));
+        cell.style.height = `${h}px`;
+      }
+    };
+    const onUp = () => {
+      removeEventListener('pointermove', onMove);
+      removeEventListener('pointerup', onUp);
+      if (size !== width || h !== (me.h ?? 0)) resize(size, h || undefined);
+    };
+    addEventListener('pointermove', onMove);
+    addEventListener('pointerup', onUp);
+  };
+  const small = 'grid size-6 place-items-center rounded-s border border-bd bg-pn text-xs hover:border-tx';
+  const label = (key: string) => t(`pers.arrange.${key}`);
+  return (
+    <>
+      <div
+        className="absolute inset-0 mx-[7px] rounded-m outline-2 outline-dashed outline-ac/60"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          const from = Number(e.dataTransfer.getData('text/plain'));
+          if (Number.isInteger(from) && from !== index) {
+            const next = [...all];
+            const [x] = next.splice(from, 1);
+            if (x) next.splice(index, 0, x);
+            write(next);
+          }
+        }}
+      />
+      <div className="absolute right-3 top-1 z-10 flex gap-1">
+        <span
+          draggable
+          role="img"
+          aria-label={label('drag')}
+          title={label('drag')}
+          className={`${small} cursor-grab`}
+          onDragStart={(e) => {
+            e.dataTransfer.setData('text/plain', String(index));
+            e.dataTransfer.effectAllowed = 'move';
+          }}
+        >
+          ⠿
+        </span>
+        <button
+          type="button"
+          className={small}
+          aria-label={label('earlier')}
+          title={label('earlier')}
+          onClick={() => move(index - 1)}
+        >
+          ◀
+        </button>
+        <button
+          type="button"
+          className={small}
+          aria-label={label('later')}
+          title={label('later')}
+          onClick={() => move(index + 1)}
+        >
+          ▶
+        </button>
+        <button
+          type="button"
+          className={small}
+          aria-label={label('narrower')}
+          title={label('narrower')}
+          onClick={() => resize(width - 5, me.h)}
+        >
+          −
+        </button>
+        <button
+          type="button"
+          className={small}
+          aria-label={label('wider')}
+          title={label('wider')}
+          onClick={() => resize(width + 5, me.h)}
+        >
+          +
+        </button>
+        <button
+          type="button"
+          className={`${small} text-bad`}
+          aria-label={label('hide')}
+          title={label('hide')}
+          onClick={() => write(all.filter((_, i) => i !== index))}
+        >
+          ✕
+        </button>
+      </div>
+      <i
+        aria-hidden="true"
+        title={label('width')}
+        className="absolute right-[3px] top-4 bottom-4 z-10 w-2 cursor-ew-resize rounded-full bg-ac/40 hover:bg-ac"
+        onPointerDown={(e) => drag(e, 'x')}
+      />
+      <i
+        aria-hidden="true"
+        title={label('height')}
+        className="absolute bottom-[-6px] left-6 right-6 z-10 h-2 cursor-ns-resize rounded-full bg-ac/40 hover:bg-ac"
+        onPointerDown={(e) => drag(e, 'y')}
+        onDoubleClick={() => resize(width)}
+      />
+    </>
   );
 }

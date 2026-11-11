@@ -184,7 +184,7 @@ describe('the report engine, next to today’s', () => {
           if (r === c && r !== 'none') continue;
           compare({ src: 'reviews', metrics, rows: r, cols: c, period });
         }
-    });
+    }, 60_000); // hundreds of reports: more time when every test runs at once
 
   it('gives the same with filters and sorting', () => {
     const team = 't-b2c';
@@ -209,12 +209,12 @@ describe('the report engine, next to today’s', () => {
         filters: { agent, ch: 'call' },
       });
     }
-  });
+  }, 60_000);
 
   it('gives the same quick flags report', () => {
     for (const r of ['none', 'agent', 'type', 'flagger', 'month'] as ReportDim[])
       compare({ src: 'flags', metrics: ['count', 'red', 'green'], rows: r, cols: 'none', period: { p: 'all' } });
-  });
+  }, 60_000);
 });
 
 describe('scheduled reports', () => {

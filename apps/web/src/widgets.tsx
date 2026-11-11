@@ -38,6 +38,8 @@ import {
 } from './bits';
 import { CategoryDots, Donut } from './charts';
 import type { Dispute } from './Disputes';
+import { type Goal, goalValue, STATE_LOOK } from './Goals';
+import type { Kudos } from './Recognition';
 import type { PassRates, ReviewRow } from './QAEntry';
 import type { QuickFlag } from './QuickFlags';
 import { card, type PersonRow, type TeamRow, type WorkspaceRow } from './ui';
@@ -65,6 +67,9 @@ export interface WidgetContext {
   /** the review plan (staff), and every review the person may see, scored or not (the plan counts every review) */
   plan: PlannerSettings | null;
   reviews: ReviewRow[];
+  /** this month's goals and the kudos, as far as the person may read them (null: not loaded or not allowed) */
+  goals: Goal[] | null;
+  kudos: Kudos[] | null;
 }
 
 const pct1 = (v: number) => `${v.toFixed(1)}%`;
@@ -931,6 +936,72 @@ function PlanWidget({ c }: { c: WidgetContext }) {
   );
 }
 
+/** Goals this month (today's `goals` widget): each goal's value against its target, with its bar. */
+function GoalsWidget({ c }: { c: WidgetContext }) {
+  const { t } = useTranslation();
+  const list = (c.goals ?? []).slice(0, 6);
+  return (
+    <W id="goals">
+      {list.length ? (
+        list.map((g) => (
+          <Link
+            key={g.id}
+            to="/$app/$page"
+            params={{ app: 'quality', page: 'goals-and-kpis' }}
+            className="grid gap-1 rounded-s py-1 text-sm hover:bg-pn2"
+          >
+            <span className="flex justify-between gap-2">
+              <span>
+                {g.title || t(`goals.metrics.${g.metric}`)}{' '}
+                <small className="text-mu">{g.scope === 'all' ? t('goals.everyone') : g.targetName}</small>
+              </span>
+              <span className="flex items-center gap-2">
+                <span className={`rounded-full px-2 text-xs font-semibold ${STATE_LOOK[g.state]}`}>
+                  {t(`goals.states.${g.state}`)}
+                </span>
+                <b className="font-mono">
+                  {goalValue(g, g.progress)} / {goalValue(g, g.value)}
+                </b>
+              </span>
+            </span>
+            <Bar value={g.pct} tone={g.state === 'met' ? 'ok' : g.state === 'missed' ? 'bad' : 'mu'} />
+          </Link>
+        ))
+      ) : (
+        <Empty>{t('widgets.goals.none')}</Empty>
+      )}
+    </W>
+  );
+}
+
+/** Latest kudos (today's `kudos` widget): the newest thank-you messages. */
+function KudosWidget({ c }: { c: WidgetContext }) {
+  const { t } = useTranslation();
+  const list = (c.kudos ?? []).slice(0, 5);
+  return (
+    <W id="kudos">
+      {list.length ? (
+        <ul className="grid">
+          {list.map((k) => (
+            <li key={k.id} className="flex gap-2 border-t border-bd py-1.5 text-sm first:border-t-0">
+              <span aria-hidden="true">{k.badge}</span>
+              <span className="grid">
+                <span>
+                  {c.agentView ? <b>{k.toName}</b> : <AgentLink id={k.toId} name={k.toName} />}{' '}
+                  <small className="text-mu">{t('widgets.kudos.from', { name: k.byName })}</small>
+                </span>
+                <small className="text-mu">{k.text.slice(0, 70)}</small>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <Empty>{t('widgets.kudos.none')}</Empty>
+      )}
+    </W>
+  );
+}
+
 function NeedsYou({ c }: { c: WidgetContext }) {
   const { t } = useTranslation();
   const items: { key: string; tone: string; text: string; to: ReactNode }[] = [];
@@ -1132,4 +1203,6 @@ export const WIDGETS: Record<string, WidgetSpec> = {
   qflags: { width: 30, group: 'Lists', render: (c) => <QuickFlagList c={c} /> },
   targets: { width: 30, group: 'Numbers', render: (c) => <Targets c={c} /> },
   planner: { width: 30, group: 'Work', render: (c) => <PlanWidget c={c} /> },
+  goals: { width: 30, group: 'Performance', render: (c) => <GoalsWidget c={c} /> },
+  kudos: { width: 30, group: 'Performance', render: (c) => <KudosWidget c={c} /> },
 };

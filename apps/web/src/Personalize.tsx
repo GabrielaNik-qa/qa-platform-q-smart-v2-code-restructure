@@ -18,6 +18,9 @@ import {
   type CompanyDashboards,
   DEFAULTS,
   groupOf,
+  isArranged,
+  itemIds,
+  toggleItem,
   homeOf,
   ordered,
   pack,
@@ -47,6 +50,8 @@ export function Personalize({ company }: { company: CompanyRef }) {
   const [myId, setMyId] = useState<string | null>(null);
   const [selected, setSelected] = useState('home');
   const [display, setDisplay] = useState(false);
+  /** an admin arranging the selected dashboard by hand */
+  const [arranging, setArranging] = useState(false);
   const [viewAs, setViewAs] = useState<Role | ''>('');
   const [naming, setNaming] = useState<{ mode: 'new' | 'copy' | 'rename'; name: string; from?: View } | null>(null);
   const { message, run, fail } = useAction();
@@ -259,6 +264,26 @@ export function Personalize({ company }: { company: CompanyRef }) {
             <button type="button" className={primaryButton} onClick={() => setDisplay(true)}>
               {t('pers.display')}
             </button>
+            {admin && editable && (
+              <button
+                type="button"
+                className={smallButton}
+                aria-pressed={arranging}
+                onClick={() => setArranging(!arranging)}
+              >
+                ✎ {arranging ? t('pers.arrange.done') : t('pers.arrange.start')}
+              </button>
+            )}
+            {admin && editable && isArranged(view.items) && (
+              <button
+                type="button"
+                className={smallButton}
+                title={t('pers.arrange.autoHelp')}
+                onClick={() => void setItems(ordered(itemIds(view.items)))}
+              >
+                {t('pers.arrange.auto')}
+              </button>
+            )}
             {view.kind !== 'home' && (
               <button
                 type="button"
@@ -310,12 +335,16 @@ export function Personalize({ company }: { company: CompanyRef }) {
             )}
           </div>
         </div>
+        {arranging && admin && editable && (
+          <p className="rounded-s bg-ac/10 px-3 py-2 text-sm">{t('pers.arrange.note')}</p>
+        )}
         <Board
           company={company}
           ids={ordered(view.items)}
           base={mine.base ?? 'conversation'}
           grouping={mine.grouping ?? 'week'}
           personalize={false}
+          {...(arranging && admin && editable ? { arrange: (items: string[]) => void setItems(items) } : {})}
         />
       </section>
 
@@ -392,12 +421,8 @@ export function Personalize({ company }: { company: CompanyRef }) {
                         role="switch"
                         className="accent-[var(--brand)]"
                         disabled={!editable}
-                        checked={view.items.includes(id)}
-                        onChange={(e) =>
-                          void setItems(
-                            ordered(e.target.checked ? [...view.items, id] : view.items.filter((x) => x !== id)),
-                          )
-                        }
+                        checked={itemIds(view.items).includes(id)}
+                        onChange={(e) => void setItems(toggleItem(view.items, id, e.target.checked))}
                       />
                       {widgetTitle(t, id)}
                     </label>
@@ -491,13 +516,13 @@ function Thumbnail({ items }: { items: string[] }) {
 type T = (key: string, options?: Record<string, unknown>) => string;
 /** A widget's name and explanation: the number tiles and charts of step 1 keep theirs under "dash", the others under "widgets". */
 const widgetTitle = (t: T, id: string) =>
-  id.startsWith('kpi_')
+  id.startsWith('kpi_') || id === 'plan_kpi'
     ? t(`dash.tiles.${id}.title`)
     : id === 'qtime' || id === 'cattime'
       ? t(`dash.charts.${id}`)
       : t(`widgets.${id}.title`);
 const widgetHelp = (t: T, id: string) =>
-  id.startsWith('kpi_')
+  id.startsWith('kpi_') || id === 'plan_kpi'
     ? t(`dash.tiles.${id}.help`)
     : id === 'qtime' || id === 'cattime'
       ? t(`dash.charts.${id}Help`)

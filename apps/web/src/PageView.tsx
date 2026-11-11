@@ -12,6 +12,7 @@ import { CategoryStats } from './CategoryStats';
 import { Dashboard } from './Dashboard';
 import { Disputes } from './Disputes';
 import { ExportCentre } from './ExportCentre';
+import { GettingStarted } from './GettingStarted';
 import { Goals } from './Goals';
 import { ImprovementPlans } from './ImprovementPlans';
 import { People } from './People';
@@ -51,6 +52,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'admin/scorecards': (company) => <Scorecards company={company} />,
   'quality/dashboard': (company) => <Dashboard company={company} />,
   'quality/personalize': (company) => <Personalize company={company} />,
+  'quality/getting-started': (company) => <GettingStarted company={company} />,
   'quality/qa-entry': (company) => <QAEntry company={company} />,
   'quality/reviews': (company) => <Reviews company={company} />,
   'quality/disputes': (company) => <Disputes company={company} />,
