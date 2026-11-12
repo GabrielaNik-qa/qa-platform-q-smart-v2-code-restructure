@@ -35,6 +35,8 @@ export interface PageSearch {
   /** QA Entry: review this conversation (AutoQA's sample), with this scorecard */
   conversation?: string;
   scorecard?: string;
+  /** Tasks: the card to open (the bell's links) */
+  task?: string;
 }
 const pick = (v: unknown) => (typeof v === 'string' && v.length <= 64 ? v : undefined);
 const page = createRoute({
@@ -53,6 +55,8 @@ const page = createRoute({
     if (conversation) out.conversation = conversation;
     const scorecard = pick(search.scorecard);
     if (scorecard) out.scorecard = scorecard;
+    const task = pick(search.task);
+    if (task) out.task = task;
     return out;
   },
 });

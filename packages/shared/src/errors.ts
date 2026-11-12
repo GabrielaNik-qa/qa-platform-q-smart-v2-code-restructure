@@ -127,6 +127,10 @@ export const ERROR_MESSAGES = {
   notAiReview: 'Only the answers of an AI review can be marked "not what I said". Dispute this review instead.',
   markInvalid: 'This answer is not on the review any more. Reload the page.',
   marksUndecided: 'Choose the right answer for every answer the agent marked "not what I said".',
+  taskInvalid:
+    'Check the task: a title (up to 150 characters), a start date before the deadline, up to 30 checklist lines and 8 labels.',
+  taskNobody: 'Choose at least one person or team to give the task to (from your workspaces).',
+  taskNotFound: 'This task no longer exists, or you cannot see it.',
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

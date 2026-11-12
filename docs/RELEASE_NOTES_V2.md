@@ -2,6 +2,18 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
+## Phase 4 (Coaching & Tasks): in progress on branch `v2-phase-4`
+
+- **Step 1: Tasks, the board** (Quality › Tasks, everyone; today's My Tasks):
+  - **Admins, reviewers, team leads and trainers give tasks and targets** to people and whole teams of their workspaces (admins: everyone). Each person gets their own card and is told in the bell; a whole team means each of its active agents. A card has a title, description, type (task or target), priority, points, start date and deadline, a checklist with the minutes each line should take, labels, a colour and a category.
+  - **The board:** To Do, In Progress, In review and Done. Drag a card to move it, or tick its checklist: the first tick starts it, the last finishes it. Pinned cards come first, then by deadline; late ones show in red. Filters: the person (staff), what to show (all, to do, active, done, overdue), search, and the archived cards.
+  - **"Needs review":** when the person finishes such a card, it waits In review and the one who gave it is told; someone who gives tasks approves it (Done) or sends it back with a comment, and the person is told either way.
+  - **A card, opened:** its dates (given, start, deadline, started, sent for review, done, and "on time" or "late"), its checklist, what can be done with it, and its history (given, started, sent for review, sent back with the comment, approved, deadline moved, given to someone else, archived). The bell's links open the card.
+  - **Who changes what:** the person moves, ticks, pins and archives their own cards; the ones who give tasks change the rest, give a card to someone else, and delete it (with the question first). Agents never give tasks. Giving and deleting go into the activity log.
+  - **The company wall:** a new `tasks` table with its own wall, today's limits in the database too, and the server may never change who gave a task or when. A test tries to reach another company's tasks.
+  - **Checked in the browser:** the reviewer gave Alex Agent a task with 3 checklist lines and "needs review"; Alex ticked them (In Progress, then In review); the reviewer opened it from the bell and sent it back with a comment; Alex finished it again, and the reviewer approved it by dragging it to Done. Admin and team lead see it; the trainer doesn't, because the trainer's workspaces don't include Alex's team (the same rule as reviews). Checked in Bulgarian too.
+  - 7 new automatic tests; 317 pass.
+
 ## 12 November 2026: Phase 3b (AutoQA, first version), finished (tag `v2-phase-3b`)
 
 Built on 11 and 12 November on branch `v2-phase-3b`. Every step was checked in the browser as admin, reviewer, team lead, trainer and agent, and in English and Bulgarian; the automatic tests check that every French text is there too. 310 automatic tests pass.

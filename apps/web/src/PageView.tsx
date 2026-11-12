@@ -36,6 +36,7 @@ import { SavedReports } from './SavedReports';
 import { Scorecards } from './Scorecards';
 import { useSession } from './session';
 import { Skills } from './Skills';
+import { Tasks } from './Tasks';
 import { TeamReview } from './TeamReview';
 import { TopicDashboards } from './TopicDashboards';
 import { Teams } from './Teams';
@@ -70,6 +71,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'quality/topic-dashboards': (company) => <TopicDashboards company={company} />,
   'quality/goals-and-kpis': (company) => <Goals company={company} />,
   'quality/improvement-plans': (company) => <ImprovementPlans company={company} />,
+  'quality/tasks': (company) => <Tasks company={company} />,
   'quality/recognition': (company) => <Recognition company={company} />,
   'quality/review-planner': (company) => <Planner company={company} />,
   'quality/qa-workload': (company) => <Workload company={company} />,

@@ -38,6 +38,7 @@ import { AI_ENGINE, DB, MASTER_KEY, TOKEN_VERIFIER } from './tokens.js';
 import { AiController } from './ai.controller.js';
 import { AutoqaController } from './autoqa.controller.js';
 import { MAX_RECORDING_BYTES, RECORDING_TYPES, SpeechController } from './speech.controller.js';
+import { TasksController } from './tasks.controller.js';
 import { AutoqaPageController } from './autoqa-page.controller.js';
 import { autoqaQualities, TestSetController } from './test-set.controller.js';
 import { storedAccounts } from './ai/accounts.js';
@@ -97,6 +98,7 @@ export class AppModule {
         TranscriptDaysController,
         AutoqaController,
         SpeechController,
+        TasksController,
         AutoqaPageController,
         TestSetController,
       ],

@@ -33,6 +33,7 @@ export const BUILT = new Set([
   'quality/topic-dashboards',
   'quality/goals-and-kpis',
   'quality/improvement-plans',
+  'quality/tasks',
   'quality/recognition',
   'quality/review-planner',
   'quality/qa-workload',

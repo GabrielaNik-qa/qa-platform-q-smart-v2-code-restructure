@@ -1450,3 +1450,101 @@ export const aiTestRuns = pgTable(
     }).onDelete('cascade'),
   ],
 );
+
+// ---------------------------------------------------------------------------------------------- Phase 4: tasks
+
+export const taskStatus = pgEnum('task_status', ['todo', 'doing', 'review', 'done']);
+export const taskPriority = pgEnum('task_priority', ['low', 'med', 'high']);
+/** a task, or a target (today's "mission": it earns points) */
+export const taskKind = pgEnum('task_kind', ['task', 'target']);
+
+/** One line of a task's checklist, with the minutes it should take (0: not said). */
+export interface TaskStep {
+  text: string;
+  minutes: number;
+  done: boolean;
+}
+/** What happened to a task (today: up to 60, oldest dropped), in the order it happened. */
+export interface TaskEvent {
+  at: string;
+  byName: string;
+  action:
+    | 'given'
+    | 'started'
+    | 'todo'
+    | 'review'
+    | 'approved'
+    | 'returned'
+    | 'done'
+    | 'assigned'
+    | 'due'
+    | 'archived'
+    | 'restored';
+  note?: string;
+}
+
+/**
+ * A task or target given to one person (today's Tasks): its checklist, dates, status and history. A task given to
+ * several people at once is one row per person, sharing a group id. Its person's team is kept for the workspace reach.
+ */
+export const tasks = pgTable(
+  'tasks',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    /** the tasks given together (to several people at once) */
+    groupId: uuid('group_id').notNull(),
+    title: text('title').notNull(),
+    description: text('description').notNull().default(''),
+    kind: taskKind('kind').notNull().default('task'),
+    priority: taskPriority('priority').notNull().default('med'),
+    points: integer('points').notNull().default(0),
+    startOn: date('start_on'),
+    dueOn: date('due_on'),
+    status: taskStatus('status').notNull().default('todo'),
+    /** "needs review": the person's "done" waits in In review until someone checks it */
+    needsReview: boolean('needs_review').notNull().default(false),
+    assigneeId: uuid('assignee_membership_id'),
+    assigneeName: text('assignee_name').notNull(),
+    teamId: uuid('team_id'),
+    teamName: text('team_name').notNull().default(''),
+    steps: jsonb('steps').$type<TaskStep[]>().notNull().default([]),
+    labels: jsonb('labels').$type<string[]>().notNull().default([]),
+    /** #rrggbb, or empty */
+    colour: text('colour').notNull().default(''),
+    category: text('category').notNull().default(''),
+    pinned: boolean('pinned').notNull().default(false),
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    /** when it was last sent for review */
+    sentAt: timestamp('sent_at', { withTimezone: true }),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    history: jsonb('history').$type<TaskEvent[]>().notNull().default([]),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('tasks_company_due').on(t.companyId, t.dueOn),
+    index('tasks_assignee').on(t.assigneeId),
+    index('tasks_group').on(t.groupId),
+    foreignKey({
+      name: 'tasks_assignee_same_company',
+      columns: [t.assigneeId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'tasks_team_same_company',
+      columns: [t.teamId, t.companyId],
+      foreignColumns: [teams.id, teams.companyId],
+    }),
+    foreignKey({
+      name: 'tasks_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
