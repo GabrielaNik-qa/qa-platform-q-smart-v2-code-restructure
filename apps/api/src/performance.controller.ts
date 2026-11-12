@@ -26,6 +26,7 @@ import {
   listPeople,
   listPlans,
   listQuickFlags,
+  listTasks,
   listReviews,
   listTeams,
   logActivity,
@@ -44,6 +45,7 @@ import {
   goalState,
   isPass,
   leaderboardPoints,
+  monthTaskPoints,
   monthOf,
   passRateOf,
   type Scope,
@@ -396,7 +398,8 @@ export class KudosController {
 
   /**
    * This month's leaderboard (today's `kudosBoard`): every active agent with their kudos, green flags (on reviews and
-   * quick flags), average (from 3 reviews) and points, best first.
+   * quick flags), Task XP (the points of the tasks they finished this month), average (from 3 reviews) and points, best
+   * first.
    */
   @Get('board')
   @Allow('recognition.read')
@@ -410,6 +413,8 @@ export class KudosController {
       const flags = await listQuickFlags(tx, { all: true });
       const kudos = await listKudos(tx);
       const rates = await passRates(tx);
+      // Task XP: the points of the tasks each agent finished this month (Phase 4)
+      const tasks = await listTasks(tx, { all: true }, null);
       return people
         .filter((p) => p.role === 'agent' && p.active)
         .map((p) => {
@@ -422,6 +427,10 @@ export class KudosController {
             ).length;
           const average = ev.length >= 3 ? averageScore(ev) : null;
           const target = passRateOf(rates, p.teamId);
+          const taskPoints = monthTaskPoints(
+            tasks.filter((x) => x.assigneeId === p.membershipId),
+            m.data,
+          );
           return {
             membershipId: p.membershipId,
             name: p.name,
@@ -430,9 +439,9 @@ export class KudosController {
             reviews: ev.length,
             kudos: k,
             green,
-            taskPoints: 0,
+            taskPoints,
             average,
-            points: leaderboardPoints({ kudos: k, green, taskPoints: 0, average, target }),
+            points: leaderboardPoints({ kudos: k, green, taskPoints, average, target }),
           };
         })
         .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));

@@ -221,6 +221,23 @@ describe('tasks', () => {
     expect((await move(card, 'agent', { pinned: false })).statusCode).toBe(404);
   });
 
+  it("adds the points of the tasks finished this month to the leaderboard's Task XP", async () => {
+    const board = async () =>
+      (await call('GET', `/kudos/board?month=${new Date().toLocaleDateString('sv-SE').slice(0, 7)}`, 'agent'))
+        .json<{ membershipId: string; taskPoints: number; points: number }[]>()
+        .find((r) => r.membershipId === agent.membershipId);
+    const before = await board();
+    const [x] = (
+      await call('POST', '/tasks', 'admin', { title: 'Worth points', points: 15, assigneeIds: [agent.membershipId] })
+    ).json<Card[]>();
+    // not yet: only a finished task counts
+    expect((await board())?.taskPoints).toBe(before?.taskPoints);
+    expect((await move(x?.id ?? '', 'agent', { status: 'done' })).json<Card>().status).toBe('done');
+    const after = await board();
+    expect(after?.taskPoints).toBe((before?.taskPoints ?? 0) + 15);
+    expect(after?.points).toBe((before?.points ?? 0) + 15);
+  });
+
   it("never reaches another company's tasks; deleting is for the ones who give tasks", async () => {
     expect((await call('GET', '/tasks', 'admin', undefined, SECOND_COMPANY)).json<Card[]>()).toHaveLength(0);
     expect((await call('PUT', `/tasks/${card}`, 'admin', { pinned: true }, SECOND_COMPANY)).statusCode).toBe(404);

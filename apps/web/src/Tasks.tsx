@@ -2,8 +2,9 @@
 // and targets to people or whole teams; each person moves their own cards (drag them, or tick the checklist: the first
 // tick starts a card, the last finishes it); a card given with "needs review" waits In review until someone who gives
 // tasks approves it or sends it back with a comment. Each card opens with its dates, checklist and history.
-// The timeline, Team Progress and the scores come in step 2; the Library (history, templates, sequences) in step 3.
-import { can, type Language } from '@qsmart/shared';
+// Staff also have Team Progress (how far everybody is today) and Evaluation (each agent's score); everyone sees their
+// own score and chooses the board, the timeline or the list. The Library (history, templates, sequences): step 3.
+import { can, isOverdueOn, type Language } from '@qsmart/shared';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type DragEvent, type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +13,8 @@ import { api } from './api';
 import { Empty } from './bits';
 import { currentLanguage } from './i18n';
 import { useSession } from './session';
-import { type CompanyRef, field, Notice, type PersonRow, primaryButton, smallButton, useAction } from './ui';
+import { Evaluation, MyScore, TaskList, TeamProgress, Timeline, todayHere } from './TaskViews';
+import { card, type CompanyRef, field, Notice, type PersonRow, primaryButton, smallButton, useAction } from './ui';
 
 export type TaskStatus = 'todo' | 'doing' | 'review' | 'done';
 export interface TaskStep {
@@ -59,10 +61,21 @@ export interface Task {
 
 export const STATUSES: TaskStatus[] = ['todo', 'doing', 'review', 'done'];
 const PRIORITY_LOOK = { high: 'text-bad', med: 'text-wn', low: 'text-ok' } as const;
-type Show = 'all' | 'todo' | 'active' | 'done' | 'overdue';
-const SHOWS: Show[] = ['all', 'todo', 'active', 'done', 'overdue'];
-export const today = () => new Date().toLocaleDateString('sv-SE');
-export const isOverdue = (t: Pick<Task, 'dueOn' | 'status'>) => !!t.dueOn && t.dueOn < today() && t.status !== 'done';
+type Show = 'all' | 'todo' | 'active' | 'done' | 'overdue' | 'archived';
+const SHOWS: Show[] = ['all', 'todo', 'active', 'done', 'overdue', 'archived'];
+type Tab = 'my' | 'team' | 'eval';
+type View = 'board' | 'timeline' | 'list';
+const VIEWS: View[] = ['board', 'timeline', 'list'];
+export const isOverdue = (t: Pick<Task, 'dueOn' | 'status'>) => isOverdueOn(t, todayHere());
+const fits = (x: Task, show: Show) =>
+  show === 'archived'
+    ? !!x.archivedAt
+    : !x.archivedAt &&
+      (show === 'all' ||
+        (show === 'todo' && x.status === 'todo') ||
+        (show === 'active' && (x.status === 'doing' || x.status === 'review')) ||
+        (show === 'done' && x.status === 'done') ||
+        (show === 'overdue' && isOverdue(x)));
 const pill = 'rounded-full px-2 text-xs font-semibold whitespace-nowrap';
 
 /** Checklist lines typed one per line, "Check the e-mails | 5" (5 = minutes), as today. */
@@ -129,16 +142,25 @@ export function Tasks({ company }: { company: CompanyRef }) {
   const lang = currentLanguage();
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { task?: string };
-  const me = useSession().company?.membershipId ?? null;
+  const session = useSession();
+  const me = session.company?.membershipId ?? null;
   const gives = can(company.role, 'tasks.write');
   const { message, run, fail } = useAction();
   const [tasks, setTasks] = useState<Task[] | null>(null);
   const [people, setPeople] = useState<PersonRow[]>([]);
+  const [tab, setTab] = useState<Tab>('my');
   const [who, setWho] = useState<string>(gives ? '' : 'me');
+  const [team, setTeam] = useState('');
   const [show, setShow] = useState<Show>('all');
   const [query, setQuery] = useState('');
-  const [archived, setArchived] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
+  // the view is each person's choice, saved with their account (today: the board, the timeline or the list)
+  const view = (session.me.prefs.choices?.['tasks.view'] as View | undefined) ?? 'board';
+  const choose = (v: View) =>
+    void api('/me/prefs', undefined, {
+      method: 'PUT',
+      body: { ...session.me.prefs, choices: { ...session.me.prefs.choices, 'tasks.view': v } },
+    }).then(session.reloadMe, fail);
   const [dragged, setDragged] = useState<string | null>(null);
   const [returning, setReturning] = useState<string | null>(null);
   const open = search.task ?? null;
@@ -162,26 +184,18 @@ export function Tasks({ company }: { company: CompanyRef }) {
   }, [people]);
 
   const all = tasks ?? [];
-  const shown = all
-    .filter((x) => (archived ? !!x.archivedAt : !x.archivedAt))
+  const agents = people.filter((p) => p.role === 'agent');
+  // the person and team chosen (staff), before the status filter: the number cards count these
+  const base = all
     .filter((x) => (who === 'me' ? x.assigneeId === me : who ? x.assigneeId === who : true))
-    .filter((x) =>
-      show === 'all'
-        ? true
-        : show === 'todo'
-          ? x.status === 'todo'
-          : show === 'active'
-            ? x.status === 'doing' || x.status === 'review'
-            : show === 'done'
-              ? x.status === 'done'
-              : isOverdue(x),
-    )
+    .filter((x) => !team || x.teamId === team)
     .filter((x) => {
       const q = query.trim().toLowerCase();
       return (
         !q || [x.title, x.description, x.assigneeName, x.category, ...x.labels].some((v) => v.toLowerCase().includes(q))
       );
     });
+  const shown = base.filter((x) => fits(x, show));
   const task = all.find((x) => x.id === open);
   const mine = (x: Task) => !!me && x.assigneeId === me;
   /** the ones who give tasks change a card; an admin even their own, others not the cards given to them */
@@ -271,11 +285,48 @@ export function Tasks({ company }: { company: CompanyRef }) {
     assigneeId: x.assigneeId ?? '',
   });
 
-  const counts = {
-    open: all.filter((x) => !x.archivedAt && x.status !== 'done' && (gives ? true : mine(x))).length,
-    overdue: all.filter((x) => !x.archivedAt && isOverdue(x)).length,
-    review: all.filter((x) => !x.archivedAt && x.status === 'review').length,
+  const live = base.filter((x) => !x.archivedAt);
+  const numbers: { show: Show; label: string; value: number; note: string; look: string }[] = [
+    { show: 'all', label: t('tasks.cards.total'), value: live.length, note: t('tasks.cards.totalNote'), look: '' },
+    {
+      show: 'done',
+      label: t('tasks.cards.done'),
+      value: live.filter((x) => x.status === 'done').length,
+      note: t('tasks.cards.doneNote', {
+        rate: live.length ? Math.round((live.filter((x) => x.status === 'done').length / live.length) * 100) : 0,
+      }),
+      look: 'text-ok',
+    },
+    {
+      show: 'active',
+      label: t('tasks.cards.active'),
+      value: live.filter((x) => x.status === 'doing' || x.status === 'review').length,
+      note: t('tasks.cards.activeNote'),
+      look: 'text-wn',
+    },
+    {
+      show: 'overdue',
+      label: t('tasks.cards.overdue'),
+      value: live.filter(isOverdue).length,
+      note: t('tasks.cards.overdueNote'),
+      look: 'text-bad',
+    },
+    {
+      show: 'archived',
+      label: t('tasks.cards.archived'),
+      value: base.filter((x) => x.archivedAt).length,
+      note: t('tasks.cards.archivedNote'),
+      look: 'text-mu',
+    },
+  ];
+  const openPerson = (id: string) => {
+    setTab('my');
+    setWho(id);
+    setTeam('');
+    setShow('all');
   };
+  const tabButton = (on: boolean) =>
+    `rounded-s px-3 py-1.5 text-sm font-semibold ${on ? 'bg-brand text-on-brand' : 'border border-bd hover:border-tx'}`;
 
   return (
     <section className="grid gap-4" aria-labelledby="tasks-title">
@@ -292,88 +343,162 @@ export function Tasks({ company }: { company: CompanyRef }) {
           </button>
         )}
       </div>
-      <p className="flex flex-wrap gap-4 text-sm">
-        <span>{t('tasks.counts.open', { count: counts.open })}</span>
-        <span className={counts.overdue ? 'text-bad font-semibold' : 'text-mu'}>
-          {t('tasks.counts.overdue', { count: counts.overdue })}
-        </span>
-        <span className="text-mu">{t('tasks.counts.review', { count: counts.review })}</span>
-      </p>
-
-      <div className="flex flex-wrap items-end gap-3 text-sm">
-        {gives && (
-          <label className="grid gap-1 font-medium">
-            {t('tasks.filters.person')}
-            <select className={field} value={who} onChange={(e) => setWho(e.target.value)}>
-              <option value="">{t('tasks.filters.everyone')}</option>
-              <option value="me">{t('tasks.filters.mine')}</option>
-              {people.map((p) => (
-                <option key={p.membershipId} value={p.membershipId}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        <label className="grid gap-1 font-medium">
-          {t('tasks.filters.show')}
-          <select className={field} value={show} onChange={(e) => setShow(e.target.value as Show)}>
-            {SHOWS.map((s) => (
-              <option key={s} value={s}>
-                {t(`tasks.filters.shows.${s}`)}
-              </option>
+      <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,28rem)] lg:items-end lg:justify-between">
+        {gives ? (
+          <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('tasks.title')}>
+            {(['my', 'team', 'eval'] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                role="tab"
+                aria-selected={tab === k}
+                className={tabButton(tab === k)}
+                onClick={() => setTab(k)}
+              >
+                {t(`tasks.tabs.${k}`)}
+              </button>
             ))}
-          </select>
-        </label>
-        <label className="grid gap-1 font-medium">
-          {t('tasks.filters.search')}
-          <input className={field} type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
-        </label>
-        <label className="inline-flex items-center gap-2 pb-1.5">
-          <input
-            type="checkbox"
-            className="accent-[var(--brand)]"
-            checked={archived}
-            onChange={(e) => setArchived(e.target.checked)}
-          />
-          {t('tasks.filters.archived')}
-        </label>
+          </div>
+        ) : (
+          <div />
+        )}
+        {tasks && <MyScore tasks={all.filter(mine)} />}
       </div>
       <Notice message={message} />
 
       {!tasks ? (
         <p className="text-mu">{t('common.loading')}</p>
+      ) : tab === 'team' && gives ? (
+        <TeamProgress tasks={all} agents={agents} onPerson={openPerson} />
+      ) : tab === 'eval' && gives ? (
+        <Evaluation tasks={all} agents={agents} />
       ) : (
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label={t('tasks.board')}>
-          {STATUSES.map((status) => {
-            const list = shown.filter((x) => x.status === status).sort(order);
-            return (
-              <section
-                key={status}
-                aria-label={t(`tasks.statuses.${status}`)}
-                className={`grid content-start gap-2 rounded-m border border-bd bg-sunk p-2 min-h-40 ${dragged ? 'outline-dashed outline-1 outline-bd2' : ''}`}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={drop(status)}
+        <>
+          <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+            {numbers.map((n) => (
+              <button
+                key={n.show}
+                type="button"
+                aria-pressed={show === n.show}
+                className={`${card} grid gap-0.5 p-3 text-left ${show === n.show ? 'border-brand' : 'hover:border-tx'}`}
+                onClick={() => setShow(show === n.show && n.show !== 'all' ? 'all' : n.show)}
+                title={t('tasks.cards.show')}
               >
-                <h2 className="flex items-center justify-between px-1 text-sm font-semibold uppercase tracking-wide">
-                  {t(`tasks.statuses.${status}`)}
-                  <span className="rounded-full bg-pn px-2 text-xs">{list.length}</span>
-                </h2>
-                {list.map((x) => (
-                  <TaskCard
-                    key={x.id}
-                    task={x}
-                    showPerson={gives && who !== 'me'}
-                    draggable={moves(x)}
-                    onDrag={() => setDragged(x.id)}
-                    onOpen={() => setOpen(x.id)}
-                  />
+                <span className="text-xs font-semibold uppercase tracking-wide text-mu">{n.label}</span>
+                <b className={`font-display text-2xl ${n.look}`}>{n.value}</b>
+                <small className="text-mu">{n.note}</small>
+              </button>
+            ))}
+          </div>
+          <details className={`${card} p-3 text-sm`}>
+            <summary className="cursor-pointer font-semibold">
+              <span className="text-hot">★</span> {t('tasks.points.title')}
+            </summary>
+            <ul className="mt-2 grid list-disc gap-1 pl-5">
+              {(['what', 'when', 'month', 'board', 'reset'] as const).map((k) => (
+                <li key={k}>{t(`tasks.points.${k}`)}</li>
+              ))}
+            </ul>
+          </details>
+
+          <div className="flex flex-wrap items-end gap-3 text-sm">
+            {gives && (
+              <label className="grid gap-1 font-medium">
+                {t('tasks.filters.team')}
+                <select className={field} value={team} onChange={(e) => setTeam(e.target.value)}>
+                  <option value="">{t('tasks.filters.allTeams')}</option>
+                  {teams.map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {gives && (
+              <label className="grid gap-1 font-medium">
+                {t('tasks.filters.person')}
+                <select className={field} value={who} onChange={(e) => setWho(e.target.value)}>
+                  <option value="">{t('tasks.filters.everyone')}</option>
+                  <option value="me">{t('tasks.filters.mine')}</option>
+                  {people
+                    .filter((p) => !team || p.teamId === team)
+                    .map((p) => (
+                      <option key={p.membershipId} value={p.membershipId}>
+                        {p.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            )}
+            <label className="grid gap-1 font-medium">
+              {t('tasks.filters.show')}
+              <select className={field} value={show} onChange={(e) => setShow(e.target.value as Show)}>
+                {SHOWS.map((s) => (
+                  <option key={s} value={s}>
+                    {t(`tasks.filters.shows.${s}`)}
+                  </option>
                 ))}
-                {!list.length && <Empty>{t('tasks.empty')}</Empty>}
-              </section>
-            );
-          })}
-        </div>
+              </select>
+            </label>
+            <label className="grid gap-1 font-medium">
+              {t('tasks.filters.search')}
+              <input className={field} type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
+            </label>
+            <div className="ml-auto grid gap-1 font-medium">
+              {t('tasks.views.title')}
+              <div className="flex gap-1" role="group" aria-label={t('tasks.views.title')}>
+                {VIEWS.map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    aria-pressed={view === v}
+                    className={tabButton(view === v)}
+                    onClick={() => choose(v)}
+                  >
+                    {t(`tasks.views.${v}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          {view === 'timeline' ? (
+            <Timeline tasks={shown} byPerson={gives && who !== 'me'} lang={lang} onOpen={setOpen} />
+          ) : view === 'list' ? (
+            <TaskList tasks={[...shown].sort(order)} showPerson={gives && who !== 'me'} onOpen={setOpen} />
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-label={t('tasks.board')}>
+              {STATUSES.map((status) => {
+                const list = shown.filter((x) => x.status === status).sort(order);
+                return (
+                  <section
+                    key={status}
+                    aria-label={t(`tasks.statuses.${status}`)}
+                    className={`grid content-start gap-2 rounded-m border border-bd bg-sunk p-2 min-h-40 ${dragged ? 'outline-dashed outline-1 outline-bd2' : ''}`}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={drop(status)}
+                  >
+                    <h2 className="flex items-center justify-between px-1 text-sm font-semibold uppercase tracking-wide">
+                      {t(`tasks.statuses.${status}`)}
+                      <span className="rounded-full bg-pn px-2 text-xs">{list.length}</span>
+                    </h2>
+                    {list.map((x) => (
+                      <TaskCard
+                        key={x.id}
+                        task={x}
+                        showPerson={gives && who !== 'me'}
+                        draggable={moves(x)}
+                        onDrag={() => setDragged(x.id)}
+                        onOpen={() => setOpen(x.id)}
+                      />
+                    ))}
+                    {!list.length && <Empty>{t('tasks.empty')}</Empty>}
+                  </section>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
       {task && (

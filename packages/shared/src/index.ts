@@ -8,4 +8,5 @@ export * from './performance.js';
 export * from './planner.js';
 export * from './reports.js';
 export * from './stats.js';
+export * from './tasks.js';
 export * from './roles.js';

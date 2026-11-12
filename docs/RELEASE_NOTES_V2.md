@@ -4,6 +4,18 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## Phase 4 (Coaching & Tasks): in progress on branch `v2-phase-4`
 
+- **Step 2: Tasks, the other views** (Quality › Tasks):
+  - **Tabs for the ones who give tasks:** My Tasks, Team Progress and Evaluation. Agents have My Tasks.
+  - **My score**, for everyone, from their own tasks, as today: 70% completion + 30% done on time (by the deadline) - 2 points for every overdue task, with done, on time and overdue. Someone with no tasks of their own reads "no tasks of your own yet" instead of a red 0.
+  - **Number cards:** total, completed (with the rate), in progress, overdue and archived; clicking one shows those tasks. **"How points work"** explains the points, as today.
+  - **Three views, each person's choice (saved with their account):** the board; the **timeline** (five weeks at a time, earlier, today and later, one bar per card from its start to its deadline or the day it was done, coloured by status, overdue in red, a line for today, grouped by person); and the **list** (task, person, status, priority, deadline, checklist progress, points). A team filter joins the person filter.
+  - **Team Progress:** each team's share of today's work done, and each agent's (the checklist lines of today's tasks; a task without a checklist counts as one), who is behind first, with to do, active and overdue. Clicking an agent opens their tasks.
+  - **Evaluation:** every agent's total, done, on time, overdue, completion and score, for the week, the month or all time; click a column to sort; the name opens the agent's profile.
+  - **The leaderboard's Task XP** (Performance › Recognition) now counts: the points of the tasks each agent finished this month. It was waiting at 0 since Phase 3.
+  - The numbers are written once and used by the pages and the server; a test checks them against today's formulas on 44 lists of tasks.
+  - **Checked in the browser:** with a few more demo tasks (one overdue, one with a checklist starting tomorrow, one for the whole B2B team): the timeline, the list, Team Progress (B2B 27% done today, 1 overdue) and Evaluation (Alex Agent 46: 1 of 4 done, on time, 1 overdue). Alex finished a 5-point task and his Task XP on Recognition went to 5 (leaderboard points 13 to 18). As admin, team lead, trainer and agent, and in Bulgarian; no request failed. The demo trainer's workspaces have no agent teams, so the trainer's Team Progress and Evaluation say "No agents here", as their Tasks do.
+  - 6 new automatic tests; 323 pass.
+
 - **Step 1: Tasks, the board** (Quality › Tasks, everyone; today's My Tasks):
   - **Admins, reviewers, team leads and trainers give tasks and targets** to people and whole teams of their workspaces (admins: everyone). Each person gets their own card and is told in the bell; a whole team means each of its active agents. A card has a title, description, type (task or target), priority, points, start date and deadline, a checklist with the minutes each line should take, labels, a colour and a category.
   - **The board:** To Do, In Progress, In review and Done. Drag a card to move it, or tick its checklist: the first tick starts it, the last finishes it. Pinned cards come first, then by deadline; late ones show in red. Filters: the person (staff), what to show (all, to do, active, done, overdue), search, and the archived cards.
