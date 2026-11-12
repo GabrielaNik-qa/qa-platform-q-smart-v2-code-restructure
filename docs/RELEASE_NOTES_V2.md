@@ -4,6 +4,14 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## Phase 4 (Coaching & Tasks): in progress on branch `v2-phase-4`
 
+- **Packs of tasks (your idea, 12 November):** Library › **Packs and sequences** (was Sequences).
+  - **A pack** is several tasks given together on the same day, such as a Monday routine or an end-of-month catch-up; a sequence spreads them over days. Both are made in the same form, **one row per task**, each with its own day, title, how many days it takes, type, priority, points, "needs review" and checklist (before, the steps were typed as lines and their details couldn't be set).
+  - **Given once, or again every week** (new), every month or every quarter, to people and whole teams, from a start date: a pack started on a Monday comes every Monday. Only the latest round is given, never a pile of missed ones, until it is stopped or its end date.
+  - **Three ready-made packs for any industry**, in three languages: Monday routine, End of week routine, End of month catch-up.
+  - A pack's or sequence's cards show its name; an opened card says "From "Monday routine", task 2 of 4".
+  - **Checked in the browser:** the reviewer added "Monday routine", made its first task High with 10 points, and gave it to Alex Agent every week from Monday 16 November: his 4 cards are there for that Monday. Admin, team lead and trainer see the packs; checked in Bulgarian; no request failed.
+  - 1 new automatic test (a weekly pack: only the latest round) and new date rules; 342 pass.
+
 - **Step 4: Coaching** (Quality › Coaching, for admins, reviewers, team leads and trainers; today's Coaching):
   - **Insights:** the team's focus (the weakest categories of the last 30 days, and how many agents are below the pass rate in each, with "Plan group coaching"), and a card per agent, who needs coaching most first (today's priority): their average over the last 30 days, the change against the 30 days before, up to 3 categories under their team's pass rate with the team's average, open disputes, and when they were last coached, with "Plan coaching" (the form opens with the agent and those categories).
   - **Sessions log:** the overview, like Zendesk QA's coaching dashboard (sessions held, coming, overdue, the share of feedback signed, and the coached agents' average 30 days after a session against the 30 days before, also per coach), and every individual coaching, group coaching and training, with search and type.

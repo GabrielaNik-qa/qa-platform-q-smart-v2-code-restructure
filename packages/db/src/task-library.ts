@@ -49,7 +49,7 @@ export interface SequenceRun {
   id: string;
   sequenceId: string;
   startOn: string;
-  repeat: 'none' | 'monthly' | 'quarterly';
+  repeat: 'none' | 'weekly' | 'monthly' | 'quarterly';
   untilOn: string | null;
   userIds: string[];
   teamIds: string[];

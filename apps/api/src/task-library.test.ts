@@ -237,6 +237,41 @@ describe('task sequences', () => {
     expect((await cardsOf()).filter((c) => c.runId === run)).toHaveLength(4);
   });
 
+  it('give a weekly pack (several tasks on the same day) every week, only the latest round', async () => {
+    const pack = (
+      await call('POST', '/task-sequences', 'reviewer', {
+        name: 'Monday routine',
+        steps: [
+          { title: 'Plan the week', day: 0, priority: 'high', points: 5, steps: [{ text: 'List 3 goals' }] },
+          { title: 'Read the announcements', day: 0, needsReview: true },
+        ],
+      })
+    ).json<{ id: string }>().id;
+    const start = addDays(TODAY, -14);
+    const run = (
+      await call('POST', `/task-sequences/${pack}/give`, 'reviewer', {
+        startOn: start,
+        repeat: 'weekly',
+        userIds: [agent.membershipId],
+      })
+    ).json<{ run: { id: string }; tasks: number }>();
+    expect(run.tasks).toBe(2);
+    await repeatOn(TODAY);
+    const rounds = (await call('GET', '/task-sequences', 'admin'))
+      .json<{ runs: { id: string; cycles: string[] }[] }>()
+      .runs.find((r) => r.id === run.run.id);
+    // the first round now, then this week's: never the missed week in between
+    expect(rounds?.cycles).toEqual([start, TODAY]);
+    const cards = (await cardsOf()).filter((c) => c.runId === run.run.id);
+    expect(cards).toHaveLength(4);
+    expect(
+      cards
+        .filter((c) => c.startOn === TODAY)
+        .map((c) => c.title)
+        .sort(),
+    ).toEqual(['Plan the week', 'Read the announcements']);
+  });
+
   it('refuse people out of reach, and keep the cards when deleted', async () => {
     const stranger = (await call('GET', '/people', 'admin', undefined, SECOND_COMPANY)).json<
       { membershipId: string }[]

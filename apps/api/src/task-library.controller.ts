@@ -3,8 +3,9 @@
 //   quarter for chosen people and teams, until a date if chosen. A repeating card comes the first time anybody of the
 //   company opens their tasks on a working day of its period (today's rule), once per person and period; until
 //   Workforce (Phase 6) brings rotas and time off, Saturdays and Sundays are the days off (12 November);
-// - sequences: steps given together, each a number of days after the start; given to people and teams from a start
-//   date, once or again every month or quarter (only the latest round: missed ones never pile up), until it's stopped.
+// - packs and sequences: tasks given together, each a number of days after the start (all on day 1: a pack, such as a
+//   Monday routine); given to people and teams from a start
+//   date, once or again every week, month or quarter (only the latest round: missed ones never pile up), until stopped.
 // The history ("give again") is read from the tasks themselves.
 import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
 import {
@@ -107,7 +108,7 @@ const sequenceInput = z
 const giveInput = z
   .object({
     startOn: z.iso.date(),
-    repeat: z.enum(['none', 'monthly', 'quarterly']).default('none'),
+    repeat: z.enum(['none', 'weekly', 'monthly', 'quarterly']).default('none'),
     untilOn: z.iso.date().nullable().default(null),
     ...people,
   })

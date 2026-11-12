@@ -176,5 +176,9 @@ describe('repeats', () => {
     expect(dueRound('2026-08-20', 'monthly', TODAY, '2026-09-30')).toBe('');
     expect(dueRound('2026-12-01', 'monthly', TODAY, null)).toBe('');
     expect(dueRound('2026-08-20', 'none', TODAY, null)).toBe('');
+    // a weekly pack: every 7 days from its start (a Monday start comes every Monday)
+    expect(dueRound('2026-10-19', 'weekly', TODAY, null)).toBe('2026-11-09');
+    expect(dueRound('2026-11-12', 'weekly', TODAY, null)).toBe(TODAY);
+    expect(dueRound('2026-10-19', 'weekly', TODAY, '2026-11-01')).toBe('');
   });
 });

@@ -609,7 +609,7 @@ function TaskCard({
         )}
         {x.steps.length > 0 && <span>{t('tasks.stepsDone', { done: ticked, of: x.steps.length })}</span>}
         {x.needsReview && <span>{t('tasks.needsReviewShort')}</span>}
-        {x.stepNo && <span className="text-ac">{t('tasks.stepOf', { n: x.stepNo, of: x.stepCount })}</span>}
+        {x.sequenceName && <span className="max-w-40 truncate text-ac">{x.sequenceName}</span>}
         {x.templateId && <span className="text-ac">{t('tasks.library.repeating')}</span>}
       </span>
       {x.labels.length > 0 && (

@@ -58,7 +58,7 @@ interface Run {
   id: string;
   sequenceId: string;
   startOn: string;
-  repeat: 'none' | 'monthly' | 'quarterly';
+  repeat: Repeat;
   untilOn: string | null;
   userIds: string[];
   teamIds: string[];
@@ -119,52 +119,74 @@ const emptyTemplate = (): TemplateDraft => ({
   userIds: [],
   teamIds: [],
 });
+/** How often a pack or sequence is given again. */
+type Repeat = 'none' | 'weekly' | 'monthly' | 'quarterly';
+const REPEATS: Repeat[] = ['none', 'weekly', 'monthly', 'quarterly'];
+/** One task of a pack or sequence, as the form edits it (its day starts at 1). */
+interface StepRow {
+  title: string;
+  description: string;
+  day: number;
+  days: number;
+  kind: 'task' | 'target';
+  priority: Priority;
+  points: number;
+  needsReview: boolean;
+  checklist: string;
+}
 interface SequenceDraft {
   id?: string;
   name: string;
   description: string;
-  /** one line per step: "day | title | days" (the first day is 1) */
-  steps: string;
-  /** what the lines don't hold (priority, points, review, checklist) is kept for steps whose title stays */
-  old: SeqStep[];
+  rows: StepRow[];
 }
 interface GiveDraft {
   sequence: Sequence;
   startOn: string;
-  repeat: 'none' | 'monthly' | 'quarterly';
+  repeat: Repeat;
   untilOn: string;
   userIds: string[];
   teamIds: string[];
 }
-const seqLines = (steps: SeqStep[]) =>
-  steps.map((s) => `${s.day + 1} | ${s.title}${s.days > 1 ? ` | ${s.days}` : ''}`).join('\n');
-const seqSteps = (text: string, old: SeqStep[]): SeqStep[] =>
-  text
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .slice(0, 30)
-    .map((l) => {
-      const parts = l.split('|').map((x) => x.trim());
-      const [first = '', second = '', third = ''] = parts;
-      const numbered = /^\d+$/.test(first);
-      const title = (numbered ? second : first).slice(0, 150);
-      const day = numbered ? Math.min(365, Math.max(0, Number(first) - 1)) : 0;
-      const days = Math.min(90, Math.max(1, Number.parseInt(numbered ? third : second, 10) || 1));
-      const kept = old.find((s) => s.title === title);
-      return {
-        title,
-        description: kept?.description ?? '',
-        day,
-        days,
-        kind: kept?.kind ?? 'task',
-        priority: kept?.priority ?? 'med',
-        points: kept?.points ?? 0,
-        needsReview: kept?.needsReview ?? false,
-        steps: kept?.steps ?? [],
-      };
-    })
-    .filter((s) => s.title);
+const emptyRow = (day = 1): StepRow => ({
+  title: '',
+  description: '',
+  day,
+  days: 1,
+  kind: 'task',
+  priority: 'med',
+  points: 0,
+  needsReview: false,
+  checklist: '',
+});
+const rowsOf = (steps: SeqStep[]): StepRow[] =>
+  steps.map((x) => ({
+    ...x,
+    day: x.day + 1,
+    checklist: stepsText(x.steps.map((c) => ({ ...c, done: false }))),
+  }));
+const stepsOf = (rows: StepRow[]): SeqStep[] =>
+  rows
+    .filter((r) => r.title.trim())
+    .map((r) => ({
+      title: r.title.trim(),
+      description: r.description,
+      day: Math.min(365, Math.max(0, r.day - 1)),
+      days: Math.min(90, Math.max(1, r.days)),
+      kind: r.kind,
+      priority: r.priority,
+      points: r.points,
+      needsReview: r.needsReview,
+      steps: toSteps(stepsFrom(r.checklist)),
+    }));
+/** A pack: every task on the same day (a routine); a sequence: tasks on different days. */
+const isPack = (steps: { day: number }[]) => steps.every((x) => x.day === steps[0]?.day);
+/** Three ready-made packs for any industry: "Add" opens the New pack form filled in. */
+const READY_PACKS: { key: string; usually: Repeat }[] = [
+  { key: 'monday', usually: 'weekly' },
+  { key: 'friday', usually: 'weekly' },
+  { key: 'monthEnd', usually: 'monthly' },
+];
 
 export function TaskLibrary({
   company,
@@ -321,7 +343,7 @@ export function TaskLibrary({
   async function saveSequence(e: FormEvent) {
     e.preventDefault();
     if (!seq) return;
-    const body = { name: seq.name, description: seq.description, steps: seqSteps(seq.steps, seq.old) };
+    const body = { name: seq.name, description: seq.description, steps: stepsOf(seq.rows) };
     const ok = await run(
       () =>
         api(seq.id ? `/task-sequences/${seq.id}` : '/task-sequences', company.id, {
@@ -382,7 +404,7 @@ export function TaskLibrary({
           <button
             type="button"
             className={primaryButton}
-            onClick={() => setSeq({ name: '', description: '', steps: '', old: [] })}
+            onClick={() => setSeq({ name: '', description: '', rows: [emptyRow()] })}
           >
             + {t('tasks.library.newSequence')}
           </button>
@@ -610,10 +632,16 @@ export function TaskLibrary({
                     title={s.name}
                     description={s.description}
                     lines={s.steps.map((x) => [
-                      `${t('tasks.library.day', { n: x.day + 1 })} · ${x.title}`,
-                      t('tasks.library.days', { count: x.days }),
+                      isPack(s.steps) ? x.title : `${t('tasks.library.day', { n: x.day + 1 })} · ${x.title}`,
+                      [
+                        x.priority === 'high' ? t('tasks.priorities.high') : '',
+                        x.points ? t('tasks.points', { count: x.points }) : '',
+                        isPack(s.steps) ? '' : t('tasks.library.days', { count: x.days }),
+                      ]
+                        .filter(Boolean)
+                        .join(' · '),
                     ])}
-                    chips={[]}
+                    chips={[[isPack(s.steps) ? t('tasks.library.pack') : t('tasks.library.sequence'), 'text-ac']]}
                     foot={
                       <>
                         {runs.map((r) => (
@@ -641,8 +669,8 @@ export function TaskLibrary({
                           </small>
                         ))}
                         <small className="text-mu">
-                          {t('tasks.library.steps', { count: s.steps.length })} ·{' '}
-                          {t('tasks.library.days', { count: length })}
+                          {t('tasks.library.tasksCount', { count: s.steps.length })}
+                          {!isPack(s.steps) && ` · ${t('tasks.library.days', { count: length })}`}
                         </small>
                         <span className="flex flex-wrap gap-2">
                           <button
@@ -665,13 +693,7 @@ export function TaskLibrary({
                             type="button"
                             className={smallButton}
                             onClick={() =>
-                              setSeq({
-                                id: s.id,
-                                name: s.name,
-                                description: s.description,
-                                steps: seqLines(s.steps),
-                                old: s.steps,
-                              })
+                              setSeq({ id: s.id, name: s.name, description: s.description, rows: rowsOf(s.steps) })
                             }
                           >
                             {t('common.edit')}
@@ -698,6 +720,49 @@ export function TaskLibrary({
               })}
             </div>
           )}
+        </>
+      )}
+
+      {section === 'sequences' && (
+        <>
+          <h2 className="mt-2 font-display text-lg font-bold">{t('tasks.library.readyPacksTitle')}</h2>
+          <p className="text-sm text-mu">{t('tasks.library.readyPacksHelp')}</p>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {READY_PACKS.map((r) => {
+              const titles = t(`tasks.packs.${r.key}.tasks`)
+                .split('\n')
+                .map((x) => x.trim())
+                .filter(Boolean);
+              return (
+                <LibraryCard
+                  key={r.key}
+                  colour="#a855f7"
+                  title={t(`tasks.packs.${r.key}.name`)}
+                  description={t(`tasks.packs.${r.key}.description`)}
+                  lines={titles.map((x) => [x, ''])}
+                  chips={[
+                    [t('tasks.library.pack'), 'text-ac'],
+                    [t('tasks.library.usually', { how: t(`tasks.library.every.${r.usually}`).toLowerCase() }), ''],
+                  ]}
+                  foot={
+                    <button
+                      type="button"
+                      className={primaryButton}
+                      onClick={() =>
+                        setSeq({
+                          name: t(`tasks.packs.${r.key}.name`),
+                          description: t(`tasks.packs.${r.key}.description`),
+                          rows: titles.map((title) => ({ ...emptyRow(), title })),
+                        })
+                      }
+                    >
+                      + {t('tasks.library.add')}
+                    </button>
+                  }
+                />
+              );
+            })}
+          </div>
         </>
       )}
 
@@ -936,18 +1001,132 @@ export function TaskLibrary({
               onChange={(e) => setSeq({ ...seq, description: e.target.value })}
             />
           </label>
-          <label className="grid gap-1 text-sm font-medium">
-            {t('tasks.library.form.sequenceSteps')}
-            <textarea
-              className={`${field} font-mono text-sm`}
-              rows={6}
-              required
-              placeholder={t('tasks.library.form.sequenceStepsPlaceholder')}
-              value={seq.steps}
-              onChange={(e) => setSeq({ ...seq, steps: e.target.value })}
-            />
-            <small className="font-normal text-mu">{t('tasks.library.form.sequenceStepsHelp')}</small>
-          </label>
+          <fieldset className="grid gap-2">
+            <legend className="mb-1 text-sm font-semibold">{t('tasks.library.form.tasks')}</legend>
+            <small className="text-mu">{t('tasks.library.form.tasksHelp')}</small>
+            {seq.rows.map((r, i) => {
+              const setRow = (change: Partial<StepRow>) =>
+                setSeq({ ...seq, rows: seq.rows.map((x, j) => (j === i ? { ...x, ...change } : x)) });
+              return (
+                <div key={i} className="grid gap-2 rounded-s border border-bd p-2">
+                  <div className="grid grid-cols-[4.5rem_1fr_auto] items-end gap-2">
+                    <label className="grid gap-1 text-xs font-medium">
+                      {t('tasks.library.form.day')}
+                      <input
+                        className={field}
+                        type="number"
+                        min={1}
+                        max={366}
+                        value={r.day}
+                        onChange={(e) =>
+                          setRow({ day: Math.min(366, Math.max(1, Math.trunc(Number(e.target.value)) || 1)) })
+                        }
+                      />
+                    </label>
+                    <label className="grid gap-1 text-xs font-medium">
+                      {t('tasks.form.title')}
+                      <input
+                        className={field}
+                        maxLength={150}
+                        required={i === 0}
+                        value={r.title}
+                        onChange={(e) => setRow({ title: e.target.value })}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="pb-2 text-lg text-mu hover:text-bad"
+                      aria-label={t('tasks.library.form.removeTask')}
+                      disabled={seq.rows.length === 1}
+                      onClick={() => setSeq({ ...seq, rows: seq.rows.filter((_, j) => j !== i) })}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap items-end gap-2">
+                    <label className="grid gap-1 text-xs font-medium">
+                      {t('tasks.library.form.lasts')}
+                      <input
+                        className={`${field} w-20`}
+                        type="number"
+                        min={1}
+                        max={90}
+                        value={r.days}
+                        onChange={(e) =>
+                          setRow({ days: Math.min(90, Math.max(1, Math.trunc(Number(e.target.value)) || 1)) })
+                        }
+                      />
+                    </label>
+                    <label className="grid gap-1 text-xs font-medium">
+                      {t('tasks.form.kind')}
+                      <select
+                        className={field}
+                        value={r.kind}
+                        onChange={(e) => setRow({ kind: e.target.value as StepRow['kind'] })}
+                      >
+                        <option value="task">{t('tasks.kinds.task')}</option>
+                        <option value="target">{t('tasks.kinds.target')}</option>
+                      </select>
+                    </label>
+                    <label className="grid gap-1 text-xs font-medium">
+                      {t('tasks.form.priority')}
+                      <select
+                        className={field}
+                        value={r.priority}
+                        onChange={(e) => setRow({ priority: e.target.value as Priority })}
+                      >
+                        {(['high', 'med', 'low'] as const).map((x) => (
+                          <option key={x} value={x}>
+                            {t(`tasks.priorities.${x}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="grid gap-1 text-xs font-medium">
+                      {t('tasks.form.points')}
+                      <input
+                        className={`${field} w-20`}
+                        type="number"
+                        min={0}
+                        max={1000}
+                        value={r.points}
+                        onChange={(e) =>
+                          setRow({ points: Math.min(1000, Math.max(0, Math.trunc(Number(e.target.value)) || 0)) })
+                        }
+                      />
+                    </label>
+                    <label className="inline-flex items-center gap-1 pb-2 text-xs font-medium">
+                      <input
+                        type="checkbox"
+                        className="accent-[var(--brand)]"
+                        checked={r.needsReview}
+                        onChange={(e) => setRow({ needsReview: e.target.checked })}
+                      />
+                      {t('tasks.needsReview')}
+                    </label>
+                  </div>
+                  <details open={!!r.checklist} className="text-sm">
+                    <summary className="cursor-pointer text-xs text-mu">{t('tasks.library.form.checklistOf')}</summary>
+                    <textarea
+                      className={`${field} mt-1 w-full font-mono text-sm`}
+                      rows={3}
+                      placeholder={t('tasks.form.stepsPlaceholder')}
+                      value={r.checklist}
+                      onChange={(e) => setRow({ checklist: e.target.value })}
+                    />
+                  </details>
+                </div>
+              );
+            })}
+            <button
+              type="button"
+              className={`${smallButton} justify-self-start`}
+              disabled={seq.rows.length >= 30}
+              onClick={() => setSeq({ ...seq, rows: [...seq.rows, emptyRow(seq.rows.at(-1)?.day ?? 1)] })}
+            >
+              + {t('tasks.library.form.addTask')}
+            </button>
+          </fieldset>
           <Notice message={message?.ok ? null : message} />
           <div className="flex justify-end gap-2">
             <button type="button" className={smallButton} onClick={() => setSeq(null)}>
@@ -982,9 +1161,9 @@ export function TaskLibrary({
               <select
                 className={field}
                 value={give.repeat}
-                onChange={(e) => setGive({ ...give, repeat: e.target.value as GiveDraft['repeat'] })}
+                onChange={(e) => setGive({ ...give, repeat: e.target.value as Repeat })}
               >
-                {(['none', 'monthly', 'quarterly'] as const).map((r) => (
+                {REPEATS.map((r) => (
                   <option key={r} value={r}>
                     {t(`tasks.library.every.${r}`)}
                   </option>

@@ -966,15 +966,40 @@ const en = {
     signLater: 'You can sign it once the session has been held.',
   },
   tasks: {
-    stepOf: 'step {{n}} of {{of}}',
-    fromSequence: 'From the sequence "{{name}}", step {{n}} of {{of}}',
+    packs: {
+      monday: {
+        name: 'Monday routine',
+        description: 'Start the week with a clear plan.',
+        tasks:
+          'Plan your three goals for the week\nReview last week’s open cases\nRead the week’s announcements\nCheck your quality scores and tips',
+      },
+      friday: {
+        name: 'End of week routine',
+        description: 'Close the week and prepare the next one.',
+        tasks:
+          'Close or hand over this week’s open cases\nUpdate your customer notes\nListen to one of your calls again\nShare one win with your team',
+      },
+      monthEnd: {
+        name: 'End of month catch-up',
+        description: 'Finish the month well and start the next one ready.',
+        tasks:
+          'Close the month’s open cases\nCompare your results with your goals\nUpdate your customer list\nPlan next month’s priorities',
+      },
+    },
+    fromSequence: 'From "{{name}}", task {{n}} of {{of}}',
     fromTemplate: 'A repeating card from a template',
     library: {
-      sections: { history: 'History', templates: 'Templates', sequences: 'Sequences' },
+      sections: { history: 'History', templates: 'Templates', sequences: 'Packs and sequences' },
+      pack: 'pack',
+      sequence: 'sequence',
+      tasksCount_one: '{{count}} task',
+      tasksCount_other: '{{count}} tasks',
+      readyPacksTitle: 'Ready-made packs',
+      readyPacksHelp: 'Start from one of these: "Add" opens it in the form, to change its tasks and save it.',
       newTemplate: 'New template',
       editTemplate: 'Change the template',
-      newSequence: 'New sequence',
-      editSequence: 'Change the sequence',
+      newSequence: 'New pack or sequence',
+      editSequence: 'Change the pack or sequence',
       historyHelp_one: '{{count}} task given · "Give again" copies it with new dates and people',
       historyHelp_other: '{{count}} tasks given · "Give again" copies one with new dates and people',
       noHistory: 'No tasks given yet.',
@@ -1005,13 +1030,14 @@ const en = {
       usually: 'usually {{how}}',
       add: 'Add',
       sequencesHelp:
-        'A sequence gives several tasks at once, each starting some days after the start date: for example a first week, a monthly routine or a training plan.',
-      noSequences: 'No sequences yet. Make one for the tasks you always give together.',
+        'A pack gives several tasks at once, on the same day: a Monday routine, a weekly routine, an end-of-month catch-up. A sequence spreads them over days: a first week, a training plan. Give either once, or again every week, month or quarter.',
+      noSequences:
+        'No packs or sequences yet. Make one for the tasks you always give together, or start from a ready-made pack below.',
       day: 'Day {{n}}',
       days_one: '{{count}} day',
       days_other: '{{count}} days',
       runText: '{{who}} · from {{start}} · {{how}}',
-      every: { none: 'Once', monthly: 'Every month', quarterly: 'Every quarter' },
+      every: { none: 'Once', weekly: 'Every week', monthly: 'Every month', quarterly: 'Every quarter' },
       stop: 'Stop',
       confirmStop: 'Stop giving this sequence? The tasks already given stay.',
       stopped: 'Stopped: no more rounds.',
@@ -1054,12 +1080,15 @@ const en = {
         repeatHelp:
           'A card comes by itself for each person, due that day. Until Workforce brings each person’s rota and time off, Saturdays and Sundays are days off: a card due then comes on the next working day of the same period.',
         quarterHelp: 'Every quarter: in January, April, July and October.',
+        tasks: 'Tasks',
+        tasksHelp:
+          'Day 1 is the start date. Give every task day 1 for a pack (a routine); give them different days for a sequence.',
+        day: 'Day',
+        lasts: 'Days it takes',
+        checklistOf: 'Its checklist (optional)',
+        addTask: 'Add a task',
+        removeTask: 'Remove this task',
         sequencePlaceholder: 'New colleague: first week',
-        sequenceSteps: 'Steps',
-        sequenceStepsPlaceholder:
-          '1 | Meet the team | 1\n1 | Read the product guide | 2\n3 | Listen to 5 calls of a colleague | 2\n5 | First calls with a mentor',
-        sequenceStepsHelp:
-          'One line per step: the day it starts (1 is the start date) | its title | how many days it takes (optional, 1 if not said).',
       },
     },
     ready: {
@@ -4029,15 +4058,41 @@ const bg: Messages = {
     signLater: 'Можете да я подпишете, след като сесията бъде проведена.',
   },
   tasks: {
-    stepOf: 'стъпка {{n}} от {{of}}',
-    fromSequence: 'От поредицата „{{name}}“, стъпка {{n}} от {{of}}',
+    packs: {
+      monday: {
+        name: 'Понеделнишка рутина',
+        description: 'Започнете седмицата с ясен план.',
+        tasks:
+          'Планирай трите си цели за седмицата\nПрегледай отворените случаи от миналата седмица\nПрочети съобщенията за седмицата\nПровери оценките си за качество и съветите',
+      },
+      friday: {
+        name: 'Рутина за края на седмицата',
+        description: 'Приключете седмицата и подгответе следващата.',
+        tasks:
+          'Затвори или предай отворените случаи от седмицата\nОбнови бележките за клиентите си\nИзслушай отново един свой разговор\nСподели един успех с екипа',
+      },
+      monthEnd: {
+        name: 'Наваксване в края на месеца',
+        description: 'Завършете месеца добре и започнете следващия подготвени.',
+        tasks:
+          'Затвори отворените случаи от месеца\nСравни резултатите си с целите\nОбнови списъка си с клиенти\nПланирай приоритетите за следващия месец',
+      },
+    },
+    fromSequence: 'От „{{name}}“, задача {{n}} от {{of}}',
     fromTemplate: 'Повтаряща се карта от шаблон',
     library: {
-      sections: { history: 'История', templates: 'Шаблони', sequences: 'Поредици' },
+      sections: { history: 'История', templates: 'Шаблони', sequences: 'Пакети и поредици' },
+      pack: 'пакет',
+      sequence: 'поредица',
+      tasksCount_one: '{{count}} задача',
+      tasksCount_other: '{{count}} задачи',
+      readyPacksTitle: 'Готови пакети',
+      readyPacksHelp:
+        'Започнете от някой от тях: „Добави“ го отваря във формата, за да промените задачите му и да го запазите.',
       newTemplate: 'Нов шаблон',
       editTemplate: 'Промяна на шаблона',
-      newSequence: 'Нова поредица',
-      editSequence: 'Промяна на поредицата',
+      newSequence: 'Нов пакет или поредица',
+      editSequence: 'Промяна на пакета или поредицата',
       historyHelp_one: '{{count}} дадена задача · „Дай отново“ я копира с нови дати и хора',
       historyHelp_other: '{{count}} дадени задачи · „Дай отново“ копира задача с нови дати и хора',
       noHistory: 'Все още няма дадени задачи.',
@@ -4070,13 +4125,14 @@ const bg: Messages = {
       usually: 'обикновено {{how}}',
       add: 'Добави',
       sequencesHelp:
-        'Поредицата дава няколко задачи наведнъж, всяка започва няколко дни след началната дата: например първа седмица, месечна рутина или план за обучение.',
-      noSequences: 'Все още няма поредици. Създайте такава за задачите, които винаги давате заедно.',
+        'Пакетът дава няколко задачи наведнъж, в един и същи ден: понеделнишка рутина, седмична рутина, наваксване в края на месеца. Поредицата ги разпределя в различни дни: първа седмица, план за обучение. Дайте ги веднъж или отново всяка седмица, месец или тримесечие.',
+      noSequences:
+        'Все още няма пакети или поредици. Създайте за задачите, които винаги давате заедно, или започнете от готов пакет по-долу.',
       day: 'Ден {{n}}',
       days_one: '{{count}} ден',
       days_other: '{{count}} дни',
       runText: '{{who}} · от {{start}} · {{how}}',
-      every: { none: 'Веднъж', monthly: 'Всеки месец', quarterly: 'Всяко тримесечие' },
+      every: { none: 'Веднъж', weekly: 'Всяка седмица', monthly: 'Всеки месец', quarterly: 'Всяко тримесечие' },
       stop: 'Спри',
       confirmStop: 'Да се спре ли даването на поредицата? Вече дадените задачи остават.',
       stopped: 'Спряна: няма да има нови кръгове.',
@@ -4119,12 +4175,15 @@ const bg: Messages = {
         repeatHelp:
           'За всеки човек сама идва карта със срок същия ден. Докато Работната сила не донесе графика и отпуските на всеки, събота и неделя са почивни дни: карта за тогава идва в следващия работен ден от същия период.',
         quarterHelp: 'Всяко тримесечие: през януари, април, юли и октомври.',
+        tasks: 'Задачи',
+        tasksHelp:
+          'Ден 1 е началната дата. Дайте на всички задачи ден 1 за пакет (рутина); дайте им различни дни за поредица.',
+        day: 'Ден',
+        lasts: 'Колко дни отнема',
+        checklistOf: 'Списъкът ѝ (по желание)',
+        addTask: 'Добави задача',
+        removeTask: 'Премахни тази задача',
         sequencePlaceholder: 'Нов колега: първа седмица',
-        sequenceSteps: 'Стъпки',
-        sequenceStepsPlaceholder:
-          '1 | Запознай се с екипа | 1\n1 | Прочети ръководството за продукта | 2\n3 | Изслушай 5 разговора на колега | 2\n5 | Първи разговори с наставник',
-        sequenceStepsHelp:
-          'По един ред на стъпка: денят, в който започва (1 е началната дата) | заглавие | колко дни отнема (по желание, 1 ако не е казано).',
       },
     },
     ready: {
@@ -7262,15 +7321,41 @@ const fr: Messages = {
     signLater: 'Vous pourrez la signer une fois la séance tenue.',
   },
   tasks: {
-    stepOf: 'étape {{n}} sur {{of}}',
-    fromSequence: 'De la séquence « {{name}} », étape {{n}} sur {{of}}',
+    packs: {
+      monday: {
+        name: 'Routine du lundi',
+        description: 'Commencer la semaine avec un plan clair.',
+        tasks:
+          'Fixer vos trois objectifs de la semaine\nRevoir les dossiers ouverts de la semaine dernière\nLire les annonces de la semaine\nConsulter vos scores qualité et conseils',
+      },
+      friday: {
+        name: 'Routine de fin de semaine',
+        description: 'Clore la semaine et préparer la suivante.',
+        tasks:
+          'Clôturer ou transmettre les dossiers ouverts de la semaine\nMettre à jour vos notes clients\nRéécouter un de vos appels\nPartager une réussite avec l’équipe',
+      },
+      monthEnd: {
+        name: 'Rattrapage de fin de mois',
+        description: 'Bien finir le mois et commencer le suivant prêt.',
+        tasks:
+          'Clôturer les dossiers ouverts du mois\nComparer vos résultats à vos objectifs\nMettre à jour votre liste de clients\nPrévoir les priorités du mois prochain',
+      },
+    },
+    fromSequence: 'De « {{name}} », tâche {{n}} sur {{of}}',
     fromTemplate: 'Une carte répétée d’un modèle',
     library: {
-      sections: { history: 'Historique', templates: 'Modèles', sequences: 'Séquences' },
+      sections: { history: 'Historique', templates: 'Modèles', sequences: 'Packs et séquences' },
+      pack: 'pack',
+      sequence: 'séquence',
+      tasksCount_one: '{{count}} tâche',
+      tasksCount_other: '{{count}} tâches',
+      readyPacksTitle: 'Packs prêts',
+      readyPacksHelp:
+        'Partez de l’un d’eux : « Ajouter » l’ouvre dans le formulaire, pour modifier ses tâches et l’enregistrer.',
       newTemplate: 'Nouveau modèle',
       editTemplate: 'Modifier le modèle',
-      newSequence: 'Nouvelle séquence',
-      editSequence: 'Modifier la séquence',
+      newSequence: 'Nouveau pack ou séquence',
+      editSequence: 'Modifier le pack ou la séquence',
       historyHelp_one: '{{count}} tâche donnée · « Redonner » la copie avec de nouvelles dates et personnes',
       historyHelp_other: '{{count}} tâches données · « Redonner » en copie une avec de nouvelles dates et personnes',
       noHistory: 'Aucune tâche donnée pour l’instant.',
@@ -7303,13 +7388,14 @@ const fr: Messages = {
       usually: 'en général {{how}}',
       add: 'Ajouter',
       sequencesHelp:
-        'Une séquence donne plusieurs tâches à la fois, chacune commençant quelques jours après la date de début : par exemple une première semaine, une routine mensuelle ou un plan de formation.',
-      noSequences: 'Aucune séquence pour l’instant. Créez-en une pour les tâches que vous donnez toujours ensemble.',
+        'Un pack donne plusieurs tâches à la fois, le même jour : une routine du lundi, une routine hebdomadaire, un rattrapage de fin de mois. Une séquence les répartit sur plusieurs jours : une première semaine, un plan de formation. Donnez-les une fois, ou à nouveau chaque semaine, mois ou trimestre.',
+      noSequences:
+        'Aucun pack ni séquence pour l’instant. Créez-en pour les tâches que vous donnez toujours ensemble, ou partez d’un pack prêt ci-dessous.',
       day: 'Jour {{n}}',
       days_one: '{{count}} jour',
       days_other: '{{count}} jours',
       runText: '{{who}} · à partir du {{start}} · {{how}}',
-      every: { none: 'Une fois', monthly: 'Chaque mois', quarterly: 'Chaque trimestre' },
+      every: { none: 'Une fois', weekly: 'Chaque semaine', monthly: 'Chaque mois', quarterly: 'Chaque trimestre' },
       stop: 'Arrêter',
       confirmStop: 'Arrêter de donner cette séquence ? Les tâches déjà données restent.',
       stopped: 'Arrêtée : plus de nouveaux tours.',
@@ -7352,12 +7438,15 @@ const fr: Messages = {
         repeatHelp:
           'Une carte arrive seule pour chaque personne, à faire le jour même. Tant que Personnel n’apporte pas le planning et les congés de chacun, le samedi et le dimanche sont des jours de repos : une carte prévue ces jours-là arrive le jour ouvré suivant de la même période.',
         quarterHelp: 'Chaque trimestre : en janvier, avril, juillet et octobre.',
+        tasks: 'Tâches',
+        tasksHelp:
+          'Le jour 1 est la date de début. Donnez le jour 1 à toutes les tâches pour un pack (une routine) ; des jours différents pour une séquence.',
+        day: 'Jour',
+        lasts: 'Durée en jours',
+        checklistOf: 'Sa liste (facultatif)',
+        addTask: 'Ajouter une tâche',
+        removeTask: 'Retirer cette tâche',
         sequencePlaceholder: 'Nouveau collègue : première semaine',
-        sequenceSteps: 'Étapes',
-        sequenceStepsPlaceholder:
-          '1 | Rencontrer l’équipe | 1\n1 | Lire le guide du produit | 2\n3 | Écouter 5 appels d’un collègue | 2\n5 | Premiers appels avec un tuteur',
-        sequenceStepsHelp:
-          'Une ligne par étape : le jour où elle commence (1 est la date de début) | son titre | combien de jours elle prend (facultatif, 1 sinon).',
       },
     },
     ready: {

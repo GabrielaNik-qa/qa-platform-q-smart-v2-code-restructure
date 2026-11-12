@@ -163,14 +163,20 @@ export function addMonths(day: string, n: number): string {
   return first.toISOString().slice(0, 10);
 }
 
+/** How often a pack or sequence is given again. */
+export type RoundRepeat = 'none' | 'weekly' | 'monthly' | 'quarterly';
+/** The start of round k: the start date, then every week, month or quarter after it. */
+export const roundStart = (start: string, repeat: RoundRepeat, k: number) =>
+  repeat === 'weekly' ? addDays(start, 7 * k) : addMonths(start, k * (repeat === 'quarterly' ? 3 : 1));
+
 /**
- * The round of a repeating sequence due today: the latest start (the start, then every month or quarter after it) on
- * or before today, never one after its end date. Only the latest: missed rounds never pile up (today's rule).
+ * The round of a repeating pack or sequence due today: the latest start (the start, then every week, month or quarter
+ * after it) on or before today, never one after its end date. Only the latest: missed rounds never pile up (today's
+ * rule).
  */
-export function dueRound(start: string, repeat: 'none' | 'monthly' | 'quarterly', today: string, until: string | null) {
+export function dueRound(start: string, repeat: RoundRepeat, today: string, until: string | null) {
   if (repeat === 'none' || start > today) return '';
-  const step = repeat === 'quarterly' ? 3 : 1;
   let last = '';
-  for (let k = 0, c = start; c <= today && k < 400; k++, c = addMonths(start, k * step)) last = c;
+  for (let k = 0, c = start; c <= today && k < 600; k++, c = roundStart(start, repeat, k)) last = c;
   return last && !(until && last > until) ? last : '';
 }
