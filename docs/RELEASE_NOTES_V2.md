@@ -2,7 +2,7 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
-## Phase 4 (Coaching & Tasks): in progress on branch `v2-phase-4`
+## 12 November 2026: Phase 4 (Coaching & Tasks), finished (tag `v2-phase-4`)
 
 Built on 12 November on branch `v2-phase-4`. Every step was checked in the browser as admin, reviewer, team lead, trainer and agent, and in English and Bulgarian; the automatic tests check that every French text is there too. 349 automatic tests pass.
 
