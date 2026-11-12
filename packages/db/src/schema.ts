@@ -1698,3 +1698,70 @@ export const tasks = pgTable(
     }),
   ],
 );
+
+// ---------------------------------------------------------------------------------------------- Phase 4: coaching
+
+export const sessionKind = pgEnum('session_kind', ['coaching', 'group', 'training', 'o2o']);
+export const sessionStatus = pgEnum('session_status', ['planned', 'done']);
+/** An agent of a session, kept with their name and team (for the workspace reach, and if they leave). */
+export interface SessionAgent {
+  id: string;
+  name: string;
+  teamId: string | null;
+  teamName: string;
+}
+/** An action agreed in a session: what should happen, who does it, by when; with its task when one was made. */
+export interface SessionAction {
+  text: string;
+  ownerId: string;
+  ownerName: string;
+  dueOn: string | null;
+  done: boolean;
+  taskId: string | null;
+}
+/** An agent's signature: "I have read it and I agree", with an optional comment (by membership). */
+export interface SessionSignature {
+  at: string;
+  comment: string;
+  /** a one-to-one signed on the team lead's screen, with the agent there */
+  inPerson?: boolean;
+}
+
+/**
+ * A documented session (today's Coaching and One-to-One): individual or group coaching, a training, or a one-to-one
+ * (its own parts come with step 5). Its agents read it and sign it.
+ */
+export const coachingSessions = pgTable(
+  'coaching_sessions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    kind: sessionKind('kind').notNull(),
+    heldOn: date('held_on').notNull(),
+    title: text('title').notNull(),
+    status: sessionStatus('status').notNull().default('done'),
+    agents: jsonb('agents').$type<SessionAgent[]>().notNull().default([]),
+    /** the scorecard categories worked on */
+    focus: jsonb('focus').$type<string[]>().notNull().default([]),
+    topics: jsonb('topics').$type<string[]>().notNull().default([]),
+    goals: text('goals').notNull().default(''),
+    notes: text('notes').notNull().default(''),
+    followUpOn: date('follow_up_on'),
+    actions: jsonb('actions').$type<SessionAction[]>().notNull().default([]),
+    signatures: jsonb('signatures').$type<Record<string, SessionSignature>>().notNull().default({}),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('coaching_sessions_company').on(t.companyId, t.heldOn),
+    foreignKey({
+      name: 'coaching_sessions_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);

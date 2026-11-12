@@ -12,6 +12,7 @@ import { Calendar } from './Calendar';
 import { Conversations } from './Conversations';
 import { Fields } from './Fields';
 import { Calibrations } from './Calibration';
+import { Coaching } from './Coaching';
 import { CategoryStats } from './CategoryStats';
 import { Dashboard } from './Dashboard';
 import { Disputes } from './Disputes';
@@ -72,6 +73,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'quality/goals-and-kpis': (company) => <Goals company={company} />,
   'quality/improvement-plans': (company) => <ImprovementPlans company={company} />,
   'quality/tasks': (company) => <Tasks company={company} />,
+  'quality/coaching': (company) => <Coaching company={company} />,
   'quality/recognition': (company) => <Recognition company={company} />,
   'quality/review-planner': (company) => <Planner company={company} />,
   'quality/qa-workload': (company) => <Workload company={company} />,

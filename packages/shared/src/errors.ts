@@ -138,6 +138,11 @@ export const ERROR_MESSAGES = {
   sequenceInvalid:
     'Check the sequence: a name (up to 80 characters) and 1 to 30 steps, each with a title, its day (0-365) and how many days it takes (1-90); a start date, and an end date after it.',
   sequenceNotFound: 'This sequence no longer exists.',
+  sessionInvalid:
+    'Check the session: its type, date and title (up to 150 characters), at least one agent, up to 20 actions with a text each.',
+  sessionAgents: 'Choose agents (and action owners) from your workspaces.',
+  sessionNotFound: 'This session no longer exists, or you cannot see it.',
+  sessionNotHeld: 'A planned session is signed once it has been held.',
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

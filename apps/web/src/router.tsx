@@ -2,6 +2,7 @@
 // The typed router of the plan (TanStack Router); every page is drawn inside the sidebar frame (Shell).
 import { createRootRoute, createRoute, createRouter, Navigate } from '@tanstack/react-router';
 import { CalibrationView } from './Calibration';
+import { SessionView } from './Coaching';
 import { firstPage, menuOf } from './menu';
 import { PageView, NotFound } from './PageView';
 import { Platform } from './Platform';
@@ -63,10 +64,13 @@ const page = createRoute({
 /** one review: from the bell, the list of reviews and QA Entry */
 const review = createRoute({ getParentRoute: () => root, path: '/review/$id', component: ReviewView });
 
+/** one coaching session or one-to-one: from the bell and the Coaching page (its agents read and sign it here) */
+const session = createRoute({ getParentRoute: () => root, path: '/session/$id', component: SessionView });
+
 /** one calibration session: from the bell and the Calibration page */
 const calibration = createRoute({ getParentRoute: () => root, path: '/calibration/$id', component: CalibrationView });
 
-export const router = createRouter({ routeTree: root.addChildren([start, owner, review, calibration, page]) });
+export const router = createRouter({ routeTree: root.addChildren([start, owner, review, calibration, session, page]) });
 
 declare module '@tanstack/react-router' {
   interface Register {

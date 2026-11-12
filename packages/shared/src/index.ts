@@ -1,5 +1,6 @@
 // @qsmart/shared: the data shapes and business rules that the pages and the server both use.
 export * from './accuracy.js';
+export * from './coaching.js';
 export * from './errors.js';
 export * from './fields.js';
 export * from './permissions.js';

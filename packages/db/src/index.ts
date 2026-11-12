@@ -2,6 +2,7 @@
 export * from './account.js';
 export * from './ai.js';
 export * from './client.js';
+export * from './coaching.js';
 export * from './calibrations.js';
 export * from './company.js';
 export * from './conversations.js';
@@ -40,6 +41,9 @@ export type {
   PlanCheckIn,
   PlanGoal,
   SequenceStep,
+  SessionAction,
+  SessionAgent,
+  SessionSignature,
   TaskEvent,
   TaskStep,
   TemplateStep,

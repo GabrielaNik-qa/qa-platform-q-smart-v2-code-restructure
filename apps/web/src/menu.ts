@@ -34,6 +34,7 @@ export const BUILT = new Set([
   'quality/goals-and-kpis',
   'quality/improvement-plans',
   'quality/tasks',
+  'quality/coaching',
   'quality/recognition',
   'quality/review-planner',
   'quality/qa-workload',
