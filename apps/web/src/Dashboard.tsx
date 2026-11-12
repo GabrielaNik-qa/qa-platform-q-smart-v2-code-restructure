@@ -38,7 +38,9 @@ import { currentLanguage } from './i18n';
 import type { PassRates, ReviewRow } from './QAEntry';
 import type { QuickFlag } from './QuickFlags';
 import { type MyDashboards, useSession } from './session';
+import type { SessionRow } from './Coaching';
 import type { Goal } from './Goals';
+import type { Task } from './Tasks';
 import type { Kudos } from './Recognition';
 import { planOf, type WidgetContext, WIDGETS } from './widgets';
 import {
@@ -113,6 +115,7 @@ const WORD = [
   'qflags',
   'targets',
   'planner',
+  'tasks',
   'goals',
   'kudos',
 ];
@@ -260,7 +263,10 @@ export function Board({
   const { t } = useTranslation();
   const lang = currentLanguage();
   const agentView = company.role === 'agent';
+  const myMembership = useSession().company?.membershipId ?? '';
   const [reviews, setReviews] = useState<ReviewRow[] | null>(null);
+  const [tasks, setTasks] = useState<Task[] | null>(null);
+  const [coaching, setCoaching] = useState<SessionRow[] | null>(null);
   /** the moment the numbers are counted at: when the data arrived */
   const [now, setNow] = useState(() => Date.now());
   const [rates, setRates] = useState<PassRates | null>(null);
@@ -293,8 +299,10 @@ export function Board({
         : Promise.resolve(null),
       api<Goal[]>(`/goals?month=${new Date().toLocaleDateString('sv-SE').slice(0, 7)}`, company.id).catch(() => null),
       api<Kudos[]>('/kudos', company.id).catch(() => null),
+      api<Task[]>('/tasks', company.id).catch(() => null),
+      api<SessionRow[]>('/coaching-sessions', company.id).catch(() => null),
     ]).then(
-      ([r, pr, f, d, tm, ppl, sc, ws, pl, gl, kd]) => {
+      ([r, pr, f, d, tm, ppl, sc, ws, pl, gl, kd, tk, cs]) => {
         setNow(Date.now());
         setReviews(r);
         setRates(pr);
@@ -307,6 +315,8 @@ export function Board({
         setPlan(pl);
         setGoals(gl);
         setKudos(kd);
+        setTasks(tk);
+        setCoaching(cs);
       },
       () => setReviews([]),
     );
@@ -460,6 +470,9 @@ export function Board({
     reviews: all,
     goals,
     kudos,
+    tasks,
+    sessions: coaching,
+    me: myMembership,
   };
   const widget = (id: WidgetId, span: number): ReactNode => {
     const more = WIDGETS[id];

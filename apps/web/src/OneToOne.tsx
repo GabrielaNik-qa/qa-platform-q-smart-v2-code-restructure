@@ -92,7 +92,7 @@ const obj = (v: unknown): Record<string, unknown> =>
   v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
 const objectives = (v: unknown): { text: string; dueOn: string }[] =>
   Array.isArray(v) ? v.map((o) => ({ text: String(obj(o)['text'] ?? ''), dueOn: String(obj(o)['dueOn'] ?? '') })) : [];
-const stateOf = (s: OneToOneRow): State =>
+export const stateOf = (s: OneToOneRow): State =>
   s.state || (s.status === 'planned' ? 'draft' : s.agents.every((a) => s.signatures[a.id]) ? 'signed' : 'sent');
 const newId = () => `s${Math.random().toString(36).slice(2, 8)}`;
 const blank = (type: SectionType, title: string, items: string[] = []): Section => ({

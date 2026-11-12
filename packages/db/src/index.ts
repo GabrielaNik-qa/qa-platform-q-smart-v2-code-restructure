@@ -20,6 +20,7 @@ export * from './reports.js';
 export * from './reviewer-checks.js';
 export * from './reviews.js';
 export * from './seed.js';
+export * from './seed-coaching.js';
 export * from './seed-reviews.js';
 export * from './task-library.js';
 export * from './tasks.js';

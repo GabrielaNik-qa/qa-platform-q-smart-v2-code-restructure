@@ -1,30 +1,41 @@
 // Planning › Calendar (today's planning.js `PG.calendar`): one month, Monday first, with what is planned on each day:
-// calibration sessions and improvement plans (start, end, check-ins). One-to-ones, coaching and task deadlines join
-// with their phases. Each person sees only what they may read (an agent: their own plans); staff can show "only mine".
+// one-to-ones, coaching sessions and their follow-ups, task deadlines (open tasks, counted per day), calibration sessions
+// and improvement plans (start, end, check-ins). Each person sees only what they may read (an agent: their own
+// sessions, tasks and plans; never a one-to-one still in draft); staff can show "only mine".
 import { can } from '@qsmart/shared';
 import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from './api';
 import type { Session } from './Calibration';
+import type { SessionRow } from './Coaching';
 import { monthName } from './Goals';
 import { currentLanguage } from './i18n';
 import type { Plan } from './ImprovementPlans';
 import { shiftMonth } from './Planner';
 import { useSession } from './session';
+import type { Task } from './Tasks';
 import { card, type CompanyRef, smallButton } from './ui';
 
 const today = () => new Date().toLocaleDateString('sv-SE');
 const LOCALES = { en: 'en-GB', bg: 'bg-BG', fr: 'fr-FR' } as const;
-/** each kind of item keeps its own colour (two of the eight checked series colours) */
-const KIND_COLOUR = { calibration: 'var(--series-3)', plan: 'var(--series-7)' } as const;
+/** each kind of item keeps its own colour (five of the eight checked series colours, in their order) */
+const KIND_COLOUR = {
+  o2o: 'var(--series-1)',
+  coaching: 'var(--series-2)',
+  calibration: 'var(--series-3)',
+  tasks: 'var(--series-4)',
+  plan: 'var(--series-7)',
+} as const;
 type Kind = keyof typeof KIND_COLOUR;
 interface Item {
   day: string;
   kind: Kind;
   text: string;
   link:
-    { to: '/calibration/$id'; params: { id: string } } | { to: '/$app/$page'; params: { app: string; page: string } };
+    | { to: '/calibration/$id'; params: { id: string } }
+    | { to: '/session/$id'; params: { id: string } }
+    | { to: '/$app/$page'; params: { app: string; page: string }; search?: { session?: string } };
 }
 
 export function Calendar({ company }: { company: CompanyRef }) {
@@ -35,6 +46,8 @@ export function Calendar({ company }: { company: CompanyRef }) {
   const [mine, setMine] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [coaching, setCoaching] = useState<SessionRow[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -44,14 +57,59 @@ export function Calendar({ company }: { company: CompanyRef }) {
         ? api<Session[]>('/calibrations', company.id).catch(() => [])
         : Promise.resolve([] as Session[]),
       api<Plan[]>('/improvement-plans', company.id).catch(() => []),
-    ]).then(([s, p]) => {
+      api<SessionRow[]>('/coaching-sessions', company.id).catch(() => []),
+      api<Task[]>('/tasks', company.id).catch(() => []),
+    ]).then(([s, p, c, tk]) => {
       setSessions(s);
       setPlans(p);
+      setCoaching(c);
+      setTasks(tk);
       setLoaded(true);
     });
   }, [company.id, company.role]);
 
   const items: Item[] = [];
+  for (const s of coaching) {
+    if (mine && s.byId !== me && !s.agents.some((a) => a.id === me)) continue;
+    const o2o = s.kind === 'o2o';
+    const link: Item['link'] = o2o
+      ? { to: '/$app/$page', params: { app: 'quality', page: 'one-to-one' }, search: { session: s.id } }
+      : { to: '/session/$id', params: { id: s.id } };
+    const names = s.agents.map((a) => a.name).join(', ');
+    if (s.heldOn.slice(0, 7) === month)
+      items.push({
+        day: s.heldOn,
+        kind: o2o ? 'o2o' : 'coaching',
+        text: o2o
+          ? t('calendar.oneToOne', { names })
+          : t('calendar.session', { kind: t(`coaching.kinds.${s.kind}`), names }),
+        link,
+      });
+    if (s.followUpOn?.slice(0, 7) === month)
+      items.push({
+        day: s.followUpOn,
+        kind: o2o ? 'o2o' : 'coaching',
+        text: t('calendar.followUp', { title: s.title }),
+        link,
+      });
+  }
+  // open tasks, counted per day of their deadline
+  const due = new Map<string, number>();
+  for (const x of tasks)
+    if (
+      !x.archivedAt &&
+      x.status !== 'done' &&
+      x.dueOn?.slice(0, 7) === month &&
+      (!mine || x.assigneeId === me || x.byId === me)
+    )
+      due.set(x.dueOn, (due.get(x.dueOn) ?? 0) + 1);
+  for (const [day, count] of due)
+    items.push({
+      day,
+      kind: 'tasks',
+      text: t('calendar.tasksDue', { count }),
+      link: { to: '/$app/$page', params: { app: 'quality', page: 'tasks' } },
+    });
   for (const s of sessions)
     if (s.heldOn.slice(0, 7) === month && (!mine || s.owner || s.myParticipantId))
       items.push({
@@ -179,7 +237,6 @@ export function Calendar({ company }: { company: CompanyRef }) {
           </div>
         </div>
       )}
-      <p className="text-sm text-mu">{t('calendar.later')}</p>
     </section>
   );
 }

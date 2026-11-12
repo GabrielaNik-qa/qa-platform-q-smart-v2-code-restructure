@@ -19,6 +19,7 @@ import {
   runMigrations,
   seedDemo,
   seedAutoqaTestSet,
+  seedDemoCoaching,
   seedDemoConversations,
   seedDemoOutcomeGuides,
   seedDemoReviews,
@@ -159,6 +160,8 @@ async function main(): Promise<void> {
   if (talks) console.log(`  today's demo transcripts added as conversations: ${talks}`);
   if (await seedDemoOutcomeGuides(owner))
     console.log("  the demo company's outcomes got their guide (AutoQA's outcome check)");
+  const coached = await seedDemoCoaching(owner);
+  if (coached) console.log(`  demo tasks, coaching sessions and one-to-ones added: ${coached}`);
   const tests = await seedAutoqaTestSet(owner);
   if (tests) console.log(`  AutoQA's test set added to the demo company: ${tests} conversations`);
   if (REAL) {

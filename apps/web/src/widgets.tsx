@@ -13,6 +13,7 @@ import {
   categoryValue,
   change,
   hasComment,
+  isOverdueOn,
   isPass,
   passRateOf,
   share,
@@ -42,7 +43,10 @@ import { type Goal, goalValue, STATE_LOOK } from './Goals';
 import type { Kudos } from './Recognition';
 import type { PassRates, ReviewRow } from './QAEntry';
 import type { QuickFlag } from './QuickFlags';
+import type { SessionRow } from './Coaching';
+import type { Task } from './Tasks';
 import { card, type PersonRow, type TeamRow, type WorkspaceRow } from './ui';
+import { LatestCoaching, tasksOf, TasksOverview, ToDo } from './work-widgets';
 
 /** What every widget gets: the reviews of the dashboard's filters, the period before, and the company's lists. */
 export interface WidgetContext {
@@ -70,6 +74,11 @@ export interface WidgetContext {
   /** this month's goals and the kudos, as far as the person may read them (null: not loaded or not allowed) */
   goals: Goal[] | null;
   kudos: Kudos[] | null;
+  /** tasks and coaching sessions, as far as the person may read them (null: not loaded) */
+  tasks: Task[] | null;
+  sessions: SessionRow[] | null;
+  /** the person's own membership */
+  me: string;
 }
 
 const pct1 = (v: number) => `${v.toFixed(1)}%`;
@@ -1021,7 +1030,21 @@ function NeedsYou({ c }: { c: WidgetContext }) {
       c,
       c.all.filter((r) => (!c.teamFilter || r.teamId === c.teamFilter) && ageDays(r, c.now) < 14),
     ).slice(0, 2))
-      items.push({ key: `low-${a.id}`, tone: 'text-bad', text: t('widgets.inbox.low', { name: a.name }), to: null });
+      items.push({
+        key: `low-${a.id}`,
+        tone: 'text-bad',
+        text: t('widgets.inbox.low', { name: a.name }),
+        to: (
+          <Link
+            to="/$app/$page"
+            params={{ app: 'quality', page: 'agents' }}
+            search={{ agent: a.id }}
+            className="font-semibold text-ac hover:underline"
+          >
+            {t('widgets.inbox.planCoaching')}
+          </Link>
+        ),
+      });
   const behind = planOf(c)?.behind ?? 0;
   if (behind)
     items.push({
@@ -1037,6 +1060,15 @@ function NeedsYou({ c }: { c: WidgetContext }) {
       tone: 'text-bad',
       text: t('widgets.inbox.critical', { count: critical }),
       to: <PageLink page="reviews">{t('widgets.inbox.open')}</PageLink>,
+    });
+  const today = new Date(c.now).toLocaleDateString('sv-SE');
+  const overdue = tasksOf(c).filter((x) => isOverdueOn(x, today)).length;
+  if (overdue)
+    items.push({
+      key: 'tasks',
+      tone: 'text-bad',
+      text: t('widgets.inbox.tasks', { count: overdue }),
+      to: <PageLink page="tasks">{t('widgets.inbox.open')}</PageLink>,
     });
   const unseen = c.d.filter((r) => !r.seenAt).length;
   if (unseen && c.staff)
@@ -1203,6 +1235,9 @@ export const WIDGETS: Record<string, WidgetSpec> = {
   qflags: { width: 30, group: 'Lists', render: (c) => <QuickFlagList c={c} /> },
   targets: { width: 30, group: 'Numbers', render: (c) => <Targets c={c} /> },
   planner: { width: 30, group: 'Work', render: (c) => <PlanWidget c={c} /> },
+  tasks: { width: 30, group: 'Work', render: (c) => <TasksOverview c={c} /> },
+  todo: { width: 60, group: 'Work', render: (c) => <ToDo c={c} /> },
+  coach_new: { width: 60, group: 'Work', render: (c) => <LatestCoaching c={c} /> },
   goals: { width: 30, group: 'Performance', render: (c) => <GoalsWidget c={c} /> },
   kudos: { width: 30, group: 'Performance', render: (c) => <KudosWidget c={c} /> },
 };

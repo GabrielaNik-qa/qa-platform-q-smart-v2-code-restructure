@@ -3,8 +3,8 @@
 // The page only reads what the other pages store, so every number matches Reviews and the Dashboard: the same shared
 // counting (packages/shared/src/stats.ts), here with calendar periods (this week from Monday, this month, quarter,
 // year) as today. Its tabs: Performance (categories, agent against team), Reviews & Trends (a column per day, week or
-// month, and the reviews), Flags (red and green flags, disputes) and Growth (goals, improvement plans, kudos).
-// One-to-ones and simulations join with their own phases.
+// month, and the reviews), Flags (red and green flags, disputes), One-to-One (one-to-ones, coaching and open tasks)
+// and Growth (goals, improvement plans, kudos). Simulations join with their own phase.
 import {
   average,
   averageScore,
@@ -23,9 +23,11 @@ import {
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CoachingTab } from './AgentCoaching';
 import { api, apiFile } from './api';
 import { band, BAND_FILL, BAND_SOFT, BAND_TEXT, Empty, ReviewLink, TeamLink } from './bits';
 import { Radar, type ScoreColumn, ScoreColumns } from './charts';
+import type { SessionRow } from './Coaching';
 import type { Dispute } from './Disputes';
 import { type Goal, GoalCard, monthName } from './Goals';
 import { type Plan, planOpen, PlanRow } from './ImprovementPlans';
@@ -34,11 +36,12 @@ import { currentLanguage } from './i18n';
 import { pageOf, Pager } from './Pager';
 import type { PassRates, ReviewRow } from './QAEntry';
 import { useSession } from './session';
+import type { Task } from './Tasks';
 import { card, type CompanyRef, field, Notice, type PersonRow, smallButton, type TeamRow, useAction } from './ui';
 
 const CHANNELS = ['call', 'chat', 'email', 'other'] as const;
 type Channel = (typeof CHANNELS)[number];
-type Tab = 'perf' | 'calls' | 'flags' | 'growth';
+type Tab = 'perf' | 'calls' | 'flags' | 'o2o' | 'growth';
 const PERIODS: CalendarPeriod[] = ['week', 'month', 'quarter', 'year', 'all'];
 const LOCALES = { en: 'en-GB', bg: 'bg-BG', fr: 'fr-FR' } as const;
 const DAY = 864e5;
@@ -83,6 +86,7 @@ export function Agents({ company }: { company: CompanyRef }) {
     kudos: [],
   });
 
+  const [work, setWork] = useState<{ sessions: SessionRow[]; tasks: Task[] }>({ sessions: [], tasks: [] });
   const [q, setQ] = useState('');
   const [team, setTeam] = useState('');
   const [agent, setAgent] = useState(search.agent ?? '');
@@ -124,6 +128,11 @@ export function Agents({ company }: { company: CompanyRef }) {
       api<Plan[]>('/improvement-plans', company.id).catch(() => []),
       api<Kudos[]>('/kudos', company.id).catch(() => []),
     ]).then(([goals, plans, kudos]) => setGrowth({ goals, plans, kudos }));
+    // the One-to-One tab: sessions and tasks, as far as the person may read them
+    void Promise.all([
+      api<SessionRow[]>('/coaching-sessions', company.id).catch(() => []),
+      api<Task[]>('/tasks', company.id).catch(() => []),
+    ]).then(([sessions, tasks]) => setWork({ sessions, tasks }));
   }, [company.id]);
 
   // a link from elsewhere (today's openAgent): open that agent, with the filters of the page reset
@@ -301,6 +310,14 @@ export function Agents({ company }: { company: CompanyRef }) {
     const esc = (s: string) =>
       s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c);
     const sorted = [...rows].sort((x, y) => y.a - x.a);
+    // the sessions of the period, as the One-to-One tab counts them
+    const held = work.sessions.filter(
+      (s) =>
+        s.agents.some((x) => x.id === u.membershipId) &&
+        w !== null &&
+        new Date(`${s.heldOn}T12:00:00`).getTime() >= w[0] &&
+        new Date(`${s.heldOn}T12:00:00`).getTime() < w[1],
+    );
     const strong = sorted.slice(0, 3);
     const weak = [...sorted]
       .reverse()
@@ -318,6 +335,7 @@ export function Agents({ company }: { company: CompanyRef }) {
       `<h2>${esc(t('agents.report.focus'))}</h2><ul>${weak.map(li).join('') || `<li>${esc(t('agents.report.allAbove'))}</li>`}</ul>` +
       `<h2>${esc(t('agents.report.categories'))}</h2><table><tr><th>${esc(t('agents.report.category'))}</th><th>${esc(t('agents.report.agent'))}</th><th>${esc(t('agents.report.team'))}</th></tr>${sorted.map((r) => `<tr><td>${esc(r.name)}</td><td>${Math.round(r.a)}%</td><td>${r.t === null ? '-' : `${Math.round(r.t)}%`}</td></tr>`).join('')}</table>` +
       `<h2>${esc(t('agents.report.disputesTitle'))}</h2><p>${esc(t('agents.report.disputes', { count: disputed.length }))}</p>` +
+      `<h2>${esc(t('agents.report.coachingTitle'))}</h2><p>${esc(t('agents.report.coaching', { o2o: held.filter((s) => s.kind === 'o2o').length, coach: held.filter((s) => s.kind !== 'o2o').length }))}</p>` +
       `<h2>${esc(t('agents.report.recent'))}</h2><table><tr><th>${esc(t('agents.report.lead'))}</th><th>${esc(t('agents.report.date'))}</th><th>${esc(t('agents.report.score'))}</th></tr>${recent.map((r) => `<tr><td>${esc(r.leadId)}</td><td>${esc(r.reviewedOn)}</td><td>${r.score ?? 0}%</td></tr>`).join('')}</table>` +
       `<p><small>${esc(t('agents.report.note'))}</small></p>`;
     const win = window.open('', '_blank');
@@ -640,6 +658,18 @@ export function Agents({ company }: { company: CompanyRef }) {
     ['calls', t('agents.tabs.calls'), n],
     ['flags', t('agents.tabs.flags'), flagged.length],
     [
+      'o2o',
+      t('agents.tabs.o2o'),
+      work.sessions.filter(
+        (s) =>
+          s.kind === 'o2o' &&
+          s.agents.some((a) => a.id === u.membershipId) &&
+          w !== null &&
+          new Date(`${s.heldOn}T12:00:00`).getTime() >= w[0] &&
+          new Date(`${s.heldOn}T12:00:00`).getTime() < w[1],
+      ).length,
+    ],
+    [
       'growth',
       t('agents.tabs.growth'),
       growth.plans.filter((p) => p.agentId === u.membershipId && planOpen(p)).length +
@@ -685,6 +715,8 @@ export function Agents({ company }: { company: CompanyRef }) {
       />
     ) : tab === 'flags' ? (
       <Flags flagged={flagged} disputed={disputed} disputeOf={disputeOf} label={label} />
+    ) : tab === 'o2o' ? (
+      <CoachingTab agent={u} sessions={work.sessions} tasks={work.tasks} window={w} label={label} />
     ) : (
       <Growth agent={u} growth={growth} agentView={agentView} />
     );

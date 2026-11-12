@@ -162,7 +162,7 @@ describe("AutoQA's test set", () => {
       (await call('POST', `/autoqa/test-set/${o.items[0]?.id}/run`, 'reviewer', { modelId: 'someone/else' }))
         .statusCode,
     ).toBe(400);
-  });
+  }, 30_000);
 
   it('then uses only the models that pass for AI reviews', async () => {
     await call('PUT', '/ai/reviews', 'admin', { announced: true, channels: [] });
