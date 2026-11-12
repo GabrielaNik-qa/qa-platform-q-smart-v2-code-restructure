@@ -116,3 +116,61 @@ export const monthTaskPoints = (list: TaskFacts[], month: string) =>
   list
     .filter((t) => t.status === 'done' && t.completedAt && localDay(t.completedAt).slice(0, 7) === month)
     .reduce((sum, t) => sum + t.points, 0);
+
+// ---------------------------------------------------------------------------------------------- repeats
+
+export type RepeatEvery = 'none' | 'daily' | 'weekly' | 'monthly' | 'quarterly';
+export interface RepeatRule {
+  freq: RepeatEvery;
+  /** weekly: 0 Sunday … 6 Saturday */
+  weekday: number;
+  /** monthly and quarterly: 1-28 */
+  monthday: number;
+}
+
+/**
+ * The day a repeating template's card belongs to in today's period (today's periodDay): today for daily; this week's
+ * chosen day; this month's (or quarter's: January, April, July, October) chosen day. Empty while that day hasn't come.
+ */
+export function periodDay(rule: RepeatRule, today: string): string {
+  if (rule.freq === 'daily') return today;
+  if (rule.freq === 'weekly') {
+    const d = addDays(mondayOf(today), (rule.weekday + 6) % 7);
+    return d <= today ? d : '';
+  }
+  if (rule.freq !== 'monthly' && rule.freq !== 'quarterly') return '';
+  const m = Number(today.slice(5, 7));
+  const month = rule.freq === 'quarterly' ? m - ((m - 1) % 3) : m;
+  const d = `${today.slice(0, 5)}${String(month).padStart(2, '0')}-${String(rule.monthday).padStart(2, '0')}`;
+  return d <= today ? d : '';
+}
+
+/**
+ * A working day for repeating cards: Monday to Friday. Until Workforce (Phase 6) brings each person's rota and time
+ * off, a card due on a Saturday or Sunday comes on the next working day of the same period (Gabriela's yes, 12 Nov).
+ */
+export const isWorkingDay = (day: string) => {
+  const d = new Date(`${day}T12:00:00`).getDay();
+  return d !== 0 && d !== 6;
+};
+
+/** A day moved by whole months, kept within the month (31 January + 1 month = 28 or 29 February). */
+export function addMonths(day: string, n: number): string {
+  const [y = 0, m = 1, d = 1] = day.split('-').map(Number);
+  const first = new Date(Date.UTC(y, m - 1 + n, 1));
+  const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+  first.setUTCDate(Math.min(d, last));
+  return first.toISOString().slice(0, 10);
+}
+
+/**
+ * The round of a repeating sequence due today: the latest start (the start, then every month or quarter after it) on
+ * or before today, never one after its end date. Only the latest: missed rounds never pile up (today's rule).
+ */
+export function dueRound(start: string, repeat: 'none' | 'monthly' | 'quarterly', today: string, until: string | null) {
+  if (repeat === 'none' || start > today) return '';
+  const step = repeat === 'quarterly' ? 3 : 1;
+  let last = '';
+  for (let k = 0, c = start; c <= today && k < 400; k++, c = addMonths(start, k * step)) last = c;
+  return last && !(until && last > until) ? last : '';
+}

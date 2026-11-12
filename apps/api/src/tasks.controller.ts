@@ -39,6 +39,7 @@ import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { CurrentMembership, CurrentScope } from './decorators.js';
 import { badRequest, forbidden, notFound } from './errors.js';
 import { reachOf } from './reviews.controller.js';
+import { giveRepeats } from './task-library.controller.js';
 import { DB } from './tokens.js';
 
 const idParam = z.uuid();
@@ -117,6 +118,8 @@ export class TasksController {
   @Allow('tasks.read')
   list(@CurrentMembership() membership: Membership, @CurrentScope() scope: Scope) {
     return withCompany(this.db, membership.companyId, async (tx) => {
+      // the repeating cards due today come the first time anybody opens their tasks (today's rule)
+      await giveRepeats(tx);
       const me = (await membershipOfUser(tx, membership.userId))?.id ?? null;
       return listTasks(tx, await reachOf(tx, membership, scope), me);
     });

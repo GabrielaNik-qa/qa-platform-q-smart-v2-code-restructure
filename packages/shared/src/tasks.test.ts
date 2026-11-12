@@ -2,6 +2,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   addDays,
+  addMonths,
+  dueRound,
+  isWorkingDay,
+  periodDay,
+  type RepeatEvery,
+  type RepeatRule,
   dayProgress,
   daysLate,
   doneOnTime,
@@ -138,5 +144,37 @@ describe("tasks' numbers", () => {
     expect(
       inTaskPeriod(task({ createdAt: '2026-10-01T10:00:00', completedAt: '2026-11-01T10:00:00' }), 'month', now),
     ).toBe(true);
+  });
+});
+
+describe('repeats', () => {
+  it("find the day of today's period, as today", () => {
+    const rule = (freq: RepeatEvery, weekday = 1, monthday = 1): RepeatRule => ({ freq, weekday, monthday });
+    expect(periodDay(rule('daily'), TODAY)).toBe(TODAY);
+    expect(periodDay(rule('weekly', 1), TODAY)).toBe('2026-11-09'); // this Monday
+    expect(periodDay(rule('weekly', 5), TODAY)).toBe(''); // Friday hasn't come yet
+    expect(periodDay(rule('monthly', 1, 5), TODAY)).toBe('2026-11-05');
+    expect(periodDay(rule('monthly', 1, 20), TODAY)).toBe('');
+    expect(periodDay(rule('quarterly', 1, 3), TODAY)).toBe('2026-10-03');
+    expect(periodDay(rule('none'), TODAY)).toBe('');
+  });
+
+  it('skip Saturdays and Sundays, and add months within the month', () => {
+    expect(isWorkingDay('2026-11-13')).toBe(true); // Friday
+    expect(isWorkingDay('2026-11-14')).toBe(false);
+    expect(isWorkingDay('2026-11-15')).toBe(false);
+    expect(addMonths('2026-01-31', 1)).toBe('2026-02-28');
+    expect(addMonths('2028-01-31', 1)).toBe('2028-02-29');
+    expect(addMonths('2026-11-15', 3)).toBe('2027-02-15');
+  });
+
+  it('give only the latest round of a repeating sequence, never after its end', () => {
+    expect(dueRound('2026-08-20', 'monthly', TODAY, null)).toBe('2026-10-20');
+    expect(dueRound('2026-08-12', 'monthly', TODAY, null)).toBe(TODAY);
+    expect(dueRound('2026-05-12', 'quarterly', TODAY, null)).toBe(TODAY);
+    expect(dueRound('2026-05-13', 'quarterly', TODAY, null)).toBe('2026-08-13');
+    expect(dueRound('2026-08-20', 'monthly', TODAY, '2026-09-30')).toBe('');
+    expect(dueRound('2026-12-01', 'monthly', TODAY, null)).toBe('');
+    expect(dueRound('2026-08-20', 'none', TODAY, null)).toBe('');
   });
 });

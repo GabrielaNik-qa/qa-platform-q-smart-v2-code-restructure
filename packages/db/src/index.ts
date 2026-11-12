@@ -20,6 +20,7 @@ export * from './reviewer-checks.js';
 export * from './reviews.js';
 export * from './seed.js';
 export * from './seed-reviews.js';
+export * from './task-library.js';
 export * from './tasks.js';
 export * from './teams.js';
 export * from './test-set.js';
@@ -38,8 +39,10 @@ export type {
   PageRules,
   PlanCheckIn,
   PlanGoal,
+  SequenceStep,
   TaskEvent,
   TaskStep,
+  TemplateStep,
   ReportSchedule,
   Prefs,
   SharedDashboard,

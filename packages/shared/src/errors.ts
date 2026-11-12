@@ -131,6 +131,13 @@ export const ERROR_MESSAGES = {
     'Check the task: a title (up to 150 characters), a start date before the deadline, up to 30 checklist lines and 8 labels.',
   taskNobody: 'Choose at least one person or team to give the task to (from your workspaces).',
   taskNotFound: 'This task no longer exists, or you cannot see it.',
+  templateInvalid:
+    'Check the template: a name (up to 150 characters), up to 30 checklist lines and 8 labels, a weekday and a day of the month (1-28).',
+  templateNobody: 'Choose who gets the cards of a repeating template: people or whole teams.',
+  templateNotFound: 'This template no longer exists.',
+  sequenceInvalid:
+    'Check the sequence: a name (up to 80 characters) and 1 to 30 steps, each with a title, its day (0-365) and how many days it takes (1-90); a start date, and an end date after it.',
+  sequenceNotFound: 'This sequence no longer exists.',
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

@@ -34,16 +34,28 @@ export interface Task {
   sentAt: Date | null;
   completedAt: Date | null;
   history: TaskEvent[];
+  /** a repeating template's card */
+  templateId: string | null;
+  recurKey: string | null;
+  /** a sequence's card: its round, step number of how many, and the sequence's name */
+  runId: string | null;
+  stepNo: number | null;
+  stepCount: number | null;
+  sequenceName: string;
   byId: string | null;
   byName: string;
   createdAt: Date;
   updatedAt: Date;
 }
+type LibraryLinks = 'templateId' | 'recurKey' | 'runId' | 'stepNo' | 'stepCount' | 'sequenceName';
 export type NewTask = Omit<
   Task,
-  'id' | 'createdAt' | 'updatedAt' | 'archivedAt' | 'startedAt' | 'sentAt' | 'completedAt' | 'pinned'
+  'id' | 'createdAt' | 'updatedAt' | 'archivedAt' | 'startedAt' | 'sentAt' | 'completedAt' | 'pinned' | LibraryLinks
+> &
+  Partial<Pick<Task, LibraryLinks>>;
+export type TaskChange = Partial<
+  Omit<Task, 'id' | 'groupId' | 'byId' | 'byName' | 'createdAt' | 'updatedAt' | LibraryLinks>
 >;
-export type TaskChange = Partial<Omit<Task, 'id' | 'groupId' | 'byId' | 'byName' | 'createdAt' | 'updatedAt'>>;
 
 /** The history keeps the last 60 events (today's rule). */
 export const MAX_TASK_EVENTS = 60;
@@ -80,6 +92,16 @@ export async function addTasks(tx: Tx, list: NewTask[]): Promise<string[]> {
     .values(list.map((t) => ({ companyId: thisCompany, ...t })))
     .returning({ id: tasks.id });
   return rows.map((r) => r.id);
+}
+
+/** A repeating template's card, once per template, period and person: false when it was already there. */
+export async function addRepeatingTask(tx: Tx, task: NewTask & { recurKey: string }): Promise<boolean> {
+  const rows = await tx
+    .insert(tasks)
+    .values({ companyId: thisCompany, ...task })
+    .onConflictDoNothing({ target: [tasks.companyId, tasks.recurKey] })
+    .returning({ id: tasks.id });
+  return rows.length > 0;
 }
 
 export async function updateTask(tx: Tx, id: string, change: TaskChange): Promise<void> {

@@ -1483,6 +1483,137 @@ export interface TaskEvent {
   note?: string;
 }
 
+/** A checklist line of a template or a sequence's step (ticked only on the cards). */
+export interface TemplateStep {
+  text: string;
+  minutes: number;
+}
+/** One step of a sequence: a task given a number of days after the start (day 0: the start), for some days. */
+export interface SequenceStep {
+  title: string;
+  description: string;
+  day: number;
+  days: number;
+  kind: 'task' | 'target';
+  priority: 'low' | 'med' | 'high';
+  points: number;
+  needsReview: boolean;
+  steps: TemplateStep[];
+}
+
+/**
+ * A saved task (today's Library › Templates): used by hand ("Use template"), or repeating by itself every day, week,
+ * month or quarter for chosen people and teams, until a date if chosen.
+ */
+export const taskTemplates = pgTable(
+  'task_templates',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description').notNull().default(''),
+    /** a one-time task, a checklist (a task with steps), or a target */
+    kind: text('kind').notNull().default('checklist'),
+    priority: taskPriority('priority').notNull().default('med'),
+    points: integer('points').notNull().default(0),
+    steps: jsonb('steps').$type<TemplateStep[]>().notNull().default([]),
+    labels: jsonb('labels').$type<string[]>().notNull().default([]),
+    colour: text('colour').notNull().default(''),
+    category: text('category').notNull().default(''),
+    needsReview: boolean('needs_review').notNull().default(false),
+    /** none: used by hand; daily, weekly, monthly, quarterly: a card comes by itself */
+    freq: text('freq').notNull().default('none'),
+    /** weekly: the day (0 Sunday … 6 Saturday) */
+    weekday: integer('weekday').notNull().default(1),
+    /** monthly and quarterly: the day of the month (1-28) */
+    monthday: integer('monthday').notNull().default(1),
+    untilOn: date('until_on'),
+    /** who gets the repeating cards: people (memberships) and whole teams (their active agents) */
+    userIds: jsonb('user_ids').$type<string[]>().notNull().default([]),
+    teamIds: jsonb('team_ids').$type<string[]>().notNull().default([]),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('task_templates_id_company').on(t.id, t.companyId),
+    index('task_templates_company').on(t.companyId),
+    foreignKey({
+      name: 'task_templates_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/** A sequence (today's Library › Sequences): steps given together, each a number of days after the start. */
+export const taskSequences = pgTable(
+  'task_sequences',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    description: text('description').notNull().default(''),
+    steps: jsonb('steps').$type<SequenceStep[]>().notNull().default([]),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('task_sequences_id_company').on(t.id, t.companyId),
+    index('task_sequences_company').on(t.companyId),
+    foreignKey({
+      name: 'task_sequences_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/** A sequence given to people and teams from a start date, once or again every month or quarter. */
+export const taskSequenceRuns = pgTable(
+  'task_sequence_runs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    sequenceId: uuid('sequence_id').notNull(),
+    startOn: date('start_on').notNull(),
+    /** none, monthly or quarterly */
+    repeat: text('repeat').notNull().default('none'),
+    untilOn: date('until_on'),
+    userIds: jsonb('user_ids').$type<string[]>().notNull().default([]),
+    teamIds: jsonb('team_ids').$type<string[]>().notNull().default([]),
+    /** the start dates of the rounds already given (the last 50) */
+    cycles: jsonb('cycles').$type<string[]>().notNull().default([]),
+    active: boolean('active').notNull().default(true),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('task_sequence_runs_id_company').on(t.id, t.companyId),
+    index('task_sequence_runs_sequence').on(t.sequenceId),
+    foreignKey({
+      name: 'task_sequence_runs_sequence_same_company',
+      columns: [t.sequenceId, t.companyId],
+      foreignColumns: [taskSequences.id, taskSequences.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'task_sequence_runs_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
 /**
  * A task or target given to one person (today's Tasks): its checklist, dates, status and history. A task given to
  * several people at once is one row per person, sharing a group id. Its person's team is kept for the workspace reach.
@@ -1522,12 +1653,21 @@ export const tasks = pgTable(
     sentAt: timestamp('sent_at', { withTimezone: true }),
     completedAt: timestamp('completed_at', { withTimezone: true }),
     history: jsonb('history').$type<TaskEvent[]>().notNull().default([]),
+    /** a repeating template's card: the template, and "template:period:person", so each comes once */
+    templateId: uuid('template_id'),
+    recurKey: text('recur_key'),
+    /** a sequence's card: the round it belongs to, its step number of how many, and the sequence's name */
+    runId: uuid('run_id'),
+    stepNo: integer('step_no'),
+    stepCount: integer('step_count'),
+    sequenceName: text('sequence_name').notNull().default(''),
     byId: uuid('by_membership_id'),
     byName: text('by_name').notNull(),
     createdAt: createdAt(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
+    uniqueIndex('tasks_recur_key').on(t.companyId, t.recurKey),
     index('tasks_company_due').on(t.companyId, t.dueOn),
     index('tasks_assignee').on(t.assigneeId),
     index('tasks_group').on(t.groupId),
@@ -1545,6 +1685,16 @@ export const tasks = pgTable(
       name: 'tasks_by_same_company',
       columns: [t.byId, t.companyId],
       foreignColumns: [memberships.id, memberships.companyId],
+    }),
+    foreignKey({
+      name: 'tasks_template_same_company',
+      columns: [t.templateId, t.companyId],
+      foreignColumns: [taskTemplates.id, taskTemplates.companyId],
+    }),
+    foreignKey({
+      name: 'tasks_run_same_company',
+      columns: [t.runId, t.companyId],
+      foreignColumns: [taskSequenceRuns.id, taskSequenceRuns.companyId],
     }),
   ],
 );

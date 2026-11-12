@@ -365,6 +365,20 @@
       "when": 1794482072649,
       "tag": "0051_tasks",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1794487188666,
+      "tag": "0052_task_library_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1794487191378,
+      "tag": "0053_task_library",
+      "breakpoints": true
     }
   ]
 }

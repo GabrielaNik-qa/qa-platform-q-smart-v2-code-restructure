@@ -3,7 +3,8 @@
 // tick starts a card, the last finishes it); a card given with "needs review" waits In review until someone who gives
 // tasks approves it or sends it back with a comment. Each card opens with its dates, checklist and history.
 // Staff also have Team Progress (how far everybody is today) and Evaluation (each agent's score); everyone sees their
-// own score and chooses the board, the timeline or the list. The Library (history, templates, sequences): step 3.
+// own score and chooses the board, the timeline or the list; the Library (history, templates, sequences) is in
+// TaskLibrary.tsx.
 import { can, isOverdueOn, type Language } from '@qsmart/shared';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type DragEvent, type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
@@ -13,6 +14,7 @@ import { api } from './api';
 import { Empty } from './bits';
 import { currentLanguage } from './i18n';
 import { useSession } from './session';
+import { TaskLibrary } from './TaskLibrary';
 import { Evaluation, MyScore, TaskList, TeamProgress, Timeline, todayHere } from './TaskViews';
 import { card, type CompanyRef, field, Notice, type PersonRow, primaryButton, smallButton, useAction } from './ui';
 
@@ -54,6 +56,13 @@ export interface Task {
   sentAt: string | null;
   completedAt: string | null;
   history: TaskEvent[];
+  /** a repeating template's card */
+  templateId: string | null;
+  /** a sequence's card: step n of how many, and the sequence's name */
+  runId: string | null;
+  stepNo: number | null;
+  stepCount: number | null;
+  sequenceName: string;
   byId: string | null;
   byName: string;
   createdAt: string;
@@ -63,7 +72,7 @@ export const STATUSES: TaskStatus[] = ['todo', 'doing', 'review', 'done'];
 const PRIORITY_LOOK = { high: 'text-bad', med: 'text-wn', low: 'text-ok' } as const;
 type Show = 'all' | 'todo' | 'active' | 'done' | 'overdue' | 'archived';
 const SHOWS: Show[] = ['all', 'todo', 'active', 'done', 'overdue', 'archived'];
-type Tab = 'my' | 'team' | 'eval';
+type Tab = 'my' | 'team' | 'eval' | 'library';
 type View = 'board' | 'timeline' | 'list';
 const VIEWS: View[] = ['board', 'timeline', 'list'];
 export const isOverdue = (t: Pick<Task, 'dueOn' | 'status'>) => isOverdueOn(t, todayHere());
@@ -100,7 +109,7 @@ const order = (a: Task, b: Task) =>
   (a.dueOn ?? '9999').localeCompare(b.dueOn ?? '9999') ||
   b.createdAt.localeCompare(a.createdAt);
 
-interface Draft {
+export interface Draft {
   id?: string;
   title: string;
   description: string;
@@ -119,7 +128,7 @@ interface Draft {
   teamIds: string[];
   assigneeId: string;
 }
-const emptyDraft = (): Draft => ({
+export const emptyDraft = (): Draft => ({
   title: '',
   description: '',
   kind: 'task',
@@ -346,7 +355,7 @@ export function Tasks({ company }: { company: CompanyRef }) {
       <div className="grid gap-3 lg:grid-cols-[auto_minmax(0,28rem)] lg:items-end lg:justify-between">
         {gives ? (
           <div className="flex flex-wrap gap-2" role="tablist" aria-label={t('tasks.title')}>
-            {(['my', 'team', 'eval'] as const).map((k) => (
+            {(['my', 'team', 'eval', 'library'] as const).map((k) => (
               <button
                 key={k}
                 type="button"
@@ -372,6 +381,15 @@ export function Tasks({ company }: { company: CompanyRef }) {
         <TeamProgress tasks={all} agents={agents} onPerson={openPerson} />
       ) : tab === 'eval' && gives ? (
         <Evaluation tasks={all} agents={agents} />
+      ) : tab === 'library' && gives ? (
+        <TaskLibrary
+          company={company}
+          tasks={all}
+          people={people}
+          teams={teams}
+          startTask={(d) => setDraft({ ...emptyDraft(), ...d })}
+          openTask={setOpen}
+        />
       ) : (
         <>
           <div className="grid gap-2 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
@@ -591,6 +609,8 @@ function TaskCard({
         )}
         {x.steps.length > 0 && <span>{t('tasks.stepsDone', { done: ticked, of: x.steps.length })}</span>}
         {x.needsReview && <span>{t('tasks.needsReviewShort')}</span>}
+        {x.stepNo && <span className="text-ac">{t('tasks.stepOf', { n: x.stepNo, of: x.stepCount })}</span>}
+        {x.templateId && <span className="text-ac">{t('tasks.library.repeating')}</span>}
       </span>
       {x.labels.length > 0 && (
         <span className="flex flex-wrap gap-1">
@@ -670,6 +690,12 @@ function TaskWindow({
             <p className="text-sm">
               {t('tasks.for', { name: x.assigneeName })} · {t('tasks.givenBy', { name: x.byName })}
             </p>
+            {x.sequenceName && (
+              <p className="text-xs text-ac">
+                {t('tasks.fromSequence', { name: x.sequenceName, n: x.stepNo ?? 0, of: x.stepCount ?? 0 })}
+              </p>
+            )}
+            {x.templateId && <p className="text-xs text-ac">{t('tasks.fromTemplate')}</p>}
           </div>
           <button
             type="button"
@@ -874,10 +900,7 @@ function TaskForm({
   onSave: (e: FormEvent) => void;
 }) {
   const { t } = useTranslation();
-  const [find, setFind] = useState('');
   const set = (change: Partial<Draft>) => setDraft({ ...draft, ...change });
-  const toggle = (list: string[], id: string) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
-  const matching = people.filter((p) => !find.trim() || p.name.toLowerCase().includes(find.trim().toLowerCase()));
   const chosen = draft.assigneeIds.length + draft.teamIds.length;
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4" onClick={() => setDraft(null)}>
@@ -1053,54 +1076,13 @@ function TaskForm({
             </select>
           </label>
         ) : (
-          <fieldset className="grid gap-2 rounded-s border border-bd p-3">
-            <legend className="px-1 text-sm font-semibold">
-              {t('tasks.form.giveTo')} {chosen > 0 && <span className="text-mu">({chosen})</span>}
-            </legend>
-            {teams.length > 0 && (
-              <div className="grid gap-1">
-                <span className="text-xs font-semibold uppercase text-mu">{t('tasks.form.teams')}</span>
-                <div className="flex flex-wrap gap-x-4 gap-y-1">
-                  {teams.map((tm) => (
-                    <label key={tm.id} className="inline-flex items-center gap-1 text-sm">
-                      <input
-                        type="checkbox"
-                        className="accent-[var(--brand)]"
-                        checked={draft.teamIds.includes(tm.id)}
-                        onChange={() => set({ teamIds: toggle(draft.teamIds, tm.id) })}
-                      />
-                      {tm.name}
-                    </label>
-                  ))}
-                </div>
-                <small className="text-mu">{t('tasks.form.teamsHelp')}</small>
-              </div>
-            )}
-            <div className="grid gap-1">
-              <span className="text-xs font-semibold uppercase text-mu">{t('tasks.form.people')}</span>
-              <input
-                className={field}
-                type="search"
-                aria-label={t('tasks.form.findPerson')}
-                placeholder={t('tasks.form.findPerson')}
-                value={find}
-                onChange={(e) => setFind(e.target.value)}
-              />
-              <div className="grid max-h-48 gap-1 overflow-auto sm:grid-cols-2">
-                {matching.map((p) => (
-                  <label key={p.membershipId} className="inline-flex items-center gap-1 text-sm">
-                    <input
-                      type="checkbox"
-                      className="accent-[var(--brand)]"
-                      checked={draft.assigneeIds.includes(p.membershipId)}
-                      onChange={() => set({ assigneeIds: toggle(draft.assigneeIds, p.membershipId) })}
-                    />
-                    {p.name} <small className="text-mu">· {p.teamName}</small>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </fieldset>
+          <PeoplePicker
+            people={people}
+            teams={teams}
+            assigneeIds={draft.assigneeIds}
+            teamIds={draft.teamIds}
+            onChange={(assigneeIds, teamIds) => set({ assigneeIds, teamIds })}
+          />
         )}
         <Notice message={message?.ok ? null : message} />
         <div className="flex justify-end gap-2">
@@ -1113,5 +1095,76 @@ function TaskForm({
         </div>
       </form>
     </div>
+  );
+}
+
+/** Whole teams (each active agent gets their own card) and people, to give a task, a template or a sequence to. */
+export function PeoplePicker({
+  people,
+  teams,
+  assigneeIds,
+  teamIds,
+  onChange,
+}: {
+  people: PersonRow[];
+  teams: { id: string; name: string }[];
+  assigneeIds: string[];
+  teamIds: string[];
+  onChange: (assigneeIds: string[], teamIds: string[]) => void;
+}) {
+  const { t } = useTranslation();
+  const [find, setFind] = useState('');
+  const toggle = (list: string[], id: string) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+  const matching = people.filter((p) => !find.trim() || p.name.toLowerCase().includes(find.trim().toLowerCase()));
+  const chosen = assigneeIds.length + teamIds.length;
+  return (
+    <fieldset className="grid gap-2 rounded-s border border-bd p-3">
+      <legend className="px-1 text-sm font-semibold">
+        {t('tasks.form.giveTo')} {chosen > 0 && <span className="text-mu">({chosen})</span>}
+      </legend>
+      {teams.length > 0 && (
+        <div className="grid gap-1">
+          <span className="text-xs font-semibold uppercase text-mu">{t('tasks.form.teams')}</span>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {teams.map((tm) => (
+              <label key={tm.id} className="inline-flex items-center gap-1 text-sm">
+                <input
+                  type="checkbox"
+                  className="accent-[var(--brand)]"
+                  checked={teamIds.includes(tm.id)}
+                  onChange={() => onChange(assigneeIds, toggle(teamIds, tm.id))}
+                />
+                {tm.name}
+              </label>
+            ))}
+          </div>
+          <small className="text-mu">{t('tasks.form.teamsHelp')}</small>
+        </div>
+      )}
+      <div className="grid gap-1">
+        <span className="text-xs font-semibold uppercase text-mu">{t('tasks.form.people')}</span>
+        <input
+          className={field}
+          type="search"
+          aria-label={t('tasks.form.findPerson')}
+          placeholder={t('tasks.form.findPerson')}
+          value={find}
+          onChange={(e) => setFind(e.target.value)}
+        />
+        <div className="grid max-h-48 gap-1 overflow-auto sm:grid-cols-2">
+          {matching.map((p) => (
+            <label key={p.membershipId} className="inline-flex items-center gap-1 text-sm">
+              <input
+                type="checkbox"
+                className="accent-[var(--brand)]"
+                checked={assigneeIds.includes(p.membershipId)}
+                onChange={() => onChange(toggle(assigneeIds, p.membershipId), teamIds)}
+              />
+              {p.name} <small className="text-mu">· {p.teamName}</small>
+            </label>
+          ))}
+        </div>
+      </div>
+    </fieldset>
   );
 }
