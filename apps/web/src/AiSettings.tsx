@@ -74,6 +74,8 @@ interface Call {
   model: string | null;
   inputTokens: number;
   outputTokens: number;
+  /** speech-to-text: the recording's length (the recording itself is never kept) */
+  audioSeconds?: number;
   costMicroUsd: number;
   waitMs: number;
   status: string;
@@ -715,7 +717,11 @@ export function AiUsage({ company }: { company: CompanyRef }) {
                       {names.status(c.status)}
                       {c.error && <span className="block font-mono text-xs text-mu">{c.error}</span>}
                     </td>
-                    <td className={`${td} text-right`}>{number(c.inputTokens + c.outputTokens, lang)}</td>
+                    <td className={`${td} text-right`}>
+                      {c.audioSeconds
+                        ? t('ai.audio', { n: number(c.audioSeconds, lang) })
+                        : number(c.inputTokens + c.outputTokens, lang)}
+                    </td>
                     <td className={`${td} text-right`}>{t('ai.seconds', { n: (c.waitMs / 1000).toFixed(1) })}</td>
                     <td className={`${td} text-right`}>{dollars(c.costMicroUsd, lang)}</td>
                   </tr>

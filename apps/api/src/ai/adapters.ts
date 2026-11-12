@@ -3,8 +3,17 @@
 // and counting. The SDK's own retries are off, so a failure moves straight to the engine's next model.
 import { createGroq } from '@ai-sdk/groq';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-import { APICallError, generateText, jsonSchema, type LanguageModel, NoObjectGeneratedError, Output } from 'ai';
-import type { CompletionRequest, ProviderAdapter } from './provider.js';
+import {
+  APICallError,
+  transcribe,
+  generateText,
+  jsonSchema,
+  type LanguageModel,
+  NoObjectGeneratedError,
+  Output,
+} from 'ai';
+import type { CompletionRequest, ProviderAdapter, Transcription, TranscriptionRequest } from './provider.js';
+import { z } from 'zod';
 import { ProviderError } from './provider.js';
 
 /** Where each AI company answers (the tests point them at a pretend server on this PC). */
@@ -81,9 +90,40 @@ function sdkDoor(
   };
 }
 
+/** Groq's Whisper, through the AI SDK: the text, with the time of each part. */
+async function groqTranscribe(urls: AdapterUrls, r: TranscriptionRequest): Promise<Transcription> {
+  try {
+    const groq = createGroq({ apiKey: r.account.apiKey, ...(urls.groq ? { baseURL: urls.groq } : {}) });
+    const result = await transcribe({
+      model: groq.transcription(r.model),
+      audio: r.audio,
+      maxRetries: 0,
+      abortSignal: r.signal,
+      providerOptions: {
+        groq: {
+          responseFormat: 'verbose_json',
+          timestampGranularities: ['segment'],
+          temperature: 0,
+          ...(r.language ? { language: r.language } : {}),
+        },
+      },
+    });
+    const limits = limitHeaders(result.responses[0]?.headers);
+    return {
+      text: result.text,
+      segments: result.segments.map((s) => ({ start: s.startSecond, end: s.endSecond, text: s.text })),
+      ...(result.language ? { language: result.language } : {}),
+      seconds: Math.round(result.durationInSeconds ?? result.segments.at(-1)?.endSecond ?? 0),
+      ...(limits ? { limits } : {}),
+    };
+  } catch (e) {
+    throw toProviderError(e);
+  }
+}
+
 /** Groq: its gpt-oss models think before answering; "low" keeps that short (and the free allowance longer). */
-export const groqAdapter = (urls: AdapterUrls = {}) =>
-  sdkDoor(
+export const groqAdapter = (urls: AdapterUrls = {}): ProviderAdapter => ({
+  ...sdkDoor(
     (r) => createGroq({ apiKey: r.account.apiKey, ...(urls.groq ? { baseURL: urls.groq } : {}) })(r.model),
     (r) => ({
       groq: {
@@ -91,11 +131,55 @@ export const groqAdapter = (urls: AdapterUrls = {}) =>
         ...(r.model.startsWith('openai/gpt-oss') ? { reasoningEffort: r.effort ?? 'low' } : {}),
       },
     }),
-  );
+  ),
+  transcribe: (r) => groqTranscribe(urls, r),
+});
+
+const cloudflareResult = z.object({
+  result: z.object({
+    text: z.string(),
+    segments: z.array(z.object({ start: z.number(), end: z.number(), text: z.string().default('') })).default([]),
+    transcription_info: z.object({ language: z.string().optional(), duration: z.number().optional() }).optional(),
+  }),
+});
+
+/** Cloudflare's Whisper, through its own address (the AI SDK has no door for it): the audio goes as base64. */
+async function cloudflareTranscribe(urls: AdapterUrls, r: TranscriptionRequest): Promise<Transcription> {
+  if (!r.account.accountId) throw new ProviderError('error', 'noAccountId');
+  const base = (urls.cloudflare ?? CLOUDFLARE).replace('{accountId}', encodeURIComponent(r.account.accountId));
+  let response: Response;
+  try {
+    response = await fetch(`${base.replace(/\/v1$/, '')}/run/${r.model}`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${r.account.apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        audio: Buffer.from(r.audio).toString('base64'),
+        vad_filter: true,
+        ...(r.language ? { language: r.language } : {}),
+      }),
+      signal: r.signal,
+    });
+  } catch (e) {
+    throw toProviderError(e);
+  }
+  const headers = Object.fromEntries(response.headers.entries());
+  if (response.status === 429) throw new ProviderError('rateLimit', 'http429', limitHeaders(headers));
+  if (response.status === 401 || response.status === 403) throw new ProviderError('error', `auth${response.status}`);
+  if (!response.ok) throw new ProviderError('error', `http${response.status}`);
+  const read = cloudflareResult.safeParse(await response.json().catch(() => null));
+  if (!read.success) throw new ProviderError('error', 'badAnswer');
+  const { text, segments, transcription_info: info } = read.data.result;
+  return {
+    text,
+    segments,
+    ...(info?.language ? { language: info.language } : {}),
+    seconds: Math.round(info?.duration ?? segments.at(-1)?.end ?? 0),
+  };
+}
 
 /** Cloudflare Workers AI, through its OpenAI-compatible address (it needs the account id). */
-export const cloudflareAdapter = (urls: AdapterUrls = {}) =>
-  sdkDoor((r) => {
+export const cloudflareAdapter = (urls: AdapterUrls = {}): ProviderAdapter => ({
+  ...sdkDoor((r) => {
     if (!r.account.accountId) throw new ProviderError('error', 'noAccountId');
     return createOpenAICompatible({
       name: 'cloudflare',
@@ -104,7 +188,9 @@ export const cloudflareAdapter = (urls: AdapterUrls = {}) =>
       includeUsage: true,
       supportsStructuredOutputs: true,
     }).chatModel(r.model);
-  });
+  }),
+  transcribe: (r) => cloudflareTranscribe(urls, r),
+});
 
 export const realAdapters = (urls: AdapterUrls = {}): Record<string, ProviderAdapter> => ({
   groq: groqAdapter(urls),

@@ -40,3 +40,17 @@ export const AI_TEST: JobType<{ reply: string }> = {
     'cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast',
   ],
 };
+
+/**
+ * Speech-to-text (Phase 3b): a call recording becomes a transcript. Whisper on Groq first (its large model is the
+ * most accurate; both are free on the free plan), then Cloudflare's. The recording is sent once and never kept.
+ */
+export const SPEECH_TO_TEXT: JobType<null> = {
+  feature: 'speech.transcribe',
+  schema: z.null(),
+  structured: false,
+  temperature: 0,
+  maxOutputTokens: 0,
+  maxWaitMs: 180_000,
+  candidates: ['groq/whisper-large-v3', 'groq/whisper-large-v3-turbo', 'cloudflare/@cf/openai/whisper-large-v3-turbo'],
+};

@@ -35,8 +35,31 @@ export interface Completion {
   limits?: Record<string, string>;
 }
 
+/** A recording to turn into text. It lives only in memory for this call: it is never written anywhere. */
+export interface TranscriptionRequest {
+  account: ProviderAccount;
+  model: string;
+  audio: Uint8Array;
+  /** the call's language (ISO 639-1), when known: it helps accuracy */
+  language?: string;
+  signal: AbortSignal;
+}
+
+export interface Transcription {
+  text: string;
+  /** the parts of the recording, with their times in seconds */
+  segments: { start: number; end: number; text: string }[];
+  /** the language heard, when the AI company says */
+  language?: string;
+  /** the recording's length in seconds (0 when unknown) */
+  seconds: number;
+  limits?: Record<string, string>;
+}
+
 export interface ProviderAdapter {
   complete(request: CompletionRequest): Promise<Completion>;
+  /** speech-to-text, for the AI companies that offer it */
+  transcribe?(request: TranscriptionRequest): Promise<Transcription>;
 }
 
 /** What went wrong at the AI company, in the engine's words: it decides what to try next from this. */

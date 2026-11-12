@@ -24,7 +24,7 @@ import type { ErrorCode, Language } from '@qsmart/shared';
 import { z } from 'zod';
 import { CATALOGUE, type Catalogue } from './catalogue.js';
 import type { JobType } from './jobs.js';
-import { type ProviderAccount, type ProviderAdapter, ProviderError } from './provider.js';
+import { type ProviderAccount, type ProviderAdapter, ProviderError, type Transcription } from './provider.js';
 import { CircuitBreaker, costMicroUsd, estimateTokens, route } from './router.js';
 
 export interface AiJob<T> {
@@ -119,16 +119,13 @@ export class AiEngine {
     this.breaker = new CircuitBreaker(this.now);
   }
 
-  async run<T>(job: AiJob<T>): Promise<AiResult<T>> {
-    const { db } = this.parts;
-    const base = {
+  /** What every log line of a job starts from, and how it is written. */
+  private logging(job: Omit<AiJob<unknown>, 'system' | 'prompt'>) {
+    const blank = {
       teamId: job.teamId ?? null,
       byId: job.byId ?? null,
       feature: job.type.feature,
       dataClass: job.dataClass,
-    };
-    const blank = {
-      ...base,
       provider: null,
       model: null,
       inputTokens: 0,
@@ -138,11 +135,18 @@ export class AiEngine {
       attempt: 1,
       error: null,
     } satisfies Omit<AiCall, 'status'>;
-    const log = (call: AiCall) => withCompany(db, job.companyId, (tx) => logAiCall(tx, call));
-    const breakerKey = (provider: string) => `${job.companyId}:${provider}`;
-    const inputTokens = estimateTokens(job.system) + estimateTokens(job.prompt);
+    const log = (call: AiCall) => withCompany(this.parts.db, job.companyId, (tx) => logAiCall(tx, call));
+    return { blank, log };
+  }
 
-    // 1-2. The company's rules, its limits and its accounts; then the models that pass every rule.
+  /**
+   * Steps 1-2, the same for every job: the company's rules, its limits and its accounts; then the models that pass
+   * every rule, best first. A refusal is logged and thrown.
+   */
+  private async choose(job: Omit<AiJob<unknown>, 'system' | 'prompt'>, inputTokens: number) {
+    const { db } = this.parts;
+    const { blank, log } = this.logging(job);
+    const breakerKey = (provider: string) => `${job.companyId}:${provider}`;
     const ready = await withCompany(db, job.companyId, async (tx) => {
       // a team of this company only (the log could not record another company's team anyway)
       if (job.teamId && !(await teamExists(tx, job.teamId))) throw new Error('This team is not in the company.');
@@ -186,13 +190,22 @@ export class AiEngine {
       await log({ ...blank, status: resting ? 'unavailable' : 'noModel' });
       throw resting ? new AiError('aiUnavailable', 'resting') : new AiError('aiNoModel');
     }
+    return routing.choices;
+  }
+
+  async run<T>(job: AiJob<T>): Promise<AiResult<T>> {
+    const { db } = this.parts;
+    const { blank, log } = this.logging(job);
+    const breakerKey = (provider: string) => `${job.companyId}:${provider}`;
+    const inputTokens = estimateTokens(job.system) + estimateTokens(job.prompt);
+    const choices = await this.choose(job, inputTokens);
 
     // 3-4. Each model in turn; an answer that doesn't fit is asked once more before moving on.
     const jsonSchema = job.type.structured ? (z.toJSONSchema(job.type.schema) as Record<string, unknown>) : undefined;
     const system = job.type.structured ? `${job.system}\n\nAnswer with JSON only.` : job.system;
     let attempt = 0;
     let lastProblem: string | undefined;
-    for (const { model, account } of routing.choices) {
+    for (const { model, account } of choices) {
       const adapter = this.parts.adapters[model.provider];
       if (!adapter) continue;
       for (let tryOnModel = 1; tryOnModel <= 2; tryOnModel++) {
@@ -259,4 +272,78 @@ export class AiEngine {
     }
     throw new AiError('aiUnavailable', lastProblem);
   }
+
+  /**
+   * Speech-to-text, with the same rules as every job (steps 1-2) and the same fallbacks: each speech model in turn,
+   * once. The recording stays in memory for the call and is never written anywhere; the log keeps only its length.
+   */
+  async transcribe(job: AiSpeechJob): Promise<AiSpeechResult> {
+    const { db } = this.parts;
+    const { blank, log } = this.logging(job);
+    const breakerKey = (provider: string) => `${job.companyId}:${provider}`;
+    const choices = await this.choose(job, 0);
+    let attempt = 0;
+    let lastProblem: string | undefined;
+    for (const { model, account } of choices) {
+      const adapter = this.parts.adapters[model.provider];
+      if (!adapter?.transcribe || this.breaker.resting(breakerKey(model.provider))) continue;
+      attempt++;
+      const started = this.now();
+      const call = { ...blank, provider: model.provider, model: model.model, attempt };
+      const ctrl = new AbortController();
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const outcome = await Promise.race([
+        adapter.transcribe({
+          account,
+          model: model.model,
+          audio: job.audio,
+          ...(job.speechLanguage ? { language: job.speechLanguage } : {}),
+          signal: ctrl.signal,
+        }),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => {
+            reject(new ProviderError('timeout', 'timeout'));
+            ctrl.abort();
+          }, job.type.maxWaitMs);
+        }),
+      ]).then(
+        (answer) => ({ answer }),
+        (e: unknown) => ({ failure: e instanceof ProviderError ? e : new ProviderError('error', 'failed') }),
+      );
+      clearTimeout(timer);
+      const waitMs = Math.max(0, this.now() - started);
+      const limits = 'answer' in outcome ? outcome.answer.limits : outcome.failure.limits;
+      if (limits)
+        await withCompany(db, job.companyId, (tx) => saveSeenLimits(tx, model.provider, model.model, limits)).catch(
+          () => undefined,
+        );
+      if ('failure' in outcome) {
+        this.breaker.failed(breakerKey(model.provider), outcome.failure.kind);
+        lastProblem = outcome.failure.code;
+        await log({ ...call, waitMs, status: outcome.failure.kind, error: outcome.failure.code.slice(0, 60) });
+        continue;
+      }
+      const { answer } = outcome;
+      this.breaker.succeeded(breakerKey(model.provider));
+      const seconds = Math.min(86_400, Math.max(0, answer.seconds));
+      // a paid plan bills at least 10 seconds (Groq); a free plan costs nothing
+      const costMicroUsd =
+        account.plan === 'free' ? 0 : Math.round((Math.max(10, seconds) / 3600) * (model.pricePerHour ?? 0) * 1e6);
+      await log({ ...call, audioSeconds: seconds, costMicroUsd, waitMs, status: 'ok' });
+      return { ...answer, seconds, provider: model.provider, model: model.model, attempt };
+    }
+    throw new AiError('aiUnavailable', lastProblem);
+  }
+}
+
+export interface AiSpeechJob extends Omit<AiJob<null>, 'system' | 'prompt'> {
+  audio: Uint8Array;
+  /** the call's language (ISO 639-1), when known */
+  speechLanguage?: string;
+}
+
+export interface AiSpeechResult extends Transcription {
+  provider: string;
+  model: string;
+  attempt: number;
 }

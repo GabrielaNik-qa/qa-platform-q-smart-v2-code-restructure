@@ -37,6 +37,7 @@ import { SkillsController, TeamsController, WorkspacesController } from './setup
 import { AI_ENGINE, DB, MASTER_KEY, TOKEN_VERIFIER } from './tokens.js';
 import { AiController } from './ai.controller.js';
 import { AutoqaController } from './autoqa.controller.js';
+import { MAX_RECORDING_BYTES, RECORDING_TYPES, SpeechController } from './speech.controller.js';
 import { AutoqaPageController } from './autoqa-page.controller.js';
 import { autoqaQualities, TestSetController } from './test-set.controller.js';
 import { storedAccounts } from './ai/accounts.js';
@@ -95,6 +96,7 @@ export class AppModule {
         ConversationsController,
         TranscriptDaysController,
         AutoqaController,
+        SpeechController,
         AutoqaPageController,
         TestSetController,
       ],
@@ -127,6 +129,13 @@ export async function createApp(parts: AppParts): Promise<NestFastifyApplication
     logger: ['error', 'warn'],
   });
   app.setGlobalPrefix('api');
+  // a call recording (speech-to-text) arrives as raw bytes, up to 25 MB; it is kept in memory only, never on disk
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .addContentTypeParser(RECORDING_TYPES, { parseAs: 'buffer', bodyLimit: MAX_RECORDING_BYTES }, (_req, body, done) =>
+      done(null, body),
+    );
   await app.init();
   await app.getHttpAdapter().getInstance().ready();
   return app;

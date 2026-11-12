@@ -69,6 +69,35 @@ export async function api<T>(
   return body as T;
 }
 
+/**
+ * Sends a file as it is (a call recording for speech-to-text) and reads the JSON answer. The file goes straight to the
+ * server, which keeps it in memory only for the AI call.
+ */
+export async function apiUpload<T>(path: string, companyId: string, file: Blob): Promise<T> {
+  const token = await idToken();
+  const response = await fetch(`/api${path}`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${token}`,
+      'x-company-id': companyId,
+      'content-type': file.type || 'application/octet-stream',
+    },
+    body: file,
+  });
+  const body: unknown = await response.json().catch(() => null);
+  if (response.status === 413) throw new ApiError(413, response.statusText, 'recordingTooBig');
+  if (response.status === 415) throw new ApiError(415, response.statusText, 'recordingInvalid');
+  if (!response.ok) {
+    const { message, code } = (body ?? {}) as { message?: unknown; code?: unknown };
+    throw new ApiError(
+      response.status,
+      typeof message === 'string' ? message : response.statusText,
+      isErrorCode(code) ? code : undefined,
+    );
+  }
+  return body as T;
+}
+
 /** Asks the server for a file (e.g. Export to Excel), sending `body` as JSON. */
 export async function apiFile(path: string, companyId: string, body: unknown): Promise<Blob> {
   const token = await idToken();

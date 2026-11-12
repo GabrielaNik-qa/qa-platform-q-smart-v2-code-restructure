@@ -1,0 +1,1 @@
+ALTER TABLE "ai_calls" ADD COLUMN "audio_seconds" integer DEFAULT 0 NOT NULL;

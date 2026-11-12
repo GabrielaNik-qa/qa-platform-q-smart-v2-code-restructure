@@ -6,7 +6,7 @@ import { can, type FieldDef } from '@qsmart/shared';
 import { Link } from '@tanstack/react-router';
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { api, ApiError } from './api';
+import { api, ApiError, apiUpload } from './api';
 import { AiReviewBulk, AiReviewPanel, type ScorecardChoice } from './AiReview';
 import { type FieldLists, FieldInput, useFieldNames, useFieldValue } from './Fields';
 import { currentLanguage } from './i18n';
@@ -51,6 +51,9 @@ const th = 'py-1 pr-3 font-semibold';
 const td = 'py-2 pr-3';
 
 /** A line "[09:02] Customer: …", "Agent: …" or, in French, "Client : …": the time, who speaks and what they say. */
+/** The largest recording for speech-to-text (the AI company's free plan takes 25 MB). */
+const MAX_RECORDING_BYTES = 25 * 1024 * 1024;
+
 const LINE = /^(?:\[([^\]]{1,30})\]\s*)?([\p{L} .'’-]{1,30}?)\s?:\s(.+)$/u;
 
 /** "Customer: …" / "Agent: …" lines as a conversation; anything else (an e-mail) stays as written. */
@@ -121,6 +124,9 @@ export function Conversations({ company }: { company: CompanyRef }) {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [bad, setBad] = useState<string[]>([]);
   const [scorecards, setScorecards] = useState<ScorecardChoice[]>([]);
+  const [transcribing, setTranscribing] = useState(false);
+  // speech-to-text: the same right as adding a conversation
+  const canTranscribe = writer;
   const { message, run, fail } = useAction();
 
   const load = useCallback(() => {
@@ -196,6 +202,33 @@ export function Conversations({ company }: { company: CompanyRef }) {
     }
     const text = await file.text();
     setDraft({ ...draft, transcript: text.slice(0, 100_000) });
+  }
+  /**
+   * Speech-to-text: the recording goes to the server, which sends it to the AI and keeps nothing; its transcript
+   * fills the box, to check before saving. The recording itself is never stored.
+   */
+  async function transcribe(file: File | undefined) {
+    if (!file || !draft) return;
+    if (file.size > MAX_RECORDING_BYTES) {
+      fail(new ApiError(413, '', 'recordingTooBig'));
+      return;
+    }
+    const language = String(draft.values['language'] ?? '')
+      .trim()
+      .toLowerCase();
+    const query = /^[a-z]{2}$/.test(language) ? `?language=${language}` : '';
+    setTranscribing(true);
+    const ok = await run(async () => {
+      const out = await apiUpload<{ transcript: string; seconds: number; speakers: boolean }>(
+        `/speech/transcribe${query}`,
+        company.id,
+        file,
+      );
+      setDraft((d) => (d ? { ...d, transcript: out.transcript.slice(0, 100_000) } : d));
+      return out;
+    }, t('conversations.transcribed'));
+    setTranscribing(false);
+    return ok;
   }
   async function save(event: FormEvent) {
     event.preventDefault();
@@ -427,8 +460,26 @@ export function Conversations({ company }: { company: CompanyRef }) {
                   onChange={(e) => void upload(e.target.files?.[0])}
                 />
               </label>
+              {canTranscribe && (
+                <label
+                  className={`${smallButton} cursor-pointer${transcribing ? ' opacity-60 pointer-events-none' : ''}`}
+                >
+                  {transcribing ? t('conversations.transcribing') : t('conversations.uploadRecording')}
+                  <input
+                    type="file"
+                    accept="audio/*,.mp3,.wav,.m4a,.ogg,.webm,.flac,.mp4,.mpeg,.mpga"
+                    className="sr-only"
+                    disabled={transcribing}
+                    onChange={(e) => {
+                      void transcribe(e.target.files?.[0]);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              )}
               <small className="text-mu">{t('conversations.transcriptHelp')}</small>
             </div>
+            {canTranscribe && <small className="text-mu">{t('conversations.recordingHelp')}</small>}
           </fieldset>
 
           <fieldset className="grid gap-3">

@@ -2181,9 +2181,12 @@ const en = {
     tokensCol: 'Tokens',
     wait: 'Wait',
     seconds: '{{n}} s',
+    audio: '{{n}} s of audio',
     fallback: 'try {{n}}',
     features: {
       ai_test: 'Connection test',
+      speech_transcribe: 'Speech-to-text',
+      speech_speakers: 'Naming the speakers',
       autoqa_score: 'AI review',
     },
     status: {
@@ -2349,6 +2352,11 @@ const en = {
     transcriptHint: 'Customer: Hello …\nAgent: Hello, how can I help?',
     transcriptHelp:
       'Paste it, or upload a .txt file. One line per message, starting with who speaks, shows it as a conversation.',
+    uploadRecording: 'Upload a recording',
+    transcribing: 'Transcribing…',
+    transcribed: 'The transcript is ready: check it, then save. The recording was not kept.',
+    recordingHelp:
+      'A call recording (mp3, wav, m4a, ogg, webm; up to 25 MB) becomes its transcript with the AI, with the time of each part and who speaks (Agent or Customer). Q-smart never keeps the recording: only the transcript, after you save. Choose the call’s language in the details below for a better result.',
     upload: 'Upload a .txt file',
     tooBig: 'This file is too big for a transcript (at most 100,000 characters).',
     fieldsTitle: 'Details',
@@ -4782,9 +4790,12 @@ const bg: Messages = {
     tokensCol: 'Токени',
     wait: 'Чакане',
     seconds: '{{n}} с',
+    audio: '{{n}} с аудио',
     fallback: 'опит {{n}}',
     features: {
       ai_test: 'Тест на връзката',
+      speech_transcribe: 'Преобразуване на реч в текст',
+      speech_speakers: 'Разпознаване на говорещите',
       autoqa_score: 'ИИ оценка',
     },
     status: {
@@ -4953,6 +4964,11 @@ const bg: Messages = {
     transcriptHint: 'Клиент: Здравейте …\nАгент: Здравейте, с какво да помогна?',
     transcriptHelp:
       'Поставете я или качете .txt файл. Един ред на съобщение, започващ с това кой говори, я показва като разговор.',
+    uploadRecording: 'Качи запис',
+    transcribing: 'Преобразуване…',
+    transcribed: 'Транскрипцията е готова: проверете я и запазете. Записът не е запазен.',
+    recordingHelp:
+      'Запис на разговор (mp3, wav, m4a, ogg, webm; до 25 MB) се превръща в транскрипция с ИИ, с времето на всяка част и кой говори (Agent или Customer). Q-smart никога не пази записа: само транскрипцията, след като запазите. Изберете езика на разговора в подробностите по-долу за по-добър резултат.',
     upload: 'Качи .txt файл',
     tooBig: 'Този файл е твърде голям за транскрипция (най-много 100 000 знака).',
     fieldsTitle: 'Подробности',
@@ -5313,6 +5329,8 @@ const bg: Messages = {
     aiReviewsChannelOff: 'ИИ оценките са изключени за този канал (Администрация › AI › Включване и изключване на AI).',
     aiCategoryPaused:
       'ИИ оценките са спрени за категория от тази карта, защото AutoQA твърде рядко е бил съгласен с вашите оценители там (Качество › Автоматичен QA).',
+    recordingInvalid: 'Изберете запис на разговор (аудио файл като mp3, wav, m4a, ogg или webm).',
+    recordingTooBig: 'Записът е твърде голям: до 25 MB. Запазете го в по-малък формат (например mp3) или го съкратете.',
     notAiReview: 'Само отговорите на ИИ оценка могат да се отбележат с „Не това казах“. Оспорете оценката.',
     markInvalid: 'Този отговор вече не е в оценката. Презаредете страницата.',
     marksUndecided: 'Изберете верния отговор за всеки отговор, който агентът е отбелязал с „Не това казах“.',
@@ -7525,9 +7543,12 @@ const fr: Messages = {
     tokensCol: 'Jetons',
     wait: 'Attente',
     seconds: '{{n}} s',
+    audio: '{{n}} s d’audio',
     fallback: 'essai {{n}}',
     features: {
       ai_test: 'Test de connexion',
+      speech_transcribe: 'Transcription de la parole',
+      speech_speakers: 'Identification des interlocuteurs',
       autoqa_score: 'Évaluation par IA',
     },
     status: {
@@ -7697,6 +7718,11 @@ const fr: Messages = {
     transcriptHint: 'Client : Bonjour …\nAgent : Bonjour, comment puis-je vous aider ?',
     transcriptHelp:
       'Collez-la, ou téléversez un fichier .txt. Une ligne par message, commençant par qui parle, l’affiche comme une conversation.',
+    uploadRecording: 'Téléverser un enregistrement',
+    transcribing: 'Transcription…',
+    transcribed: 'La transcription est prête : vérifiez-la, puis enregistrez. L’enregistrement n’a pas été conservé.',
+    recordingHelp:
+      'L’enregistrement d’un appel (mp3, wav, m4a, ogg, webm ; 25 Mo au maximum) devient sa transcription avec l’IA, avec l’heure de chaque partie et qui parle (Agent ou Customer). Q-smart ne conserve jamais l’enregistrement : seulement la transcription, une fois enregistrée. Choisissez la langue de l’appel dans les détails ci-dessous pour un meilleur résultat.',
     upload: 'Téléverser un fichier .txt',
     tooBig: 'Ce fichier est trop grand pour une transcription (100 000 caractères au plus).',
     fieldsTitle: 'Détails',
@@ -8072,6 +8098,9 @@ const fr: Messages = {
       'Les évaluations par IA sont désactivées pour ce canal (Admin › IA › IA activée ou désactivée).',
     aiCategoryPaused:
       'Les évaluations par IA sont en pause pour une catégorie de cette grille, car AutoQA était trop rarement d’accord avec vos évaluateurs (Qualité › QA automatique).',
+    recordingInvalid: 'Choisissez l’enregistrement d’un appel (un fichier audio comme mp3, wav, m4a, ogg ou webm).',
+    recordingTooBig:
+      'L’enregistrement est trop lourd : 25 Mo au maximum. Enregistrez-le dans un format plus léger (par exemple mp3) ou coupez-le.',
     notAiReview:
       'Seules les réponses d’une évaluation par IA peuvent être marquées « Ce n’est pas ce que j’ai dit ». Contestez plutôt l’évaluation.',
     markInvalid: 'Cette réponse ne figure plus dans l’évaluation. Rechargez la page.',

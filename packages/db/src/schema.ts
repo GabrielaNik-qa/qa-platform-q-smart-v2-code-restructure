@@ -1122,6 +1122,8 @@ export const aiCalls = pgTable(
     model: text('model'),
     inputTokens: integer('input_tokens').notNull().default(0),
     outputTokens: integer('output_tokens').notNull().default(0),
+    /** speech-to-text: the recording's length in seconds (the recording itself is never kept) */
+    audioSeconds: integer('audio_seconds').notNull().default(0),
     /** millionths of a US dollar (0 on a free plan) */
     costMicroUsd: integer('cost_micro_usd').notNull().default(0),
     waitMs: integer('wait_ms').notNull().default(0),

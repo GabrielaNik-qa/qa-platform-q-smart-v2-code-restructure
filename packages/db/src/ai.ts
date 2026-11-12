@@ -51,6 +51,8 @@ export interface AiCall {
   model: string | null;
   inputTokens: number;
   outputTokens: number;
+  /** speech-to-text: the recording's length in seconds (optional: 0 for text jobs) */
+  audioSeconds?: number;
   costMicroUsd: number;
   waitMs: number;
   status: AiCallStatus;
@@ -192,6 +194,7 @@ export interface AiUseToday {
   calls: number;
   inputTokens: number;
   outputTokens: number;
+  audioSeconds: number;
 }
 
 /** What each model did since 00:00 UTC today (the AI companies' free days start then). */
@@ -203,6 +206,7 @@ export async function aiUseToday(tx: Tx): Promise<AiUseToday[]> {
       calls: sql<number>`count(*) filter (where ${aiCalls.status} in ('ok', 'invalid'))::int`,
       inputTokens: sql<number>`coalesce(sum(${aiCalls.inputTokens}), 0)::int`,
       outputTokens: sql<number>`coalesce(sum(${aiCalls.outputTokens}), 0)::int`,
+      audioSeconds: sql<number>`coalesce(sum(${aiCalls.audioSeconds}), 0)::int`,
     })
     .from(aiCalls)
     .where(

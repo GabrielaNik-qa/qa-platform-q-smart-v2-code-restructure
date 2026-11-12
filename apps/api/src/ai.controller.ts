@@ -86,6 +86,7 @@ async function allowanceOf(tx: Tx) {
           CATALOGUE.models.find((m) => m.model === u.model),
           u.inputTokens,
           u.outputTokens,
+          u.audioSeconds,
         ),
       0,
     );

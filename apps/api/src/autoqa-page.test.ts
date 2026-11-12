@@ -167,7 +167,7 @@ describe('the AutoQA page', () => {
         .json<{ kind: string }[]>()
         .filter((n) => n.kind === 'aiAccuracyLow'),
     ).toHaveLength(1);
-  });
+  }, 30_000); // 19 AI reviews and people's reviews in a row: more than 5 seconds when every test runs at once
 
   it('lets an admin pause AI reviews for a category, and set the bar', async () => {
     const key = (await page()).accuracy?.byCategory.find((c) => c.braked)?.key ?? '';

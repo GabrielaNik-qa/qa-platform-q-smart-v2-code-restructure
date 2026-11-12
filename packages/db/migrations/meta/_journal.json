@@ -337,6 +337,20 @@
       "when": 1794436276232,
       "tag": "0047_dispute_marks_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1794469960276,
+      "tag": "0048_ai_calls_audio",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1794469963456,
+      "tag": "0049_ai_calls_audio_rules",
+      "breakpoints": true
     }
   ]
 }

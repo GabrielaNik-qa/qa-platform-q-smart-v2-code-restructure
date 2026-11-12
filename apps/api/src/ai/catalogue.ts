@@ -71,10 +71,17 @@ export interface ModelInfo {
   languages: Language[] | null;
   checked: string;
   source: string;
+  /** speech: turns a recording into text (Whisper); text models are the default */
+  kind?: 'text' | 'speech';
+  /** speech: US dollars per hour of audio on a paid plan */
+  pricePerHour?: number;
+  /** speech on Cloudflare: Neurons per minute of audio (counted against the free 10,000 a day) */
+  neuronsPerMinute?: number;
 }
 
 const GROQ_MODELS = 'https://console.groq.com/docs/models';
 const CF_PRICES = 'https://developers.cloudflare.com/workers-ai/platform/pricing/';
+const GROQ_SPEECH = 'https://console.groq.com/docs/speech-to-text';
 
 /** Checked on 11 November 2026 (prices, sizes and JSON support from the AI companies' own pages). */
 export const MODELS: ModelInfo[] = [
@@ -138,6 +145,53 @@ export const MODELS: ModelInfo[] = [
     checked: '2026-11-11',
     source: CF_PRICES,
   },
+  // Speech-to-text (Whisper), checked on 12 November 2026: Groq takes up to 25 MB on its free plan (flac, mp3, mp4,
+  // mpeg, mpga, m4a, ogg, wav, webm), bills at least 10 seconds, and keeps no inference data by default (logs for
+  // abuse checks up to 30 days, `your-data` page); Cloudflare's turbo model costs 46.63 Neurons a minute. Same
+  // data terms as their text models (no training, a DPA).
+  {
+    id: 'groq/whisper-large-v3',
+    provider: 'groq',
+    model: 'whisper-large-v3',
+    priceIn: 0,
+    priceOut: 0,
+    context: 0,
+    structured: 'none',
+    languages: null,
+    checked: '2026-11-12',
+    source: GROQ_SPEECH,
+    kind: 'speech',
+    pricePerHour: 0.111,
+  },
+  {
+    id: 'groq/whisper-large-v3-turbo',
+    provider: 'groq',
+    model: 'whisper-large-v3-turbo',
+    priceIn: 0,
+    priceOut: 0,
+    context: 0,
+    structured: 'none',
+    languages: null,
+    checked: '2026-11-12',
+    source: GROQ_SPEECH,
+    kind: 'speech',
+    pricePerHour: 0.04,
+  },
+  {
+    id: 'cloudflare/@cf/openai/whisper-large-v3-turbo',
+    provider: 'cloudflare',
+    model: '@cf/openai/whisper-large-v3-turbo',
+    priceIn: 0,
+    priceOut: 0,
+    context: 0,
+    structured: 'none',
+    languages: null,
+    checked: '2026-11-12',
+    source: CF_PRICES,
+    kind: 'speech',
+    pricePerHour: 0.0308,
+    neuronsPerMinute: 46.63,
+  },
 ];
 
 /** The engine's view of the catalogue (the tests give it their own). */
@@ -155,8 +209,14 @@ export const CATALOGUE: Catalogue = { providers: PROVIDERS, models: MODELS };
  */
 export const CLOUDFLARE_FREE_NEURONS = 10_000;
 export const CLOUDFLARE_USD_PER_1000_NEURONS = 0.011;
-export function cloudflareNeurons(model: ModelInfo | undefined, inputTokens: number, outputTokens: number): number {
+export function cloudflareNeurons(
+  model: ModelInfo | undefined,
+  inputTokens: number,
+  outputTokens: number,
+  audioSeconds = 0,
+): number {
   if (!model) return 0;
+  if (model.neuronsPerMinute) return (audioSeconds / 60) * model.neuronsPerMinute;
   const usd = (inputTokens * model.priceIn + outputTokens * model.priceOut) / 1_000_000;
   return (usd / CLOUDFLARE_USD_PER_1000_NEURONS) * 1000;
 }
