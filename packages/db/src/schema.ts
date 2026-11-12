@@ -1727,6 +1727,62 @@ export interface SessionSignature {
   inPerson?: boolean;
 }
 
+/** One section of a one-to-one form: 8 kinds, as today (its answers are kept by its id). */
+export interface OneToOneSection {
+  id: string;
+  type: 'text' | 'check' | 'yesno' | 'objectives' | 'rating' | 'metrics' | 'table' | 'agree';
+  title: string;
+  /** the lines: checklist items, yes/no items, items to rate, numbers, table rows or statements to agree to */
+  items: string[];
+  /** a table's columns */
+  cols: string[];
+  /** a number's unit, by line */
+  units: string[];
+}
+/** The team lead's signature of a one-to-one (given when it is sent or completed). */
+export interface LeadSignature {
+  at: string;
+  id: string | null;
+  name: string;
+}
+
+/** A one-to-one form template (today's Form templates): its name, the teams that use it, and its sections. */
+export const oneToOneTemplates = pgTable(
+  'one_to_one_templates',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    teamIds: jsonb('team_ids').$type<string[]>().notNull().default([]),
+    sections: jsonb('sections').$type<OneToOneSection[]>().notNull().default([]),
+    byId: uuid('by_membership_id'),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('one_to_one_templates_id_company').on(t.id, t.companyId),
+    index('one_to_one_templates_company').on(t.companyId),
+    foreignKey({
+      name: 'one_to_one_templates_by_same_company',
+      columns: [t.byId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/** How many one-to-ones each person should have per month: one number, and a different one for chosen teams. */
+export const oneToOneTargets = pgTable('one_to_one_targets', {
+  companyId: uuid('company_id')
+    .primaryKey()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  target: integer('target').notNull().default(1),
+  teams: jsonb('teams').$type<Record<string, number>>().notNull().default({}),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 /**
  * A documented session (today's Coaching and One-to-One): individual or group coaching, a training, or a one-to-one
  * (its own parts come with step 5). Its agents read it and sign it.
@@ -1751,6 +1807,19 @@ export const coachingSessions = pgTable(
     followUpOn: date('follow_up_on'),
     actions: jsonb('actions').$type<SessionAction[]>().notNull().default([]),
     signatures: jsonb('signatures').$type<Record<string, SessionSignature>>().notNull().default({}),
+    // ---- a one-to-one's own parts (step 5)
+    templateId: uuid('template_id'),
+    /** the period it looks at: week, month, year, or custom (from - to) */
+    period: text('period').notNull().default('month'),
+    periodFrom: date('period_from'),
+    periodTo: date('period_to'),
+    /** the form's sections as they were when it was written, and the answers by section id */
+    sections: jsonb('sections').$type<OneToOneSection[]>().notNull().default([]),
+    answers: jsonb('answers').$type<Record<string, unknown>>().notNull().default({}),
+    /** draft, sent (waiting for the agent's signature) or signed; empty for coaching sessions */
+    state: text('state').notNull().default(''),
+    leadSignature: jsonb('lead_signature').$type<LeadSignature>(),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
     byId: uuid('by_membership_id'),
     byName: text('by_name').notNull(),
     createdAt: createdAt(),

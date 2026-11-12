@@ -41,6 +41,8 @@ export type {
   PlanCheckIn,
   PlanGoal,
   SequenceStep,
+  LeadSignature,
+  OneToOneSection,
   SessionAction,
   SessionAgent,
   SessionSignature,

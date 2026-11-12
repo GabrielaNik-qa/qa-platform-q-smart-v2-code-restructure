@@ -143,6 +143,12 @@ export const ERROR_MESSAGES = {
   sessionAgents: 'Choose agents (and action owners) from your workspaces.',
   sessionNotFound: 'This session no longer exists, or you cannot see it.',
   sessionNotHeld: 'A planned session is signed once it has been held.',
+  oneToOneInvalid:
+    'Check the one-to-one: the agent, the date, the title, and a period whose start is before its end; at most 30 sections.',
+  oneToOneSign: 'To complete it now, tick "The agent is here and signs now"; or send it to the agent to read and sign.',
+  oneToOneTarget: 'Choose a number from 1 to 10 one-to-ones per person per month (and up to 10 for a team).',
+  oneToOneTemplateInvalid: 'Give the template a name (up to 80 characters) and 1 to 30 sections, each with a name.',
+  oneToOneTemplateNotFound: 'This form template no longer exists.',
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

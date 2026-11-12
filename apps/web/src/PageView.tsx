@@ -13,6 +13,7 @@ import { Conversations } from './Conversations';
 import { Fields } from './Fields';
 import { Calibrations } from './Calibration';
 import { Coaching } from './Coaching';
+import { OneToOne } from './OneToOne';
 import { CategoryStats } from './CategoryStats';
 import { Dashboard } from './Dashboard';
 import { Disputes } from './Disputes';
@@ -74,6 +75,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'quality/improvement-plans': (company) => <ImprovementPlans company={company} />,
   'quality/tasks': (company) => <Tasks company={company} />,
   'quality/coaching': (company) => <Coaching company={company} />,
+  'quality/one-to-one': (company) => <OneToOne company={company} />,
   'quality/recognition': (company) => <Recognition company={company} />,
   'quality/review-planner': (company) => <Planner company={company} />,
   'quality/qa-workload': (company) => <Workload company={company} />,

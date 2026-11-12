@@ -72,6 +72,68 @@ const signInput = z.object({ comment: z.string().trim().max(500).default('') }).
 const inReach = (reach: ReviewScope, p: Pick<Person, 'teamId'>) =>
   'all' in reach || ('teamIds' in reach && !!p.teamId && reach.teamIds.includes(p.teamId));
 
+/**
+ * Gives each action with a person and no task yet to that person as a task (they're told, and it's on their board);
+ * the action keeps its task's id, so it's never given twice. Used by coaching sessions and one-to-ones.
+ */
+export async function giveActionsAsTasks(
+  tx: Tx,
+  membership: Membership,
+  me: string | null,
+  actions: SessionAction[],
+  from: string,
+  people: Person[],
+) {
+  const now = new Date().toISOString();
+  for (const a of actions) {
+    if (a.taskId || !a.ownerId) continue;
+    const owner = people.find((x) => x.membershipId === a.ownerId);
+    if (!owner) continue;
+    const [taskId] = await addTasks(tx, [
+      {
+        groupId: randomUUID(),
+        title: a.text.slice(0, 150),
+        description: from.slice(0, 1500),
+        kind: 'task',
+        priority: 'med',
+        points: 0,
+        startOn: null,
+        dueOn: a.dueOn,
+        status: a.done ? 'done' : 'todo',
+        needsReview: false,
+        assigneeId: owner.membershipId,
+        assigneeName: owner.name,
+        teamId: owner.teamId,
+        teamName: owner.teamName ?? '',
+        steps: [],
+        labels: [],
+        colour: '',
+        category: '',
+        history: [{ at: now, byName: membership.userName, action: 'given' }],
+        byId: me,
+        byName: membership.userName,
+      },
+    ]);
+    a.taskId = taskId ?? null;
+    if (owner.membershipId !== me && taskId)
+      await notify(
+        tx,
+        owner.membershipId,
+        'taskGiven',
+        { name: membership.userName, title: a.text.slice(0, 80), due: a.dueOn ?? '' },
+        `/quality/tasks?task=${taskId}`,
+      );
+  }
+}
+
+/** Where a session opens: a one-to-one on the One-to-One page, the others on their own page. */
+/** An agent sees a one-to-one once it is sent or completed, never while it is a draft. */
+const hiddenFrom = (reach: ReviewScope, s: Pick<CoachingSession, 'kind' | 'state'>) =>
+  'agentId' in reach && s.kind === 'o2o' && s.state === 'draft';
+
+export const sessionLink = (s: Pick<CoachingSession, 'id' | 'kind'>) =>
+  s.kind === 'o2o' ? `/quality/one-to-one?session=${s.id}` : `/session/${s.id}`;
+
 @Controller('coaching-sessions')
 @UseGuards(SignedInGuard, CompanyMemberGuard, PermissionGuard)
 export class CoachingController {
@@ -81,9 +143,10 @@ export class CoachingController {
   @Get()
   @Allow('coaching.read')
   list(@CurrentMembership() membership: Membership, @CurrentScope() scope: Scope) {
-    return withCompany(this.db, membership.companyId, async (tx) =>
-      listSessions(tx, await reachOf(tx, membership, scope)),
-    );
+    return withCompany(this.db, membership.companyId, async (tx) => {
+      const reach = await reachOf(tx, membership, scope);
+      return (await listSessions(tx, reach)).filter((s) => !hiddenFrom(reach, s));
+    });
   }
 
   @Get(':id')
@@ -170,8 +233,11 @@ export class CoachingController {
       const me = (await membershipOfUser(tx, membership.userId))?.id ?? '';
       if (!s.agents.some((a) => a.id === me)) throw forbidden('notAllowed');
       if (s.status !== 'done') throw badRequest('sessionNotHeld');
+      const signatures = { ...s.signatures, [me]: { at: new Date().toISOString(), comment: parsed.data.comment } };
       await updateSession(tx, s.id, {
-        signatures: { ...s.signatures, [me]: { at: new Date().toISOString(), comment: parsed.data.comment } },
+        signatures,
+        // a one-to-one is signed when every agent of it signed
+        ...(s.kind === 'o2o' && s.agents.every((a) => signatures[a.id]) ? { state: 'signed' as const } : {}),
       });
       if (s.byId && s.byId !== me)
         await notify(
@@ -179,7 +245,7 @@ export class CoachingController {
           s.byId,
           'sessionSigned',
           { name: membership.userName, title: s.title.slice(0, 80) },
-          `/session/${s.id}`,
+          sessionLink(s),
         );
       return getSession(tx, s.id, { all: true });
     });
@@ -187,8 +253,9 @@ export class CoachingController {
 
   private async session(tx: Tx, membership: Membership, scope: Scope, id: string): Promise<CoachingSession> {
     const target = idParam.safeParse(id);
-    const s = target.success ? await getSession(tx, target.data, await reachOf(tx, membership, scope)) : undefined;
-    if (!s) throw notFound('sessionNotFound');
+    const reach = await reachOf(tx, membership, scope);
+    const s = target.success ? await getSession(tx, target.data, reach) : undefined;
+    if (!s || hiddenFrom(reach, s)) throw notFound('sessionNotFound');
     return s;
   }
 
@@ -219,49 +286,7 @@ export class CoachingController {
         taskId: a.taskId,
       };
     });
-    if (input.makeTasks) {
-      // each action with a person and no task yet becomes their task (they're told, and it's on their board)
-      const now = new Date().toISOString();
-      for (const a of actions) {
-        if (a.taskId || !a.ownerId) continue;
-        const owner = people.find((x) => x.membershipId === a.ownerId);
-        if (!owner) continue;
-        const [taskId] = await addTasks(tx, [
-          {
-            groupId: randomUUID(),
-            title: a.text.slice(0, 150),
-            description: `${input.title}`.slice(0, 1500),
-            kind: 'task',
-            priority: 'med',
-            points: 0,
-            startOn: null,
-            dueOn: a.dueOn,
-            status: a.done ? 'done' : 'todo',
-            needsReview: false,
-            assigneeId: owner.membershipId,
-            assigneeName: owner.name,
-            teamId: owner.teamId,
-            teamName: owner.teamName ?? '',
-            steps: [],
-            labels: [],
-            colour: '',
-            category: '',
-            history: [{ at: now, byName: membership.userName, action: 'given' }],
-            byId: me,
-            byName: membership.userName,
-          },
-        ]);
-        a.taskId = taskId ?? null;
-        if (owner.membershipId !== me && taskId)
-          await notify(
-            tx,
-            owner.membershipId,
-            'taskGiven',
-            { name: membership.userName, title: a.text.slice(0, 80), due: a.dueOn ?? '' },
-            `/quality/tasks?task=${taskId}`,
-          );
-      }
-    }
+    if (input.makeTasks) await giveActionsAsTasks(tx, membership, me, actions, input.title, people);
     const { agentIds: _a, makeTasks: _m, ...rest } = input;
     return { session: { ...rest, agents, actions } };
   }

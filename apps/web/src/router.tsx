@@ -38,6 +38,8 @@ export interface PageSearch {
   scorecard?: string;
   /** Tasks: the card to open (the bell's links) */
   task?: string;
+  /** One-to-One: the one-to-one to open (the bell's links) */
+  session?: string;
 }
 const pick = (v: unknown) => (typeof v === 'string' && v.length <= 64 ? v : undefined);
 const page = createRoute({
@@ -58,6 +60,8 @@ const page = createRoute({
     if (scorecard) out.scorecard = scorecard;
     const task = pick(search.task);
     if (task) out.task = task;
+    const session = pick(search.session);
+    if (session) out.session = session;
     return out;
   },
 });

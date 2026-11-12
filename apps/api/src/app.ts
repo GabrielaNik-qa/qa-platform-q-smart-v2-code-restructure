@@ -41,6 +41,7 @@ import { MAX_RECORDING_BYTES, RECORDING_TYPES, SpeechController } from './speech
 import { TaskSequencesController, TaskTemplatesController } from './task-library.controller.js';
 import { TasksController } from './tasks.controller.js';
 import { CoachingController } from './coaching.controller.js';
+import { OneToOneController } from './one-to-one.controller.js';
 import { AutoqaPageController } from './autoqa-page.controller.js';
 import { autoqaQualities, TestSetController } from './test-set.controller.js';
 import { storedAccounts } from './ai/accounts.js';
@@ -104,6 +105,7 @@ export class AppModule {
         TaskTemplatesController,
         TaskSequencesController,
         CoachingController,
+        OneToOneController,
         AutoqaPageController,
         TestSetController,
       ],
