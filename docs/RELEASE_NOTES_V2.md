@@ -2,7 +2,9 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
-## Phase 3b (AutoQA, first version): in progress on branch `v2-phase-3b`
+## 12 November 2026: Phase 3b (AutoQA, first version), finished (tag `v2-phase-3b`)
+
+Built on 11 and 12 November on branch `v2-phase-3b`. Every step was checked in the browser as admin, reviewer, team lead, trainer and agent, and in English and Bulgarian; the automatic tests check that every French text is there too. 310 automatic tests pass.
 
 - **The free AI plans are confirmed (11 November):** Groq's and Cloudflare Workers AI's own terms forbid training on what we send and include a data processing agreement, with no exception for free accounts. Both process data outside the EU, so a company that chooses "EU only" won't use them. The plan's table now says so (no decision changed).
 - **Step 1: the AI engine core** (no page yet: Admin › AI comes in step 2, and nothing calls an AI company until a key is entered there):
