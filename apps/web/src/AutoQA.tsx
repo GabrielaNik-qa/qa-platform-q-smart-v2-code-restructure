@@ -161,7 +161,7 @@ function AutoQAOverview({ company }: { company: CompanyRef }) {
         {tile(
           t('autoqa.page.tiles.reviews'),
           String(data.tiles.aiReviews),
-          t('autoqa.page.tiles.reviewsNote', { agents: data.tiles.agents }),
+          t('autoqa.page.tiles.reviewsNote', { count: data.tiles.agents }),
         )}
         {tile(t('autoqa.page.tiles.average'), pct(data.tiles.average))}
         {a &&

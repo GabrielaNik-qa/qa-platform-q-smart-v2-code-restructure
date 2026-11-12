@@ -2434,7 +2434,8 @@ const en = {
       introAgent: 'The AI reviews of your conversations. You can dispute any of them: a person then decides.',
       tiles: {
         reviews: 'AI reviews',
-        reviewsNote: 'of {{agents}} agents',
+        reviewsNote_one: 'of {{count}} agent',
+        reviewsNote_other: 'of {{count}} agents',
         average: 'Average AI score',
         accuracy: 'Accuracy score',
         accuracyNote_one: 'agreement with reviewers, on {{count}} conversation',
@@ -5046,7 +5047,8 @@ const bg: Messages = {
       introAgent: 'ИИ оценките на вашите разговори. Можете да оспорите всяка от тях: тогава решава човек.',
       tiles: {
         reviews: 'ИИ оценки',
-        reviewsNote: 'на {{agents}} агенти',
+        reviewsNote_one: 'на {{count}} агент',
+        reviewsNote_other: 'на {{count}} агенти',
         average: 'Среден ИИ резултат',
         accuracy: 'Оценка за точност',
         accuracyNote_one: 'съгласие с оценителите, по {{count}} разговор',
@@ -7803,7 +7805,8 @@ const fr: Messages = {
         'Les évaluations par IA de vos conversations. Vous pouvez contester chacune : une personne décide alors.',
       tiles: {
         reviews: 'Évaluations par IA',
-        reviewsNote: 'de {{agents}} agents',
+        reviewsNote_one: 'de {{count}} agent',
+        reviewsNote_other: 'de {{count}} agents',
         average: 'Score IA moyen',
         accuracy: 'Score de précision',
         accuracyNote_one: 'accord avec les évaluateurs, sur {{count}} conversation',
