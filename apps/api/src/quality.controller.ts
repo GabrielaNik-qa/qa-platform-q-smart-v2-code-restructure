@@ -46,6 +46,8 @@ const question = z.object({
   points: z.number().int().min(0).max(100),
   critical: z.boolean().default(false),
   compliance: z.boolean().default(false),
+  /** the company's guidance for AutoQA on how to judge this question */
+  aiGuide: z.string().trim().max(500).optional(),
 });
 const category = z.object({
   name: z.string().trim().min(1).max(80),

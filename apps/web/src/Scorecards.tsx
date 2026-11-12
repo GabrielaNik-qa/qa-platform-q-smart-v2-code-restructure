@@ -46,7 +46,10 @@ const move = <T,>(list: T[], from: number, to: number) => {
   return next;
 };
 
-/** The items of one category: text, points, critical and compliance (shared with the library). */
+/**
+ * The items of one category: text, points, critical and compliance, and the optional guidance for AutoQA (shared with
+ * the library).
+ */
 export function QuestionsEditor({
   questions,
   onChange,
@@ -60,53 +63,67 @@ export function QuestionsEditor({
   return (
     <div className="grid gap-2">
       {questions.map((q, i) => (
-        <div key={i} className="flex flex-wrap items-center gap-2">
-          <input
-            className={`${field} flex-1 min-w-56`}
-            aria-label={t('quality.item')}
-            placeholder={t('quality.item')}
-            required
-            maxLength={300}
-            value={q.text}
-            onChange={(e) => set(i, { text: e.target.value })}
-          />
-          <input
-            type="number"
-            className={`${field} w-20`}
-            aria-label={t('quality.pts', { count: q.points })}
-            min={0}
-            max={100}
-            step={1}
-            value={q.points}
-            onChange={(e) => set(i, { points: Math.trunc(Number(e.target.value)) || 0 })}
-          />
-          <label className="inline-flex items-center gap-1 text-sm" title={t('quality.criticalHelp')}>
+        <div key={i} className="grid gap-1">
+          <div className="flex flex-wrap items-center gap-2">
             <input
-              type="checkbox"
-              className="accent-[var(--brand)]"
-              checked={q.critical}
-              onChange={(e) => set(i, { critical: e.target.checked })}
+              className={`${field} flex-1 min-w-56`}
+              aria-label={t('quality.item')}
+              placeholder={t('quality.item')}
+              required
+              maxLength={300}
+              value={q.text}
+              onChange={(e) => set(i, { text: e.target.value })}
             />
-            {t('quality.critical')}
-          </label>
-          <label className="inline-flex items-center gap-1 text-sm">
             <input
-              type="checkbox"
-              className="accent-[var(--brand)]"
-              checked={q.compliance}
-              onChange={(e) => set(i, { compliance: e.target.checked })}
+              type="number"
+              className={`${field} w-20`}
+              aria-label={t('quality.pts', { count: q.points })}
+              min={0}
+              max={100}
+              step={1}
+              value={q.points}
+              onChange={(e) => set(i, { points: Math.trunc(Number(e.target.value)) || 0 })}
             />
-            {t('quality.compliance')}
-          </label>
-          <button
-            type="button"
-            className={dangerButton}
-            aria-label={t('quality.remove')}
-            title={t('quality.remove')}
-            onClick={() => onChange(questions.length > 1 ? questions.filter((_, qi) => qi !== i) : [emptyQuestion()])}
-          >
-            ×
-          </button>
+            <label className="inline-flex items-center gap-1 text-sm" title={t('quality.criticalHelp')}>
+              <input
+                type="checkbox"
+                className="accent-[var(--brand)]"
+                checked={q.critical}
+                onChange={(e) => set(i, { critical: e.target.checked })}
+              />
+              {t('quality.critical')}
+            </label>
+            <label className="inline-flex items-center gap-1 text-sm">
+              <input
+                type="checkbox"
+                className="accent-[var(--brand)]"
+                checked={q.compliance}
+                onChange={(e) => set(i, { compliance: e.target.checked })}
+              />
+              {t('quality.compliance')}
+            </label>
+            <button
+              type="button"
+              className={dangerButton}
+              aria-label={t('quality.remove')}
+              title={t('quality.remove')}
+              onClick={() => onChange(questions.length > 1 ? questions.filter((_, qi) => qi !== i) : [emptyQuestion()])}
+            >
+              ×
+            </button>
+          </div>
+          <details open={Boolean(q.aiGuide)} className="text-sm">
+            <summary className="cursor-pointer text-xs text-mu">{t('quality.aiGuide')}</summary>
+            <textarea
+              className={`${field} mt-1 w-full`}
+              rows={2}
+              maxLength={500}
+              aria-label={t('quality.aiGuideFor', { item: q.text || t('quality.item') })}
+              placeholder={t('quality.aiGuidePlaceholder')}
+              value={q.aiGuide ?? ''}
+              onChange={(e) => set(i, { aiGuide: e.target.value })}
+            />
+          </details>
         </div>
       ))}
       <div>

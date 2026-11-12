@@ -28,6 +28,8 @@ export type Labels = Partial<Record<Language, string>>;
 export interface FieldOption {
   id: string;
   labels: Labels;
+  /** when to choose it, in the company's words (for a conversation's outcome: AutoQA's outcome check reads it) */
+  guide?: string;
 }
 
 export interface FieldDef {
@@ -86,6 +88,9 @@ export const BUILT_IN_FIELDS: Record<FieldObject, BuiltIn[]> = {
 };
 
 export const isBuiltInField = (object: FieldObject, key: string) => BUILT_IN_FIELDS[object].some((f) => f.key === key);
+/** The ids of Q-smart's own options of a built-in drop-down (they may keep Q-smart's names: no name of the company's). */
+export const builtInOptionIds = (object: FieldObject, key: string): string[] =>
+  BUILT_IN_FIELDS[object].find((f) => f.key === key)?.options ?? [];
 export const isFixedField = (object: FieldObject, key: string) =>
   BUILT_IN_FIELDS[object].some((f) => f.key === key && f.fixed);
 
@@ -124,6 +129,7 @@ export const labelsSchema = z
 export const optionSchema = z.object({
   id: z.string().regex(/^[a-zA-Z0-9_-]{1,40}$/),
   labels: labelsSchema,
+  guide: z.string().trim().max(300).optional(),
 });
 export const fieldKeySchema = z.string().regex(/^[a-zA-Z][a-zA-Z0-9_]{0,39}$/);
 

@@ -47,8 +47,20 @@ export interface Dispute {
   note: string;
   resolvedByName: string;
   resolvedAt: string | null;
+  /** "Not what I said": the answers of an AI review the agent marked, and the person's decision on each */
+  marks: Mark[];
   messages: Message[];
 }
+type Answer = 'y' | 'n' | 'na';
+export interface Mark {
+  ci: number;
+  qi: number;
+  category: string;
+  question: string;
+  ai: Answer;
+  right: Answer | null;
+}
+const ANSWERS: Answer[] = ['y', 'n', 'na'];
 const OUTCOMES: Outcome[] = ['kept', 'changed', 'partly'];
 const STATE_STYLE: Record<State, string> = {
   disputed: 'bg-bad/15 text-bad',
@@ -64,26 +76,29 @@ const pill = 'rounded-full px-2 text-xs font-semibold whitespace-nowrap';
 
 // ------------------------------------------------------------------------------------------- on the review's page
 
+/** The review's dispute (loaded by the review's page, which also shows the "not what I said" marks on its answers). */
 export function DisputeBox({
   company,
   review,
+  dispute,
+  setDispute,
   onChange,
 }: {
   company: CompanyRef;
   review: ReviewRow;
+  dispute: Dispute | null | undefined;
+  setDispute: (next: Dispute) => void;
   onChange: () => void;
 }) {
   const { t } = useTranslation();
   const lang = currentLanguage();
-  const [dispute, setDispute] = useState<Dispute | null | undefined>(undefined);
   const [draft, setDraft] = useState('');
-  const [resolving, setResolving] = useState<{ outcome: Outcome; note: string } | null>(null);
-  const { message, run, fail } = useAction();
-
-  const load = useCallback(() => {
-    api<Dispute | null>(`/disputes/${review.id}`, company.id).then(setDispute, fail);
-  }, [company.id, review.id, fail]);
-  useEffect(load, [load]);
+  const [resolving, setResolving] = useState<{
+    outcome: Outcome;
+    note: string;
+    marks: { ci: number; qi: number; right: Answer }[];
+  } | null>(null);
+  const { message, run } = useAction();
 
   const after = (next: unknown) => {
     setDispute(next as Dispute);
@@ -127,6 +142,7 @@ export function DisputeBox({
 
   const open = dispute.state !== 'resolved';
   const outcomeText = (o: string) => t(`disputes.outcomes.${o}`);
+  const answerText = (a: Answer) => t(`reviews.${a === 'y' ? 'yes' : a === 'n' ? 'no' : 'na'}`);
   return (
     <section className={`${card} grid gap-3`} aria-labelledby="dispute-title">
       <div className="flex items-center gap-2">
@@ -194,7 +210,13 @@ export function DisputeBox({
         <button
           type="button"
           className={`${smallButton} justify-self-start inline-flex items-center gap-1`}
-          onClick={() => setResolving({ outcome: 'kept', note: '' })}
+          onClick={() =>
+            setResolving({
+              outcome: 'kept',
+              note: '',
+              marks: dispute.marks.map((m) => ({ ci: m.ci, qi: m.qi, right: m.ai })),
+            })
+          }
         >
           <Icon name="check" /> {t('disputes.resolve')}
         </button>
@@ -219,6 +241,41 @@ export function DisputeBox({
               </span>
             </label>
           ))}
+          {dispute.marks.length > 0 && (
+            <div className="grid gap-2 border-t border-bd pt-2">
+              <p className="font-semibold text-sm">{t('disputes.marksTitle')}</p>
+              <p className="text-sm text-mu">{t('disputes.marksHelp')}</p>
+              {dispute.marks.map((m, i) => (
+                <fieldset key={`${m.ci}-${m.qi}`} className="grid gap-1 text-sm rounded-xl bg-sunk px-3 py-2">
+                  <legend className="sr-only">{m.question}</legend>
+                  <span className="font-medium">
+                    {m.category} › {m.question}
+                  </span>
+                  <small className="text-mu">{t('disputes.aiAnswered', { answer: answerText(m.ai) })}</small>
+                  <span className="flex flex-wrap items-center gap-3">
+                    <span className="text-mu">{t('disputes.rightAnswer')}:</span>
+                    {ANSWERS.map((a) => (
+                      <label key={a} className="inline-flex items-center gap-1">
+                        <input
+                          type="radio"
+                          name={`mark-${i}`}
+                          className="accent-[var(--brand)]"
+                          checked={resolving.marks[i]?.right === a}
+                          onChange={() =>
+                            setResolving({
+                              ...resolving,
+                              marks: resolving.marks.map((x, j) => (j === i ? { ...x, right: a } : x)),
+                            })
+                          }
+                        />
+                        {answerText(a)}
+                      </label>
+                    ))}
+                  </span>
+                </fieldset>
+              ))}
+            </div>
+          )}
           <label className="grid gap-1 text-sm font-medium">
             <span>
               {t('disputes.note')} <span className="text-mu font-normal">{t('disputes.optional')}</span>

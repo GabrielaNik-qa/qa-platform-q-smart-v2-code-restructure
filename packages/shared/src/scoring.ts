@@ -18,6 +18,8 @@ export interface ScorecardQuestion {
   critical: boolean;
   /** a compliance question (Compliance & CX counts them) */
   compliance: boolean;
+  /** the company's guidance for AutoQA on how to judge it (Phase 3b); not copied into reviews */
+  aiGuide?: string;
 }
 export interface ScorecardCategory {
   name: string;

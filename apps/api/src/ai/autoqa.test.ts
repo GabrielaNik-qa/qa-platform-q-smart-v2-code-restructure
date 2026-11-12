@@ -105,3 +105,49 @@ describe("AutoQA's checks", () => {
     expect(check({ ...answer({ c1q1: { quote: 'not there' } }), injection: true }).success).toBe(true);
   });
 });
+
+describe("The company's guidance and the outcome check", () => {
+  const guided = categories.map((c, ci) =>
+    ci === 0 ? { ...c, questions: c.questions.map((q) => ({ ...q, aiGuide: 'A first name is enough.' })) } : c,
+  );
+  const outcomes = {
+    options: [
+      { id: 'resolved', name: 'Resolved', guide: 'Fixed in this conversation.' },
+      { id: 'followUp', name: 'Follow-up needed', guide: 'Something is still to do later.' },
+      { id: 'noAnswer', name: 'No answer', guide: '' },
+    ],
+    chosen: 'resolved',
+  };
+  const withBoth = autoqaJob({ categories: guided, transcript, details: [], language: 'en', outcomes });
+
+  it('puts the guidance under its question, and the outcomes with their guide and the agent’s choice', () => {
+    expect(withBoth.prompt).toContain(
+      "id c1q1: Greets the customer and says their name (10 points)\n      The company's guidance for this question: A first name is enough.",
+    );
+    expect(withBoth.prompt).toContain(
+      '- id followUp: Follow-up needed. Choose it when: Something is still to do later.',
+    );
+    expect(withBoth.prompt).toContain('- id noAnswer: No answer\n');
+    expect(withBoth.prompt).toContain('The agent chose: resolved (Resolved)');
+    expect(withBoth.system).toContain('"outcome": {"expected", "quote", "why"}');
+    expect(withBoth.system).toContain('never copy it');
+    // without outcomes, nothing about them is asked
+    expect(job.prompt).not.toContain('THE OUTCOMES');
+    expect(job.system).not.toContain('"outcome"');
+    expect(job.system).toContain("company's guidance");
+  });
+
+  it('checks the outcome: one of the company’s, with a real quote', () => {
+    const ok = {
+      ...answer(),
+      outcome: { expected: 'followUp', quote: 'e-mail you the tracking number', why: 'Later.' },
+    };
+    expect(withBoth.type.schema.safeParse(ok).success).toBe(true);
+    const unknown = { ...ok, outcome: { ...ok.outcome, expected: 'sold' } };
+    expect(JSON.stringify(withBoth.type.schema.safeParse(unknown).error)).toContain('not one of the outcomes');
+    const madeUp = { ...ok, outcome: { ...ok.outcome, quote: 'I will call you back tomorrow' } };
+    expect(JSON.stringify(withBoth.type.schema.safeParse(madeUp).error)).toContain('outcome: the quote');
+    // asked for, it must be there
+    expect(withBoth.type.schema.safeParse(answer()).success).toBe(false);
+  });
+});

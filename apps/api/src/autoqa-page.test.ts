@@ -218,3 +218,71 @@ describe('the AutoQA page', () => {
     expect(foreign.statusCode).toBe(400);
   });
 });
+
+interface Marked {
+  marks: { ci: number; qi: number; question: string; ai: string; right: string | null }[];
+  messages: { text: string }[];
+  state: string;
+}
+
+describe('"Not what I said"', () => {
+  it('lets the agent mark single AI answers; a person decides each, and it counts in the accuracy score', async () => {
+    const conversation = await reviewed(false, 'M-1');
+    const reviews = (await call('GET', '/reviews', 'agent')).json<
+      { id: string; conversationId: string | null; source: string }[]
+    >();
+    const ai = reviews.find((r) => r.conversationId === conversation && r.source === 'ai')?.id ?? '';
+    const human = reviews.find((r) => r.source === 'human')?.id ?? '';
+    const before = (await page()).accuracy?.overall.conversations ?? 0;
+    const mark = (who: string, body: object, review = ai) => call('POST', `/disputes/${review}/marks`, who, body);
+
+    // only the agent marks, only answers of an AI review that exist
+    expect((await mark('reviewer', { ci: 0, qi: 0, text: 'x' })).statusCode).toBe(403);
+    expect((await mark('agent', { ci: 99, qi: 0, text: 'I did.' })).json()).toMatchObject({ code: 'markInvalid' });
+    expect((await mark('agent', { ci: 0, qi: 0, text: 'I did.' }, human)).json()).toMatchObject({
+      code: 'notAiReview',
+    });
+    expect((await mark('agent', { ci: 0, qi: 0, text: ' ' })).statusCode).toBe(400);
+
+    // the first mark opens the dispute; a second joins it
+    const first = await mark('agent', { ci: 0, qi: 0, text: 'I greeted the customer by name.' });
+    expect(first.statusCode, first.body).toBe(201);
+    const question = card.categories[0]?.questions[0] as { text: string };
+    expect(first.json<Marked>()).toMatchObject({
+      state: 'disputed',
+      marks: [{ ci: 0, qi: 0, question: question.text, ai: 'y', right: null }],
+      messages: [{ text: `${question.text}: I greeted the customer by name.` }],
+    });
+    const second = (await mark('agent', { ci: 0, qi: 1, text: 'Also this one.' })).json<Marked>();
+    expect(second.marks).toHaveLength(2);
+    expect(second.messages).toHaveLength(2);
+    expect((await call('GET', `/reviews/${ai}`, 'agent')).json()).toMatchObject({ status: 'disputed' });
+    const told = (await call('GET', '/notifications', 'reviewer')).json<{ kind: string }[]>();
+    expect(told.some((n) => n.kind === 'disputeOpened')).toBe(true);
+
+    // the person decides every marked answer
+    const resolve = (marks: object[]) =>
+      call('POST', `/disputes/${ai}/resolve`, 'reviewer', { outcome: 'partly', note: '', marks });
+    expect((await resolve([{ ci: 0, qi: 0, right: 'n' }])).json()).toMatchObject({ code: 'marksUndecided' });
+    const done = await resolve([
+      { ci: 0, qi: 0, right: 'n' },
+      { ci: 0, qi: 1, right: 'y' },
+    ]);
+    expect(done.statusCode, done.body).toBe(200);
+    expect(done.json<Marked>().marks.map((m) => m.right)).toEqual(['n', 'y']);
+
+    // one more conversation compared: AutoQA's Yes against the person's No and Yes
+    const after = (await page()).accuracy;
+    expect(after?.overall.conversations).toBe(before + 1);
+    expect(after?.disagreements.some((d) => d.question === question.text)).toBe(true);
+    expect((await mark('agent', { ci: 1, qi: 0, text: 'Late.' })).json()).toMatchObject({ code: 'disputeClosed' });
+  });
+
+  it("never reaches another company's reviews", async () => {
+    const ai = (await call('GET', '/reviews', 'agent'))
+      .json<{ id: string; source: string }[]>()
+      .find((r) => r.source === 'ai')?.id;
+    const foreign = await call('POST', `/disputes/${ai}/marks`, 'agent', { ci: 0, qi: 0, text: 'x' }, SECOND_COMPANY);
+    expect([403, 404]).toContain(foreign.statusCode);
+  });
+});

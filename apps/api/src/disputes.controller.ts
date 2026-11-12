@@ -5,7 +5,9 @@
 // - an admin or reviewer resolves it: score kept, changed or partly changed (the agent was right about some points),
 //   with an optional closing note; changing the score itself is done with Edit, as today;
 // - the other side is told of each step in the bell, and opening and resolving go into the activity log.
-// AI reviews (Phase 3b) will be disputed the same way: a person then decides.
+// - AI reviews (Phase 3b) are disputed the same way, and an agent can also mark single answers "not what I said": the
+//   first mark opens the dispute, and the person who resolves it decides each marked answer (counted in AutoQA's
+//   accuracy score).
 import { Body, Controller, Get, HttpCode, Inject, Param, Post, UseGuards } from '@nestjs/common';
 import {
   type Author,
@@ -18,6 +20,7 @@ import {
   listPeople,
   listWorkspaces,
   logActivity,
+  markAnswer,
   type Membership,
   membershipOfUser,
   notify,
@@ -41,10 +44,18 @@ import { DB } from './tokens.js';
 
 const idParam = z.uuid();
 const text = z.object({ text: z.string().trim().min(1).max(1000) });
+const answer = z.enum(['y', 'n', 'na']);
+const place = { ci: z.number().int().min(0).max(99), qi: z.number().int().min(0).max(99) };
 const resolution = z.object({
   outcome: z.enum(['kept', 'changed', 'partly']),
   note: z.string().trim().max(500).default(''),
+  /** the person's decision on each answer the agent marked "not what I said" */
+  marks: z
+    .array(z.object({ ...place, right: answer }))
+    .max(50)
+    .default([]),
 });
+const marking = z.object({ ...place, text: z.string().trim().min(1).max(1000) });
 
 /** The dispute as a person sees it: which messages are their own. */
 const asSeenBy = (dispute: Dispute, me: string | undefined) => ({
@@ -128,6 +139,44 @@ export class DisputesController {
     });
   }
 
+  /**
+   * "Not what I said": the agent marks one answer of their AI review, with what they actually said or did. The first
+   * mark opens the review's dispute; later ones join it while it is open. A person then decides each marked answer.
+   */
+  @Post(':reviewId/marks')
+  @Allow('disputes.open')
+  async mark(
+    @CurrentMembership() membership: Membership,
+    @CurrentScope() scope: Scope,
+    @Param('reviewId') id: string,
+    @Body() body: unknown,
+  ) {
+    const input = marking.safeParse(body);
+    if (!input.success) throw badRequest('disputeReason');
+    return withCompany(this.db, membership.companyId, async (tx) => {
+      const review = await this.review(tx, membership, scope, id);
+      if (review.source !== 'ai') throw badRequest('notAiReview');
+      const { ci, qi, text: reason } = input.data;
+      const category = review.categories[ci];
+      const question = category?.questions[qi];
+      if (!category || !question) throw badRequest('markInvalid');
+      const author = await this.author(tx, membership);
+      const before = await disputeOfReview(tx, review.id);
+      const mark = { ci, qi, category: category.name, question: question.text, ai: question.answer, right: null };
+      if (!(await markAnswer(tx, review.id, author, mark, reason))) throw badRequest('disputeClosed');
+      const details = { name: author.name, lead: review.leadId, text: `${question.text}: ${reason}`.slice(0, 70) };
+      for (const to of await staffFor(tx, review.teamId))
+        await notify(tx, to, before ? 'disputeMessage' : 'disputeOpened', details, `/review/${review.id}`);
+      if (!before)
+        await logActivity(tx, actorOf(membership), {
+          action: 'disputeOpened',
+          targetName: review.agentName,
+          details: { lead: review.leadId },
+        });
+      return this.seen(tx, review.id, author.membershipId);
+    });
+  }
+
   /** A message in an open dispute, from the agent or from the staff who answer it. */
   @Post(':reviewId/messages')
   @Allow('disputes.write')
@@ -170,7 +219,14 @@ export class DisputesController {
       const dispute = await this.openOne(tx, review.id);
       const author = await this.author(tx, membership);
       const { outcome, note } = input.data;
-      if (!(await resolveDispute(tx, dispute.id, author, outcome, note))) throw badRequest('disputeClosed');
+      // every answer the agent marked gets the person's decision (it also counts in AutoQA's accuracy score)
+      const decided = dispute.marks.map((m) => {
+        const right = input.data.marks.find((d) => d.ci === m.ci && d.qi === m.qi)?.right;
+        return right ? { ...m, right } : null;
+      });
+      if (decided.some((m) => m === null)) throw badRequest('marksUndecided');
+      const marks = dispute.marks.length ? decided.filter((m) => m !== null) : undefined;
+      if (!(await resolveDispute(tx, dispute.id, author, outcome, note, marks))) throw badRequest('disputeClosed');
       if (review.agentId)
         await notify(tx, review.agentId, 'disputeResolved', { lead: review.leadId, outcome }, `/review/${review.id}`);
       await logActivity(tx, actorOf(membership), {

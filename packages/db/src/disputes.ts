@@ -1,9 +1,9 @@
 // Disputes, always behind the company wall (inside withCompany). Who may open, write in or resolve one is decided by
 // the server (today's rules: the agent opens one on their own review, once; admins and reviewers answer and resolve).
-import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { Tx } from './company.js';
 import { type ReviewScope, scopeWhere } from './reviews.js';
-import { disputeMessages, disputes, reviews } from './schema.js';
+import { type AnswerMark, disputeMessages, disputes, reviews } from './schema.js';
 
 const thisCompany = sql<string>`app_company()`;
 
@@ -32,6 +32,8 @@ export interface Dispute {
   note: string;
   resolvedByName: string;
   resolvedAt: Date | null;
+  /** "Not what I said": the answers of an AI review the agent marked */
+  marks: AnswerMark[];
   messages: DisputeMessage[];
 }
 
@@ -71,6 +73,7 @@ async function withMessages(tx: Tx, rows: (typeof disputes.$inferSelect)[]): Pro
       outcome: r.outcome,
       note: r.note,
       resolvedByName: r.resolvedByName,
+      marks: r.marks,
       resolvedAt: r.resolvedAt,
       messages: list,
     };
@@ -122,6 +125,50 @@ export async function openDispute(tx: Tx, reviewId: string, author: Author, reas
   return row.id;
 }
 
+/**
+ * "Not what I said": the agent marks one answer of an AI review. The first mark opens the dispute (the reason is its
+ * first message); a later one, while it is open, is added to it with its own message. False when the dispute is already
+ * resolved. A mark already there only adds the message.
+ */
+export async function markAnswer(
+  tx: Tx,
+  reviewId: string,
+  author: Author,
+  mark: AnswerMark,
+  reason: string,
+): Promise<boolean> {
+  const text = `${mark.question}: ${reason}`;
+  const [found] = await tx.select().from(disputes).where(eq(disputes.reviewId, reviewId));
+  if (!found) {
+    const [row] = await tx
+      .insert(disputes)
+      .values({ companyId: thisCompany, reviewId, agentId: author.membershipId, marks: [mark] })
+      .onConflictDoNothing()
+      .returning({ id: disputes.id });
+    if (!row) return markAnswer(tx, reviewId, author, mark, reason); // opened at the same moment: add to it
+    await addMessage(tx, row.id, author, text);
+    await tx.update(reviews).set({ status: 'disputed' }).where(eq(reviews.id, reviewId));
+    return true;
+  }
+  if (found.resolvedAt) return false;
+  if (!found.marks.some((m) => m.ci === mark.ci && m.qi === mark.qi))
+    await tx
+      .update(disputes)
+      .set({ marks: [...found.marks, mark] })
+      .where(eq(disputes.id, found.id));
+  await addMessage(tx, found.id, author, text);
+  return true;
+}
+
+/** The answers people decided on in resolved disputes (for the accuracy score), by review. */
+export async function decidedMarks(tx: Tx): Promise<Map<string, AnswerMark[]>> {
+  const rows = await tx
+    .select({ reviewId: disputes.reviewId, marks: disputes.marks })
+    .from(disputes)
+    .where(and(isNotNull(disputes.resolvedAt), sql`jsonb_array_length(${disputes.marks}) > 0`));
+  return new Map(rows.map((r) => [r.reviewId, r.marks.filter((m) => m.right !== null)]));
+}
+
 /** Raised when the review was already disputed (once per review, as today). */
 export class DisputeExists extends Error {
   constructor() {
@@ -136,7 +183,8 @@ export async function writeInDispute(tx: Tx, disputeId: string, author: Author, 
 /**
  * An admin or reviewer closes it: the outcome, an optional note, a closing message in the conversation, and the review
  * is no longer shown as disputed. False when it was already resolved. The closing message holds the outcome's code, so
- * the pages word it in each reader's language.
+ * the pages word it in each reader's language. With "not what I said" marks, `marks` holds them with the person's
+ * decision on each (the server has checked there is one for every mark).
  */
 export async function resolveDispute(
   tx: Tx,
@@ -144,6 +192,7 @@ export async function resolveDispute(
   author: Author,
   outcome: DisputeOutcome,
   note: string,
+  marks?: AnswerMark[],
 ): Promise<boolean> {
   const [row] = await tx
     .update(disputes)
@@ -153,6 +202,7 @@ export async function resolveDispute(
       note,
       resolvedById: author.membershipId,
       resolvedByName: author.name,
+      ...(marks ? { marks } : {}),
     })
     .where(and(eq(disputes.id, disputeId), isNull(disputes.resolvedAt)))
     .returning({ reviewId: disputes.reviewId });

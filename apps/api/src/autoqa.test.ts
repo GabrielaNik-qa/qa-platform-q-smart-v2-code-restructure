@@ -41,7 +41,16 @@ const pretend: ProviderAdapter = {
       why: 'Seen in the conversation.',
       tip: mode === 'oneNo' && i === 0 ? 'Greet the customer by name.' : '',
     }));
-    const text = JSON.stringify({ injection: mode === 'injection', answers, summary: 'A clear, polite conversation.' });
+    // the outcome check, when the company's outcomes have a guide: the guide asks for "follow-up"
+    const outcome = r.prompt.includes('THE OUTCOMES')
+      ? { outcome: { expected: 'followUp', quote: line.split(' ').slice(0, 5).join(' '), why: 'A next step remains.' } }
+      : {};
+    const text = JSON.stringify({
+      injection: mode === 'injection',
+      answers,
+      summary: 'A clear, polite conversation.',
+      ...outcome,
+    });
     return Promise.resolve({ text, inputTokens: 800, outputTokens: 300 });
   },
 };
@@ -205,5 +214,62 @@ describe('AutoQA AI reviews', () => {
     const empty = await addConversation('');
     expect((await aiReview(empty)).json()).toMatchObject({ code: 'aiReviewNoTranscript' });
     expect((await aiReview(conversation, 'admin', SECOND_COMPANY)).statusCode).toBe(404);
+  });
+});
+
+describe("The company's guidance and the outcome check", () => {
+  it("sends each question's guidance and the outcomes' guide to the AI, and shows whether the agent chose right", async () => {
+    // the guidance on a question (Quality › Scorecards)
+    const card = (await call('GET', '/scorecards', 'admin')).json<
+      { id: string; name: string; description: string; tags: string[]; categories: { questions: object[] }[] }[]
+    >()[0];
+    if (!card) throw new Error('no scorecard');
+    const categories = card.categories.map((c, ci) => ({
+      ...c,
+      questions: c.questions.map((q, qi) => (ci === 0 && qi === 0 ? { ...q, aiGuide: 'A first name is enough.' } : q)),
+    }));
+    const changed = await call('PUT', `/scorecards/${card.id}`, 'admin', {
+      name: card.name,
+      description: card.description,
+      tags: card.tags,
+      categories,
+    });
+    expect(changed.statusCode, changed.body).toBe(200);
+    // the outcomes' guide (Admin › Fields), by admins only
+    const fields = (await call('GET', '/fields', 'admin')).json<{
+      conversation: { key: string; options: { id: string; labels: object }[] }[];
+    }>().conversation;
+    const options = (fields.find((f) => f.key === 'outcome')?.options ?? []).map((o) => ({
+      ...o,
+      ...(o.id === 'resolved' ? { guide: 'Fixed in this conversation.' } : {}),
+      ...(o.id === 'followUp' ? { guide: 'Something is still to do later.' } : {}),
+    }));
+    expect((await call('PUT', '/fields/conversation/outcome', 'reviewer', { options })).statusCode).toBe(403);
+    const saved = await call('PUT', '/fields/conversation/outcome', 'admin', { options });
+    expect(saved.statusCode, saved.body).toBe(200);
+    const tooLong = options.map((o) => ({ ...o, guide: 'x'.repeat(301) }));
+    expect((await call('PUT', '/fields/conversation/outcome', 'admin', { options: tooLong })).statusCode).toBe(400);
+
+    mode = 'good';
+    const id = await addConversation(
+      ['Customer: Hello, I need help with my order please.', 'Agent: Sure, I will check it.'].join('\n'),
+    );
+    const out = (await aiReview(id)).json<{ review: ReviewOut & { ai: { outcome?: object } } }>();
+    const sent = requests.at(-1)?.prompt ?? '';
+    expect(sent).toContain("The company's guidance for this question: A first name is enough.");
+    expect(sent).toContain('- id followUp: followUp. Choose it when: Something is still to do later.');
+    expect(sent).toContain('The agent chose: resolved');
+    expect(out.review.ai.promptVersion).toMatch(/^autoqa-2/);
+    expect(out.review.ai.outcome).toMatchObject({
+      chosen: 'resolved',
+      expected: 'followUp',
+      ok: false,
+      quote: 'Hello, I need help with',
+      why: 'A next step remains.',
+    });
+    // the agent sees it on their review
+    expect((await call('GET', `/reviews/${out.review.id}`, 'agent')).json()).toMatchObject({
+      ai: { outcome: { expected: 'followUp' } },
+    });
   });
 });

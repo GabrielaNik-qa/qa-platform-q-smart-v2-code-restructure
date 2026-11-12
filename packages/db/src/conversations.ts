@@ -372,3 +372,39 @@ export async function isDemoCompany(tx: Tx): Promise<boolean> {
   const [row] = await tx.select({ name: companies.name }).from(companies);
   return row?.name === DEMO_COMPANY;
 }
+
+/** The demo company's guide for choosing a conversation's outcome (AutoQA's outcome check reads it). */
+const DEMO_OUTCOME_GUIDES: Record<string, string> = {
+  resolved:
+    "The customer's question or problem was fully answered or fixed in this conversation, and nothing is left to do.",
+  followUp:
+    'Something is still to do after the conversation: a call back, a check, a document to send, or an answer the agent promised to give later.',
+  notResolved:
+    "The customer's problem was not solved and no next step was agreed, or the customer left without a solution.",
+  noAnswer: 'Nobody answered, or the customer left before any real conversation took place.',
+};
+
+/**
+ * Gives the demo company's outcomes their guide, once (while it never changed its outcome field), so the demo shows
+ * AutoQA's outcome check. Returns true when added. Runs as qsmart_owner, like the rest of the demo seed.
+ */
+export async function seedDemoOutcomeGuides(owner: Db): Promise<boolean> {
+  return owner.transaction(async (tx) => {
+    const [demo] = await tx.select({ id: companies.id }).from(companies).where(eq(companies.name, DEMO_COMPANY));
+    if (!demo) return false;
+    const added = await tx
+      .insert(fields)
+      .values({
+        companyId: demo.id,
+        object: 'conversation',
+        key: 'outcome',
+        type: 'dropdown',
+        ai: true,
+        position: 70,
+        options: Object.entries(DEMO_OUTCOME_GUIDES).map(([id, guide]) => ({ id, labels: {}, guide })),
+      })
+      .onConflictDoNothing()
+      .returning({ key: fields.key });
+    return added.length > 0;
+  });
+}

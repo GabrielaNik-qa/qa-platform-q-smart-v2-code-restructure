@@ -14,10 +14,11 @@ import {
   SECOND_COMPANY,
   seedDemo,
   seedDemoConversations,
+  seedDemoOutcomeGuides,
   seedDemoReviews,
   startLocalPostgres,
 } from '@qsmart/db';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from './app.js';
 import type { TokenVerifier } from './auth/token-verifier.js';
@@ -350,4 +351,25 @@ describe("today's demo transcripts", () => {
     const list = (await call('GET', '/conversations', 'admin')).json<Conv[]>();
     expect(list.filter((c) => c.reviewIds.length === 1)).toHaveLength(540);
   }, 120_000);
+});
+
+describe("the demo company's outcome guide", () => {
+  it('is added once, while the demo company never changed its outcomes, and only there', async () => {
+    const demo = company[DEMO_COMPANY] ?? '';
+    await owner
+      .delete(schema.fields)
+      .where(
+        and(
+          eq(schema.fields.companyId, demo),
+          eq(schema.fields.object, 'conversation'),
+          eq(schema.fields.key, 'outcome'),
+        ),
+      );
+    expect(await seedDemoOutcomeGuides(owner)).toBe(true);
+    expect(await seedDemoOutcomeGuides(owner)).toBe(false);
+    const rows = await owner.select().from(schema.fields).where(eq(schema.fields.key, 'outcome'));
+    expect(rows.map((r) => r.companyId)).toEqual([demo]);
+    expect(rows[0]?.options.map((o) => o.id)).toEqual(['resolved', 'followUp', 'notResolved', 'noAnswer']);
+    expect(rows[0]?.options.every((o) => (o.guide ?? '').length > 20)).toBe(true);
+  });
 });

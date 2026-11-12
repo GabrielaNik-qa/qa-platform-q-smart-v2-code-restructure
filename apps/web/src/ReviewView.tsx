@@ -1,18 +1,19 @@
 // One review (today's review pop-up, as a page): the score and whether it passed, every answer with its comment and
 // root cause, the links and the transcript. Staff edit it (admins and reviewers), remind the agent or delete it; the
-// agent opening their own review marks it as seen.
+// agent opening their own review marks it as seen. On an AI review, the agent can mark an answer "not what I said"
+// (the first mark opens the review's dispute; a person then decides each marked answer).
 import { can, passes } from '@qsmart/shared';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from './api';
 import { when } from './Activity';
-import { DisputeBox } from './Disputes';
+import { type Dispute, DisputeBox } from './Disputes';
 import { currentLanguage } from './i18n';
 import { NotFound } from './PageView';
 import { type PassRates, passRateFor, QAEntry, type ReviewRow } from './QAEntry';
 import { useSession } from './session';
-import { card, dangerButton, Notice, smallButton, useAction } from './ui';
+import { card, dangerButton, field, Notice, primaryButton, smallButton, useAction } from './ui';
 
 export function ReviewView() {
   const { t } = useTranslation();
@@ -23,6 +24,9 @@ export function ReviewView() {
   const [review, setReview] = useState<ReviewRow | null | undefined>(undefined);
   const [rates, setRates] = useState<PassRates | null>(null);
   const [editing, setEditing] = useState(false);
+  const [dispute, setDispute] = useState<Dispute | null | undefined>(undefined);
+  // the answer the agent is marking "not what I said", and what they write
+  const [marking, setMarking] = useState<{ ci: number; qi: number; text: string } | null>(null);
   const { message, run } = useAction();
 
   const load = useCallback(() => {
@@ -37,6 +41,7 @@ export function ReviewView() {
       () => setReview(null),
     );
     api<PassRates>('/pass-rates', company.id).then(setRates, () => undefined);
+    api<Dispute | null>(`/disputes/${id}`, company.id).then(setDispute, () => setDispute(null));
   }, [company, id]);
   useEffect(load, [load]);
 
@@ -58,6 +63,9 @@ export function ReviewView() {
   const rate = passRateFor(rates, review.teamId);
   const passed = passes(review.score, rate);
   const answer = (a: string) => t(`reviews.${a === 'y' ? 'yes' : a === 'n' ? 'no' : 'na'}`);
+  const ai = review.source === 'ai';
+  const canMark = ai && company.role === 'agent' && dispute !== undefined && dispute?.state !== 'resolved';
+  const markOf = (ci: number, qi: number) => dispute?.marks.find((m) => m.ci === ci && m.qi === qi);
   const facts: [string, string][] = [
     [t('reviews.agent'), review.agentName],
     [t('reviews.team'), review.teamName || '-'],
@@ -182,6 +190,7 @@ export function ReviewView() {
           <p className="text-xs text-mu">{t('autoqa.versions', { prompt: review.ai.promptVersion })}</p>
         </section>
       )}
+      {review.ai?.outcome && <OutcomeCheckCard check={review.ai.outcome} />}
       {review.categories.map((c, ci) => (
         <section key={ci} className={`${card} grid gap-2`} aria-label={c.name}>
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -210,6 +219,59 @@ export function ReviewView() {
                     {q.rootCause && ` · ${t('reviews.rootCause')}: ${q.rootCause}`}
                   </small>
                 )}
+                {ai && (
+                  <MarkLine
+                    mark={markOf(ci, qi)}
+                    agent={company.role === 'agent'}
+                    name={dispute?.resolvedByName ?? ''}
+                    answer={answer}
+                  />
+                )}
+                {canMark && !markOf(ci, qi) && !(marking?.ci === ci && marking.qi === qi) && (
+                  <button
+                    type="button"
+                    className="justify-self-start text-xs text-ac font-semibold hover:underline"
+                    onClick={() => setMarking({ ci, qi, text: '' })}
+                  >
+                    {t('autoqa.notWhatISaid')}
+                  </button>
+                )}
+                {canMark && marking?.ci === ci && marking.qi === qi && (
+                  <form
+                    className="grid gap-1"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void run(async () => {
+                        const next = await api<Dispute>(`/disputes/${review.id}/marks`, company.id, {
+                          method: 'POST',
+                          body: marking,
+                        });
+                        setDispute(next);
+                        setMarking(null);
+                        load();
+                      }, t('autoqa.markSent'));
+                    }}
+                  >
+                    <label className="grid gap-1 text-xs font-semibold">
+                      {t('autoqa.markAsk')}
+                      <textarea
+                        className={`${field} font-normal text-sm`}
+                        rows={2}
+                        maxLength={1000}
+                        value={marking.text}
+                        onChange={(e) => setMarking({ ...marking, text: e.target.value })}
+                      />
+                    </label>
+                    <span className="flex gap-2">
+                      <button type="submit" className={primaryButton} disabled={!marking.text.trim()}>
+                        {t('autoqa.markSend')}
+                      </button>
+                      <button type="button" className={smallButton} onClick={() => setMarking(null)}>
+                        {t('common.cancel')}
+                      </button>
+                    </span>
+                  </form>
+                )}
               </li>
             ))}
           </ul>
@@ -229,7 +291,63 @@ export function ReviewView() {
           <p className="text-sm whitespace-pre-wrap mt-2">{review.transcript}</p>
         </details>
       )}
-      <DisputeBox company={company} review={review} onChange={load} />
+      <DisputeBox company={company} review={review} dispute={dispute} setDispute={setDispute} onChange={load} />
+    </section>
+  );
+}
+
+/** An answer marked "not what I said": waiting for a person, or what they decided. */
+function MarkLine({
+  mark,
+  agent,
+  name,
+  answer,
+}: {
+  mark: Dispute['marks'][number] | undefined;
+  agent: boolean;
+  name: string;
+  answer: (a: string) => string;
+}) {
+  const { t } = useTranslation();
+  if (!mark) return null;
+  return (
+    <small className="justify-self-start rounded-full bg-wn/15 text-wn px-2 font-semibold">
+      {mark.right
+        ? t('autoqa.decided', { name, answer: answer(mark.right) })
+        : agent
+          ? t('autoqa.marked')
+          : t('autoqa.markedStaff')}
+    </small>
+  );
+}
+
+/** AutoQA's outcome check: the outcome the agent chose and the one the company's guide asks for, with the proof. */
+function OutcomeCheckCard({ check }: { check: NonNullable<NonNullable<ReviewRow['ai']>['outcome']> }) {
+  const { t } = useTranslation();
+  // the company's name for it, or Q-smart's own outcome in the reader's language
+  const name = (id: string, given: string) => given || t(`cfields.options.outcome.${id}`, { defaultValue: id });
+  return (
+    <section
+      className={`${card} grid gap-1 ${check.ok ? 'border-ok' : 'border-wn'}`}
+      aria-label={t('autoqa.outcome.title')}
+    >
+      <h2 className="font-semibold">{t('autoqa.outcome.title')}</h2>
+      <p className={`text-sm font-semibold ${check.ok ? 'text-ok' : 'text-wn'}`}>
+        {check.ok
+          ? t('autoqa.outcome.ok', { name: name(check.expected, check.expectedName) })
+          : check.chosen
+            ? t('autoqa.outcome.other', {
+                chosen: name(check.chosen, check.chosenName),
+                expected: name(check.expected, check.expectedName),
+              })
+            : t('autoqa.outcome.none', { expected: name(check.expected, check.expectedName) })}
+      </p>
+      {check.why && <p className="text-sm text-mu">{check.why}</p>}
+      {check.quote && (
+        <q className="text-xs italic text-mu" title={t('autoqa.quote')}>
+          {check.quote}
+        </q>
+      )}
     </section>
   );
 }

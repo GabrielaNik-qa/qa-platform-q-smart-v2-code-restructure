@@ -29,6 +29,8 @@ export type {
   AiReviewDetails,
   AiReviewRules,
   AnsweredCategory,
+  AnswerMark,
+  OutcomeCheck,
   CompanyDashboards,
   DashboardView,
   MyDashboards,

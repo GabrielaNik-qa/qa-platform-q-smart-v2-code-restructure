@@ -213,14 +213,17 @@ function LabelInputs({ labels, onChange, idBase }: { labels: Labels; onChange: (
   );
 }
 
+/** A drop-down's options; with `guides` (a conversation's outcome), each one's guide for choosing it, for AutoQA. */
 function OptionsEditor({
   options,
   onChange,
   def,
+  guides = false,
 }: {
   options: FieldOption[];
   onChange: (o: FieldOption[]) => void;
   def?: FieldDef;
+  guides?: boolean;
 }) {
   const { t } = useTranslation();
   const lang = currentLanguage();
@@ -239,26 +242,39 @@ function OptionsEditor({
       <legend className="mb-1 text-sm font-medium">{t('cfields.optionsLabel')}</legend>
       <ul className="grid gap-1">
         {options.map((o, i) => (
-          <li key={o.id} className="flex items-center gap-2">
-            <input
-              className={`${field} flex-1`}
-              aria-label={t('cfields.optionName', { n: i + 1 })}
-              maxLength={80}
-              value={o.labels[lang] ?? (def ? names.option(def, o) : '')}
-              onChange={(e) =>
-                onChange(
-                  options.map((x) => (x.id === o.id ? { ...x, labels: { ...x.labels, [lang]: e.target.value } } : x)),
-                )
-              }
-            />
-            <button
-              type="button"
-              className={smallButton}
-              aria-label={t('cfields.removeOption')}
-              onClick={() => onChange(options.filter((x) => x.id !== o.id))}
-            >
-              ✕
-            </button>
+          <li key={o.id} className="grid gap-1">
+            <span className="flex items-center gap-2">
+              <input
+                className={`${field} flex-1`}
+                aria-label={t('cfields.optionName', { n: i + 1 })}
+                maxLength={80}
+                value={o.labels[lang] ?? (def ? names.option(def, o) : '')}
+                onChange={(e) =>
+                  onChange(
+                    options.map((x) => (x.id === o.id ? { ...x, labels: { ...x.labels, [lang]: e.target.value } } : x)),
+                  )
+                }
+              />
+              <button
+                type="button"
+                className={smallButton}
+                aria-label={t('cfields.removeOption')}
+                onClick={() => onChange(options.filter((x) => x.id !== o.id))}
+              >
+                ✕
+              </button>
+            </span>
+            {guides && (
+              <textarea
+                className={`${field} text-sm`}
+                rows={2}
+                maxLength={300}
+                aria-label={t('cfields.guideFor', { name: o.labels[lang] ?? (def ? names.option(def, o) : o.id) })}
+                placeholder={t('cfields.guidePlaceholder')}
+                value={o.guide ?? ''}
+                onChange={(e) => onChange(options.map((x) => (x.id === o.id ? { ...x, guide: e.target.value } : x)))}
+              />
+            )}
           </li>
         ))}
       </ul>
@@ -282,6 +298,7 @@ function OptionsEditor({
         </button>
       </div>
       <p className="text-xs text-mu">{t('cfields.optionsHelp')}</p>
+      {guides && <p className="text-xs text-mu">{t('cfields.guidesHelp')}</p>}
     </fieldset>
   );
 }
@@ -548,6 +565,7 @@ export function Fields({ company }: { company: CompanyRef }) {
                       options={draft.options}
                       onChange={(options) => setDraft({ ...draft, options })}
                       def={f}
+                      guides={f.object === 'conversation' && f.key === 'outcome'}
                     />
                   )}
                   {!isFixedField(f.object, f.key) && (

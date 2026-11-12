@@ -378,6 +378,10 @@ const en = {
     criticalCategoryHelp: 'If any item in it is answered No, the whole review scores 0%.',
     item: 'Evaluation criterion',
     critical: 'Critical',
+    aiGuide: 'Guidance for AutoQA (optional)',
+    aiGuideFor: 'Guidance for AutoQA on "{{item}}"',
+    aiGuidePlaceholder:
+      'How should AutoQA judge this item? For example: a greeting counts only if the agent says their name.',
     criticalHelp: 'If this item is answered No, its whole category scores 0 points.',
     compliance: 'Compliance',
     addItem: 'Add item',
@@ -588,6 +592,11 @@ const en = {
     writeMessage: 'Write a message…',
     send: 'Send',
     resolve: 'Resolve dispute',
+    marksTitle: 'Answers the agent marked "not what I said"',
+    marksHelp:
+      "Choose the right answer for each one. Your decision also counts in AutoQA's accuracy score; to change the review's score, use Edit.",
+    aiAnswered: 'AutoQA answered "{{answer}}"',
+    rightAnswer: 'The right answer',
     settle: 'How did you and the agent settle it?',
     outcomes: {
       kept: 'Score kept',
@@ -2251,6 +2260,10 @@ const en = {
     newOption: 'A new option',
     addOption: 'Add',
     removeOption: 'Remove this option',
+    guideFor: 'When to choose "{{name}}"',
+    guidePlaceholder: 'When to choose it (optional). For example: the problem was fixed in this conversation.',
+    guidesHelp:
+      "With a guide for choosing them, AutoQA also checks each AI-reviewed conversation's outcome and says which one the guide asks for. Write the guide in your own words; the AI reads it as written.",
     optionsHelp:
       'Type each option and press Enter. Changing an option keeps it on the conversations that already have it.',
     required: 'Required: must be filled in',
@@ -2425,7 +2438,7 @@ const en = {
       },
       accuracyTitle: 'Accuracy score',
       accuracyIntro:
-        'On conversations reviewed by both AutoQA and a person with the same scorecard: how often they give the same answer (N/A left out). High 75-100%, medium 25-74%, low 0-24%. A category under {{bar}}% is flagged once at least {{min}} conversations were compared, and the admins are told.',
+        'On conversations reviewed by both AutoQA and a person with the same scorecard: how often they give the same answer (N/A left out). The answers an agent marked "not what I said" count too, once a person decided them. High 75-100%, medium 25-74%, low 0-24%. A category under {{bar}}% is flagged once at least {{min}} conversations were compared, and the admins are told.',
       noPairs: 'No conversation is reviewed by both yet. Take a sample below and review it in QA Entry.',
       category: 'Category',
       agreement: 'Agreement',
@@ -2470,6 +2483,19 @@ const en = {
       none: 'No AI reviews yet.',
     },
     badge: 'AI review',
+    outcome: {
+      title: 'Outcome check',
+      ok: 'The agent chose "{{name}}", as the company’s guide asks.',
+      other: 'The agent chose "{{chosen}}"; the company’s guide asks for "{{expected}}".',
+      none: 'No outcome was chosen; the company’s guide asks for "{{expected}}".',
+    },
+    notWhatISaid: 'Not what I said',
+    markAsk: 'What did you actually say or do? A person will decide this answer.',
+    markSend: 'Send',
+    markSent: 'Sent. A person will decide this answer.',
+    marked: 'You marked it "not what I said": a person will decide.',
+    markedStaff: 'The agent marked it "not what I said".',
+    decided: 'Marked "not what I said": {{name}} decided "{{answer}}".',
     madeBy: 'Made by AutoQA with {{model}}',
     counts:
       'It counts on its own, like a review by a person. If you think an answer is wrong, dispute it: a person then decides.',
@@ -2947,6 +2973,10 @@ const bg: Messages = {
     criticalCategoryHelp: 'Ако отговорът на някой критерий в нея е Не, цялата оценка получава 0%.',
     item: 'Критерий за оценка',
     critical: 'Критичен',
+    aiGuide: 'Указания за AutoQA (по желание)',
+    aiGuideFor: 'Указания за AutoQA за „{{item}}“',
+    aiGuidePlaceholder:
+      'Как AutoQA да оценява този критерий? Например: поздравът се зачита само ако агентът каже името си.',
     criticalHelp: 'Ако отговорът на този критерий е Не, цялата му категория получава 0 точки.',
     compliance: 'Спазване на правилата',
     addItem: 'Добави критерий',
@@ -3159,6 +3189,11 @@ const bg: Messages = {
     writeMessage: 'Напишете съобщение…',
     send: 'Изпрати',
     resolve: 'Приключи оспорването',
+    marksTitle: 'Отговори, отбелязани от агента с „Не това казах“',
+    marksHelp:
+      'Изберете верния отговор за всеки. Решението ви се отчита и в точността на AutoQA; за да промените резултата на оценката, използвайте Редактиране.',
+    aiAnswered: 'AutoQA отговори „{{answer}}“',
+    rightAnswer: 'Верният отговор',
     settle: 'Как решихте въпроса с агента?',
     outcomes: {
       kept: 'Резултатът е запазен',
@@ -4828,6 +4863,10 @@ const bg: Messages = {
     newOption: 'Нова възможност',
     addOption: 'Добави',
     removeOption: 'Премахни тази възможност',
+    guideFor: 'Кога се избира „{{name}}“',
+    guidePlaceholder: 'Кога се избира (по желание). Например: проблемът беше решен в този разговор.',
+    guidesHelp:
+      'С указания за избора им AutoQA проверява и резултата на всеки разговор, оценен с ИИ, и казва кой от тях изискват указанията. Напишете ги със свои думи; ИИ ги чете така, както са написани.',
     optionsHelp:
       'Напишете всяка възможност и натиснете Enter. Промяната на възможност я запазва в разговорите, които вече я имат.',
     required: 'Задължително: трябва да се попълни',
@@ -5003,7 +5042,7 @@ const bg: Messages = {
       },
       accuracyTitle: 'Оценка за точност',
       accuracyIntro:
-        'По разговори, оценени и от AutoQA, и от човек със същата карта: колко често дават същия отговор („Неприложимо“ не се брои). Висока 75-100%, средна 25-74%, ниска 0-24%. Категория под {{bar}}% се отбелязва, след като са сравнени поне {{min}} разговора, и администраторите се уведомяват.',
+        'По разговори, оценени и от AutoQA, и от човек със същата карта: колко често дават същия отговор („Неприложимо“ не се брои). Отговорите, отбелязани от агент с „Не това казах“, също се броят, след като човек реши за тях. Висока 75-100%, средна 25-74%, ниска 0-24%. Категория под {{bar}}% се отбелязва, след като са сравнени поне {{min}} разговора, и администраторите се уведомяват.',
       noPairs: 'Все още няма разговор, оценен и от двамата. Вземете извадка по-долу и го оценете в Въвеждане на QA.',
       category: 'Категория',
       agreement: 'Съгласие',
@@ -5048,6 +5087,19 @@ const bg: Messages = {
       none: 'Все още няма ИИ оценки.',
     },
     badge: 'ИИ оценка',
+    outcome: {
+      title: 'Проверка на резултата',
+      ok: 'Агентът избра „{{name}}“, както изискват указанията на компанията.',
+      other: 'Агентът избра „{{chosen}}“; указанията на компанията изискват „{{expected}}“.',
+      none: 'Не е избран резултат; указанията на компанията изискват „{{expected}}“.',
+    },
+    notWhatISaid: 'Не това казах',
+    markAsk: 'Какво всъщност казахте или направихте? Човек ще реши за този отговор.',
+    markSend: 'Изпрати',
+    markSent: 'Изпратено. Човек ще реши за този отговор.',
+    marked: 'Отбелязахте „Не това казах“: човек ще реши.',
+    markedStaff: 'Агентът е отбелязал „Не това казах“.',
+    decided: 'Отбелязано „Не това казах“: {{name}} реши „{{answer}}“.',
     madeBy: 'Направена от AutoQA с {{model}}',
     counts:
       'Важи самостоятелно, като оценка от човек. Ако смятате, че отговор е грешен, оспорете го: тогава решава човек.',
@@ -5261,6 +5313,9 @@ const bg: Messages = {
     aiReviewsChannelOff: 'ИИ оценките са изключени за този канал (Администрация › AI › Включване и изключване на AI).',
     aiCategoryPaused:
       'ИИ оценките са спрени за категория от тази карта, защото AutoQA твърде рядко е бил съгласен с вашите оценители там (Качество › Автоматичен QA).',
+    notAiReview: 'Само отговорите на ИИ оценка могат да се отбележат с „Не това казах“. Оспорете оценката.',
+    markInvalid: 'Този отговор вече не е в оценката. Презаредете страницата.',
+    marksUndecided: 'Изберете верния отговор за всеки отговор, който агентът е отбелязал с „Не това казах“.',
   },
 };
 
@@ -5655,6 +5710,10 @@ const fr: Messages = {
     criticalCategoryHelp: 'Si un de ses critères reçoit Non, toute l’évaluation obtient 0 %.',
     item: 'Critère d’évaluation',
     critical: 'Critique',
+    aiGuide: 'Consignes pour AutoQA (facultatif)',
+    aiGuideFor: 'Consignes pour AutoQA sur « {{item}} »',
+    aiGuidePlaceholder:
+      'Comment AutoQA doit-il juger ce critère ? Par exemple : la salutation ne compte que si l’agent dit son nom.',
     criticalHelp: 'Si ce critère reçoit Non, toute sa catégorie obtient 0 point.',
     compliance: 'Conformité',
     addItem: 'Ajouter un critère',
@@ -5867,6 +5926,11 @@ const fr: Messages = {
     writeMessage: 'Écrivez un message…',
     send: 'Envoyer',
     resolve: 'Résoudre la contestation',
+    marksTitle: 'Réponses marquées par l’agent « Ce n’est pas ce que j’ai dit »',
+    marksHelp:
+      'Choisissez la bonne réponse pour chacune. Votre décision compte aussi dans le score de précision d’AutoQA ; pour changer le score de l’évaluation, utilisez Modifier.',
+    aiAnswered: 'AutoQA a répondu « {{answer}} »',
+    rightAnswer: 'La bonne réponse',
     settle: 'Comment avez-vous réglé la question avec l’agent ?',
     outcomes: {
       kept: 'Score maintenu',
@@ -7542,6 +7606,11 @@ const fr: Messages = {
     newOption: 'Une nouvelle option',
     addOption: 'Ajouter',
     removeOption: 'Retirer cette option',
+    guideFor: 'Quand choisir « {{name}} »',
+    guidePlaceholder:
+      'Quand le choisir (facultatif). Par exemple : le problème a été réglé pendant cette conversation.',
+    guidesHelp:
+      'Avec un guide pour les choisir, AutoQA vérifie aussi le résultat de chaque conversation évaluée par l’IA et indique celui que le guide demande. Écrivez le guide avec vos mots ; l’IA le lit tel quel.',
     optionsHelp:
       'Saisissez chaque option et appuyez sur Entrée. Modifier une option la garde sur les conversations qui l’ont déjà.',
     required: 'Obligatoire : doit être rempli',
@@ -7720,7 +7789,7 @@ const fr: Messages = {
       },
       accuracyTitle: 'Score de précision',
       accuracyIntro:
-        'Sur les conversations évaluées à la fois par AutoQA et par une personne avec la même grille : à quelle fréquence ils donnent la même réponse (N/A non compté). Élevé 75-100 %, moyen 25-74 %, faible 0-24 %. Une catégorie sous {{bar}} % est signalée dès qu’au moins {{min}} conversations ont été comparées, et les administrateurs sont prévenus.',
+        'Sur les conversations évaluées à la fois par AutoQA et par une personne avec la même grille : à quelle fréquence ils donnent la même réponse (N/A non compté). Les réponses qu’un agent a marquées « Ce n’est pas ce que j’ai dit » comptent aussi, une fois qu’une personne a décidé. Élevé 75-100 %, moyen 25-74 %, faible 0-24 %. Une catégorie sous {{bar}} % est signalée dès qu’au moins {{min}} conversations ont été comparées, et les administrateurs sont prévenus.',
       noPairs:
         'Aucune conversation n’est encore évaluée par les deux. Prenez un échantillon ci-dessous et évaluez-le dans Saisie QA.',
       category: 'Catégorie',
@@ -7768,6 +7837,19 @@ const fr: Messages = {
       none: 'Pas encore d’évaluation par IA.',
     },
     badge: 'Évaluation par IA',
+    outcome: {
+      title: 'Vérification du résultat',
+      ok: 'L’agent a choisi « {{name}} », comme le demande le guide de l’entreprise.',
+      other: 'L’agent a choisi « {{chosen}} » ; le guide de l’entreprise demande « {{expected}} ».',
+      none: 'Aucun résultat n’a été choisi ; le guide de l’entreprise demande « {{expected}} ».',
+    },
+    notWhatISaid: 'Ce n’est pas ce que j’ai dit',
+    markAsk: 'Qu’avez-vous vraiment dit ou fait ? Une personne décidera pour cette réponse.',
+    markSend: 'Envoyer',
+    markSent: 'Envoyé. Une personne décidera pour cette réponse.',
+    marked: 'Vous l’avez marquée « Ce n’est pas ce que j’ai dit » : une personne décidera.',
+    markedStaff: 'L’agent l’a marquée « Ce n’est pas ce que j’ai dit ».',
+    decided: 'Marquée « Ce n’est pas ce que j’ai dit » : {{name}} a choisi « {{answer}} ».',
     madeBy: 'Faite par AutoQA avec {{model}}',
     counts:
       'Elle compte à elle seule, comme une évaluation par une personne. Si une réponse vous semble fausse, contestez-la : une personne décide alors.',
@@ -7990,6 +8072,11 @@ const fr: Messages = {
       'Les évaluations par IA sont désactivées pour ce canal (Admin › IA › IA activée ou désactivée).',
     aiCategoryPaused:
       'Les évaluations par IA sont en pause pour une catégorie de cette grille, car AutoQA était trop rarement d’accord avec vos évaluateurs (Qualité › QA automatique).',
+    notAiReview:
+      'Seules les réponses d’une évaluation par IA peuvent être marquées « Ce n’est pas ce que j’ai dit ». Contestez plutôt l’évaluation.',
+    markInvalid: 'Cette réponse ne figure plus dans l’évaluation. Rechargez la page.',
+    marksUndecided:
+      'Choisissez la bonne réponse pour chaque réponse que l’agent a marquée « Ce n’est pas ce que j’ai dit ».',
   },
 };
 

@@ -1,0 +1,1 @@
+ALTER TABLE "disputes" ADD COLUMN "marks" jsonb DEFAULT '[]'::jsonb NOT NULL;

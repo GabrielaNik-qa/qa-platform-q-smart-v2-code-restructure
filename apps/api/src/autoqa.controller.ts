@@ -1,8 +1,8 @@
-// AutoQA's AI reviews (Phase 3b, step 4; V2_PLAN §7): an admin or reviewer asks the AI to review a conversation with a
+// AutoQA's AI reviews (Phase 3b, step 4; V2_PLAN В§7): an admin or reviewer asks the AI to review a conversation with a
 // scorecard. The AI review counts on its own, like a person's: it is scored with the same rules, marked as AI, keeps
 // its proof (the model, the prompt and scorecard versions, a quote for every answer), the agent is told, and the agent
 // can dispute it (a person then decides). It runs only when the company's AI is on, the agents were told in advance
-// (Admin › AI › AI on or off) and the conversation's channel is allowed. A conversation with what looks like
+// (Admin вЂє AI вЂє AI on or off) and the conversation's channel is allowed. A conversation with what looks like
 // instructions to the AI is held for a person instead.
 import { Body, Controller, Inject, Param, Post, UseGuards } from '@nestjs/common';
 import {
@@ -26,6 +26,7 @@ import {
 import {
   categoryKey,
   type FieldDef,
+  type FieldOption,
   fieldLabel,
   fieldsOf,
   LANGUAGES,
@@ -51,6 +52,9 @@ import { AI_ENGINE, DB } from './tokens.js';
 const input = z.object({ scorecardId: z.uuid() }).strict();
 const ANSWER = { yes: 'y', no: 'n', na: 'na' } as const;
 
+/** An option's name in the company's words (empty for Q-smart's own option the company never renamed). */
+const optionName = (o: FieldOption) => Object.values(o.labels).find(Boolean) ?? '';
+
 /** A field's value as plain text for the AI (only the fields the company lets the AI read). */
 const asText = (def: FieldDef, value: unknown): string => {
   if (value === undefined || value === null || value === '') return '';
@@ -59,7 +63,7 @@ const asText = (def: FieldDef, value: unknown): string => {
     return ids
       .map((id) => {
         const o = def.options.find((x) => x.id === id);
-        return o ? Object.values(o.labels).find(Boolean) || o.id : String(id);
+        return o ? optionName(o) || o.id : String(id);
       })
       .join(', ');
   }
@@ -121,7 +125,21 @@ export class AutoqaController {
         .filter((d) => d.value);
       if (conversation.channel !== 'other') details.unshift({ name: 'channel', value: conversation.channel });
       else if (conversation.channelName) details.unshift({ name: 'channel', value: conversation.channelName });
-      return { conversation, card, details, demo: await isDemoCompany(tx) };
+      // the outcome check: only when the AI may read the outcome and the company gave its outcomes a guide
+      const outcomeField = defs.find((d) => d.key === 'outcome');
+      const outcomes =
+        outcomeField && outcomeField.options.some((o) => o.guide?.trim())
+          ? {
+              options: outcomeField.options.map((o) => ({
+                id: o.id,
+                name: optionName(o) || o.id,
+                guide: o.guide?.trim() ?? '',
+              })),
+              chosen: typeof conversation.values['outcome'] === 'string' ? conversation.values['outcome'] : null,
+            }
+          : undefined;
+      const names = new Map(outcomeField?.options.map((o) => [o.id, optionName(o)]));
+      return { conversation, card, details, outcomes, names, demo: await isDemoCompany(tx) };
     });
     const { conversation, card } = ready;
 
@@ -142,6 +160,7 @@ export class AutoqaController {
       transcript: conversation.transcript ?? '',
       details: ready.details,
       language,
+      ...(ready.outcomes ? { outcomes: ready.outcomes } : {}),
     });
     let result;
     try {
@@ -186,6 +205,19 @@ export class AutoqaController {
       proof,
       summary: result.data.summary,
       attempt: result.attempt,
+      ...(ready.outcomes && result.data.outcome
+        ? {
+            outcome: {
+              chosen: ready.outcomes.chosen,
+              chosenName: ready.outcomes.chosen ? (ready.names.get(ready.outcomes.chosen) ?? '') : '',
+              expected: result.data.outcome.expected,
+              expectedName: ready.names.get(result.data.outcome.expected) ?? '',
+              ok: ready.outcomes.chosen === result.data.outcome.expected,
+              quote: result.data.outcome.quote,
+              why: result.data.outcome.why,
+            },
+          }
+        : {}),
     };
 
     return withCompany(this.db, membership.companyId, async (tx) => {

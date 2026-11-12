@@ -508,6 +508,8 @@ export const disputes = pgTable(
     note: text('note').notNull().default(''),
     resolvedById: uuid('resolved_by_membership_id'),
     resolvedByName: text('resolved_by_name').notNull().default(''),
+    /** "Not what I said" (Phase 3b): the answers of an AI review the agent marked, and the person's decision on each */
+    marks: jsonb('marks').$type<AnswerMark[]>().notNull().default([]),
   },
   (t) => [
     unique('disputes_id_company').on(t.id, t.companyId),
@@ -1323,6 +1325,19 @@ export interface AiAnswerProof {
   /** for a No: how to do it better */
   tip: string;
 }
+/**
+ * One answer of an AI review the agent marked "not what I said": where it is on the review, its words (so the accuracy
+ * score can match it), AutoQA's answer, and the answer the person who resolved the dispute decided (null until then).
+ */
+export interface AnswerMark {
+  ci: number;
+  qi: number;
+  category: string;
+  question: string;
+  ai: 'y' | 'n' | 'na';
+  right: 'y' | 'n' | 'na' | null;
+}
+
 export interface AiReviewDetails {
   provider: string;
   model: string;
@@ -1333,6 +1348,22 @@ export interface AiReviewDetails {
   proof: AiAnswerProof[][];
   summary: string;
   attempt: number;
+  /** the outcome check (when the company's outcomes have a guide) */
+  outcome?: OutcomeCheck;
+}
+
+/**
+ * AutoQA's outcome check: the outcome the agent chose and the one the company's guide asks for (option ids, with the
+ * company's names for them; an empty name means Q-smart's own outcome, named by the pages), and AutoQA's proof.
+ */
+export interface OutcomeCheck {
+  chosen: string | null;
+  chosenName: string;
+  expected: string;
+  expectedName: string;
+  ok: boolean;
+  quote: string;
+  why: string;
 }
 
 /**

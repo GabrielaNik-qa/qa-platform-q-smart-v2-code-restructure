@@ -1,9 +1,12 @@
 // AutoQA's figures (the AutoQA page) and the automatic brake, from the reviews a person can see:
-// - pairs: conversations reviewed by both AutoQA and a person with the same scorecard (the accuracy score's material);
+// - pairs: conversations reviewed by both AutoQA and a person with the same scorecard (the accuracy score's material),
+//   and the answers an agent marked "not what I said" that a person then decided (when no person reviewed it);
 // - the brake: a category under the company's bar once 20 conversations were compared in it; the admins are told once
 //   when it happens (again only if it recovers and falls again), and an admin can pause AI reviews for it.
 import {
   type AiReviewRules,
+  type AnswerMark,
+  decidedMarks,
   getAiRules,
   listPeople,
   listReviews,
@@ -15,7 +18,11 @@ import {
 import { type AccuracyPair, brakedCategories, DEFAULT_ACCURACY_BAR } from '@qsmart/shared';
 
 /** The reviews of one conversation by AutoQA and by a person, with the same scorecard, as pairs. */
-export function pairsOf(reviews: Review[], languageOf: (conversationId: string) => string): AccuracyPair[] {
+export function pairsOf(
+  reviews: Review[],
+  languageOf: (conversationId: string) => string,
+  marks: Map<string, AnswerMark[]> = new Map(),
+): AccuracyPair[] {
   const human = new Map<string, Review>();
   for (const r of reviews)
     if (r.source !== 'ai' && r.conversationId && r.scorecardId) {
@@ -25,7 +32,8 @@ export function pairsOf(reviews: Review[], languageOf: (conversationId: string) 
   return reviews.flatMap((r) => {
     if (r.source !== 'ai' || !r.conversationId || !r.scorecardId) return [];
     const person = human.get(`${r.conversationId}|${r.scorecardId}`);
-    if (!person) return [];
+    const decided = marks.get(r.id) ?? [];
+    if (!person && !decided.length) return [];
     const strip = (cats: Review['categories']) =>
       cats.map((c) => ({ name: c.name, questions: c.questions.map((q) => ({ text: q.text, answer: q.answer })) }));
     return [
@@ -36,11 +44,21 @@ export function pairsOf(reviews: Review[], languageOf: (conversationId: string) 
         model: r.ai?.model ?? '',
         language: languageOf(r.conversationId) || '-',
         day: r.reviewedOn,
-        ai: strip(r.categories),
-        human: strip(person.categories),
+        ...(person ? { ai: strip(r.categories), human: strip(person.categories) } : fromMarks(decided)),
       },
     ];
   });
+}
+
+/** The marked answers as a comparison: AutoQA's answer when marked, against the person's decision. */
+function fromMarks(marks: AnswerMark[]): Pick<AccuracyPair, 'ai' | 'human'> {
+  const names = [...new Set(marks.map((m) => m.category))];
+  const side = (pick: (m: AnswerMark) => AnswerMark['ai']) =>
+    names.map((name) => ({
+      name,
+      questions: marks.filter((m) => m.category === name).map((m) => ({ text: m.question, answer: pick(m) })),
+    }));
+  return { ai: side((m) => m.ai), human: side((m) => m.right ?? 'na') };
 }
 
 export const barOf = (rules: AiReviewRules) => rules.bar ?? DEFAULT_ACCURACY_BAR;
@@ -53,7 +71,7 @@ export async function checkBrake(tx: Tx): Promise<string[]> {
   const rules = await getAiRules(tx);
   const reviews = await listReviews(tx, { all: true });
   const braked = brakedCategories(
-    pairsOf(reviews, () => ''),
+    pairsOf(reviews, () => '', await decidedMarks(tx)),
     barOf(rules.reviews),
   );
   const before = new Set(rules.reviews.flagged ?? []);

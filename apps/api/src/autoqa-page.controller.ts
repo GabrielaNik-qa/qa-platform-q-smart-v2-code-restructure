@@ -6,6 +6,7 @@
 import { Body, Controller, Get, Inject, Put, Query, UseGuards } from '@nestjs/common';
 import {
   type Db,
+  decidedMarks,
   getAiRules,
   logActivity,
   listConversations,
@@ -105,7 +106,7 @@ export class AutoqaPageController {
 
       // the accuracy score (staff only)
       const language = new Map(conversations.map((c) => [c.id, String(c.values['language'] ?? '')]));
-      const pairs = pairsOf(reviews, (id) => language.get(id) ?? '');
+      const pairs = pairsOf(reviews, (id) => language.get(id) ?? '', await decidedMarks(tx));
       const rules = await getAiRules(tx);
       const bar = barOf(rules.reviews);
       const paused = new Set(rules.reviews.paused ?? []);

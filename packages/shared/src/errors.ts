@@ -122,6 +122,9 @@ export const ERROR_MESSAGES = {
   aiReviewsChannelOff: 'AI reviews are switched off for this channel (Admin › AI › AI on or off).',
   aiCategoryPaused:
     'AI reviews are paused for a category of this scorecard, because AutoQA agreed too rarely with your reviewers there (Quality › AutoQA).',
+  notAiReview: 'Only the answers of an AI review can be marked "not what I said". Dispute this review instead.',
+  markInvalid: 'This answer is not on the review any more. Reload the page.',
+  marksUndecided: 'Choose the right answer for every answer the agent marked "not what I said".',
 } as const;
 
 export type ErrorCode = keyof typeof ERROR_MESSAGES;

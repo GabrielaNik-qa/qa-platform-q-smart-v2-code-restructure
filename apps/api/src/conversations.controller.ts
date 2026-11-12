@@ -37,6 +37,7 @@ import {
   FIELD_TYPES,
   type FieldDef,
   fieldsOf,
+  builtInOptionIds,
   isBuiltInField,
   isFixedField,
   labelsSchema,
@@ -69,10 +70,15 @@ const newField = z
     ai: z.boolean().default(false),
   })
   .strict();
+/** On a change, Q-smart's own options may come back without a name of the company's (checked in the route). */
+const changedOptions = z
+  .array(optionSchema.extend({ labels: z.union([labelsSchema, z.object({}).strict()]) }))
+  .max(200)
+  .refine((o) => new Set(o.map((x) => x.id)).size === o.length, 'option ids are unique');
 const fieldChange = z
   .object({
     labels: z.union([labelsSchema, z.object({}).strict()]),
-    options,
+    options: changedOptions,
     required: z.boolean(),
     ai: z.boolean(),
     hidden: z.boolean(),
@@ -156,6 +162,10 @@ export class FieldsController {
         options: key === 'channel' && field.builtIn ? field.options : (input.data.options ?? field.options),
       };
       if (needsOptions(changed.type) && !changed.options.length) throw badRequest('fieldInvalid');
+      // an option without a name of the company's must be one of Q-smart's own (named by the pages)
+      const ours = field.builtIn ? builtInOptionIds(kind.data, key) : [];
+      if (changed.options.some((o) => !Object.values(o.labels).some(Boolean) && !ours.includes(o.id)))
+        throw badRequest('fieldInvalid');
       if (!field.builtIn && !Object.values(changed.labels).some(Boolean)) throw badRequest('fieldInvalid');
       await saveStoredFields(tx, [asStored(changed)]);
       await logActivity(tx, actorOf(membership), {

@@ -57,6 +57,16 @@ export interface ReviewRow {
     promptVersion: string;
     proof: { quote: string; why: string; tip: string }[][];
     summary: string;
+    /** the outcome check (when the company's outcomes have a guide) */
+    outcome?: {
+      chosen: string | null;
+      chosenName: string;
+      expected: string;
+      expectedName: string;
+      ok: boolean;
+      quote: string;
+      why: string;
+    };
   } | null;
   createdAt: string;
 }
