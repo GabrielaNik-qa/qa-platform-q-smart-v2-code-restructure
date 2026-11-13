@@ -1423,6 +1423,43 @@ export const aiTestItems = pgTable(
   ],
 );
 
+/** One planned review of a test-set run: a model on a conversation, how often it was tried, and how it ended. */
+export interface TestJobStep {
+  itemId: string;
+  modelId: string;
+  tries: number;
+  /** '' not tried yet, ok, or failed (after its first try it gets one more at the end) */
+  result: '' | 'ok' | 'failed';
+}
+/**
+ * A test-set run (Phase 5): the models and conversations chosen, done on the server one review at a time, so it goes on
+ * when the page is closed. A failed review gets one more try at the end; a busy free plan is waited for, never skipped.
+ * One running at a time per company.
+ */
+export const aiTestJobs = pgTable(
+  'ai_test_jobs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    /** running, done or stopped */
+    state: text('state').notNull().default('running'),
+    steps: jsonb('steps').$type<TestJobStep[]>().notNull().default([]),
+    /** waiting for a busy free plan until then (null: not waiting) */
+    waitingUntil: timestamp('waiting_until', { withTimezone: true }),
+    /** why it waits: '' not waiting, busy (a short pause), daily (the free plan's daily limit, it seems) */
+    waitingFor: text('waiting_for').notNull().default(''),
+    /** "too many requests" in a row, per AI company (a long run of them: the daily limit) */
+    busy: jsonb('busy').$type<Record<string, number>>().notNull().default({}),
+    byName: text('by_name').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+  },
+  (t) => [index('ai_test_jobs_company').on(t.companyId, t.createdAt)],
+);
+
 /** One AI model's answers on one test conversation (the latest per model counts). */
 export const aiTestRuns = pgTable(
   'ai_test_runs',

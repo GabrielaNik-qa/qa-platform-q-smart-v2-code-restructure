@@ -49,6 +49,7 @@ export type {
   SessionSignature,
   TaskEvent,
   TaskStep,
+  TestJobStep,
   TemplateStep,
   ReportSchedule,
   Prefs,

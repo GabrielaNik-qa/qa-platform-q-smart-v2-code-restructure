@@ -143,6 +143,9 @@ export const ERROR_MESSAGES = {
   sessionAgents: 'Choose agents (and action owners) from your workspaces.',
   sessionNotFound: 'This session no longer exists, or you cannot see it.',
   sessionNotHeld: 'A planned session is signed once it has been held.',
+  testJobInvalid: 'Choose at least one model and how many conversations each should review.',
+  testJobRunning: 'A run is already going on. Wait for it to finish, or stop it first.',
+  testJobNothing: 'The ticked models have already reviewed every scored conversation (in this language).',
   oneToOneInvalid:
     'Check the one-to-one: the agent, the date, the title, and a period whose start is before its end; at most 30 sections.',
   oneToOneSign: 'To complete it now, tick "The agent is here and signs now"; or send it to the agent to read and sign.',

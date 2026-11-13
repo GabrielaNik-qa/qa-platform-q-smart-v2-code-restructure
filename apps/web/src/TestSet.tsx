@@ -134,6 +134,24 @@ function Scorer({
   );
 }
 
+/** The newest test-set run on the server, as GET /autoqa/test-set/jobs/latest sends it. */
+interface JobCount {
+  total: number;
+  done: number;
+  ok: number;
+  failed: number;
+  retry: number;
+}
+interface Job extends JobCount {
+  id: string;
+  state: 'running' | 'done' | 'stopped';
+  models: (JobCount & { id: string })[];
+  waitingUntil: string | null;
+  waitingFor: '' | 'busy' | 'daily';
+  waitingOn: string[];
+  byName: string;
+}
+
 export function TestSet({ company }: { company: CompanyRef }) {
   const { t } = useTranslation();
   const [data, setData] = useState<Overview | null>(null);
@@ -141,13 +159,8 @@ export function TestSet({ company }: { company: CompanyRef }) {
   const [open, setOpen] = useState<string | null>(null);
   const [chosen, setChosen] = useState<string[]>([]);
   const [limit, setLimit] = useState(5);
-  const [progress, setProgress] = useState<{
-    done: number;
-    of: number;
-    failed: number;
-    /** seconds until the next try, while the free plan needs a pause (0: not waiting) */
-    waiting: number;
-  } | null>(null);
+  const [job, setJob] = useState<Job | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const { message, run, fail } = useAction();
   const load = useCallback(() => {
     api<Overview>('/autoqa/test-set', company.id).then((d) => {
@@ -156,6 +169,20 @@ export function TestSet({ company }: { company: CompanyRef }) {
     }, fail);
   }, [company.id, fail]);
   useEffect(load, [load]);
+  // the run goes on on the server: the page asks how far it is every few seconds while it runs
+  const followJob = useCallback(() => {
+    api<Job | null>('/autoqa/test-set/jobs/latest', company.id).then(setJob, () => undefined);
+  }, [company.id]);
+  useEffect(followJob, [followJob]);
+  useEffect(() => {
+    if (job?.state !== 'running') return;
+    const timer = setInterval(() => {
+      setNow(Date.now());
+      followJob();
+      load();
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [job?.state, followJob, load]);
 
   if (!data) return <p className="text-mu">{t('common.loading')}</p>;
   const shown = data.items.filter((i) => !lang || i.language === lang);
@@ -177,42 +204,27 @@ export function TestSet({ company }: { company: CompanyRef }) {
     return ok;
   }
 
+  const running = job?.state === 'running';
   async function runModels() {
-    if (!data) return;
-    const jobs = chosen.flatMap((modelId) =>
-      data.items
-        .filter((i) => i.expected && !(modelId in i.runs) && (!lang || i.language === lang))
-        .slice(0, limit)
-        .map((i) => ({ modelId, itemId: i.id })),
+    await run(
+      () =>
+        api('/autoqa/test-set/jobs', company.id, {
+          method: 'POST',
+          body: { modelIds: chosen, language: lang, perModel: limit },
+        }),
+      t('autoqa.testSet.job.started'),
+      followJob,
     );
-    const state = { done: 0, of: jobs.length, failed: 0, waiting: 0 };
-    setProgress({ ...state });
-    for (const job of jobs) {
-      for (let tries = 0; tries < 6; tries++) {
-        const out = await api<{ status: 'ok' | 'failed' | 'busy'; retryMs?: number | null }>(
-          `/autoqa/test-set/${job.itemId}/run`,
-          company.id,
-          {
-            method: 'POST',
-            body: { modelId: job.modelId },
-          },
-        ).catch(() => ({ status: 'failed' as const }));
-        if (out.status !== 'busy') {
-          if (out.status === 'failed') state.failed++;
-          break;
-        }
-        // the free plan's limit: wait as long as the AI company asked (and a second more), then try again; 30
-        // seconds when it didn't say
-        const ms = out.status === 'busy' && out.retryMs ? out.retryMs + 1000 : 30_000;
-        setProgress({ ...state, waiting: Math.ceil(ms / 1000) });
-        await new Promise((r) => setTimeout(r, ms));
-      }
-      state.done++;
-      setProgress({ ...state, waiting: 0 });
-    }
-    load();
   }
-  const running = progress !== null && progress.done < progress.of;
+  async function stopRun() {
+    await run(
+      () => api('/autoqa/test-set/jobs/stop', company.id, { method: 'POST' }),
+      t('autoqa.testSet.job.stoppedNow'),
+      followJob,
+    );
+  }
+  const nameOf = (id: string) => data.models.find((m) => m.id === id)?.name ?? id;
+  const waitLeft = job?.waitingUntil ? Math.max(0, Math.ceil((new Date(job.waitingUntil).getTime() - now) / 1000)) : 0;
 
   return (
     <section className="grid gap-4">
@@ -311,12 +323,40 @@ export function TestSet({ company }: { company: CompanyRef }) {
           >
             {running ? t('autoqa.running') : t('autoqa.testSet.run')}
           </button>
+          {running && (
+            <button type="button" className={smallButton} onClick={() => void stopRun()}>
+              {t('autoqa.testSet.job.stop')}
+            </button>
+          )}
         </div>
-        {progress && (
-          <p role="status" className="text-sm">
-            {t('autoqa.testSet.runProgress', progress)}{' '}
-            {progress.waiting > 0 && t('autoqa.testSet.waiting', { count: progress.waiting })}
-          </p>
+        {job && (
+          <div role="status" className="grid gap-1 rounded-s bg-pn2 p-3 text-sm">
+            <b>
+              {t(`autoqa.testSet.job.${job.state}`, { name: job.byName })}:{' '}
+              {t('autoqa.testSet.job.progress', { done: job.done, total: job.total, ok: job.ok, failed: job.failed })}
+              {job.retry > 0 && ` ${t('autoqa.testSet.job.retry', { count: job.retry })}`}
+            </b>
+            <span className="flex flex-wrap gap-x-4 text-xs text-mu">
+              {job.models.map((m) => (
+                <span key={m.id}>
+                  <span className="font-mono">{nameOf(m.id)}</span> {m.done}/{m.total}
+                </span>
+              ))}
+            </span>
+            {running && job.waitingFor && (
+              <span className={job.waitingFor === 'daily' ? 'text-wn' : ''}>
+                {job.waitingFor === 'daily'
+                  ? t('autoqa.testSet.job.daily', {
+                      names: job.waitingOn.join(', '),
+                      time: job.waitingUntil
+                        ? new Date(job.waitingUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        : '',
+                    })
+                  : t('autoqa.testSet.waiting', { count: waitLeft })}
+              </span>
+            )}
+            {running && <small className="text-mu">{t('autoqa.testSet.job.goesOn')}</small>}
+          </div>
         )}
         <p className="text-xs text-mu">{t('autoqa.testSet.runHelp')}</p>
       </section>

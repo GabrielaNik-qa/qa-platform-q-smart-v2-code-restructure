@@ -6,7 +6,15 @@ import { readFileSync } from 'node:fs';
 import type { Db } from './client.js';
 import type { Tx } from './company.js';
 import { DEMO_COMPANY } from './seed.js';
-import { aiTestItems, aiTestRuns, type AnsweredCategory, companies, scorecards } from './schema.js';
+import {
+  aiTestItems,
+  aiTestJobs,
+  aiTestRuns,
+  type AnsweredCategory,
+  companies,
+  scorecards,
+  type TestJobStep,
+} from './schema.js';
 
 const thisCompany = sql<string>`app_company()`;
 
@@ -68,6 +76,50 @@ export async function latestTestRuns(tx: Tx): Promise<TestRun[]> {
     .from(aiTestRuns)
     .orderBy(aiTestRuns.itemId, aiTestRuns.modelId, desc(aiTestRuns.createdAt));
   return rows.map(({ companyId: _c, id: _i, ...r }) => r as TestRun);
+}
+
+// ---------------------------------------------------------------------------------------------- runs (Phase 5)
+
+export interface TestJob {
+  id: string;
+  state: 'running' | 'done' | 'stopped';
+  steps: TestJobStep[];
+  waitingUntil: Date | null;
+  waitingFor: '' | 'busy' | 'daily';
+  busy: Record<string, number>;
+  byName: string;
+  createdAt: Date;
+  updatedAt: Date;
+  finishedAt: Date | null;
+}
+const job = ({ companyId: _c, ...j }: typeof aiTestJobs.$inferSelect): TestJob => j as TestJob;
+
+/** The company's newest run (running or not), or undefined. */
+export async function latestTestJob(tx: Tx): Promise<TestJob | undefined> {
+  const [row] = await tx.select().from(aiTestJobs).orderBy(desc(aiTestJobs.createdAt)).limit(1);
+  return row ? job(row) : undefined;
+}
+export async function runningTestJob(tx: Tx): Promise<TestJob | undefined> {
+  const [row] = await tx.select().from(aiTestJobs).where(eq(aiTestJobs.state, 'running')).limit(1);
+  return row ? job(row) : undefined;
+}
+export async function addTestJob(tx: Tx, steps: TestJobStep[], byName: string): Promise<string> {
+  const [row] = await tx
+    .insert(aiTestJobs)
+    .values({ companyId: thisCompany, steps, byName })
+    .returning({ id: aiTestJobs.id });
+  if (!row) throw new Error('The run was not saved.');
+  return row.id;
+}
+export async function updateTestJob(
+  tx: Tx,
+  id: string,
+  change: Partial<Pick<TestJob, 'state' | 'steps' | 'waitingUntil' | 'waitingFor' | 'busy' | 'finishedAt'>>,
+): Promise<void> {
+  await tx
+    .update(aiTestJobs)
+    .set({ ...change, updatedAt: sql`now()` })
+    .where(eq(aiTestJobs.id, id));
 }
 
 interface DemoTestItem {

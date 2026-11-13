@@ -3,46 +3,44 @@
 // the expert's answer (overall and per language), how far its scores are from the expert's, how long it takes and how
 // often it fails. A model is used for AI reviews only if it agrees on at least 75% of the questions once tested on at
 // least 20 scored conversations (until a model is, the bar doesn't apply).
-import { Body, Controller, Get, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
+// Since Phase 5 the models run on the server (test-set.runner.ts): the page starts a run, follows it and can stop it.
+import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
 import {
-  addTestRun,
-  type AnsweredCategory,
+  addTestJob,
   type Db,
   getTestItem,
+  latestTestJob,
   latestTestRuns,
   listScorecards,
   listTestItems,
   logActivity,
   type Membership,
+  runningTestJob,
   setExpected,
   type TestItem,
+  type TestJob,
   type TestRun,
   type Tx,
+  updateTestJob,
   withCompany,
 } from '@qsmart/db';
-import { ANSWERS, comparedQuestions, type ScorecardCategory, scoreReview, ScoringError } from '@qsmart/shared';
+import { ANSWERS, comparedQuestions, scoreReview, ScoringError } from '@qsmart/shared';
 import { z } from 'zod';
 import { actorOf } from './activity.controller.js';
-import { AUTOQA_MODELS, autoqaJob } from './ai/autoqa.js';
+import { AUTOQA_MODELS } from './ai/autoqa.js';
 import { CATALOGUE } from './ai/catalogue.js';
-import { AiError, type AiEngine } from './ai/engine.js';
+import type { AiEngine } from './ai/engine.js';
 import { Allow, PermissionGuard } from './auth/permission.guard.js';
 import { SignedInGuard } from './auth/signed-in.guard.js';
 import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { CurrentMembership } from './decorators.js';
 import { badRequest, notFound } from './errors.js';
+import { reviewTestItem, snapshot, TestSetRunner } from './test-set.runner.js';
 import { AI_ENGINE, DB } from './tokens.js';
 
 /** A model must be tested on this many of the expert's conversations before its result counts. */
 export const TEST_SET_MIN_ITEMS = 20;
 export const TEST_SET_BAR = 75;
-const ANSWER = { yes: 'y', no: 'n', na: 'na' } as const;
-
-const snapshot = (categories: ScorecardCategory[], answers: ('y' | 'n' | 'na')[][]): AnsweredCategory[] =>
-  categories.map((c, ci) => ({
-    name: c.name,
-    questions: c.questions.map((q, qi) => ({ text: q.text, answer: answers[ci]?.[qi] ?? 'na' })),
-  }));
 
 interface ModelResult {
   id: string;
@@ -125,6 +123,7 @@ export class TestSetController {
   constructor(
     @Inject(DB) private readonly db: Db,
     @Inject(AI_ENGINE) private readonly engine: AiEngine,
+    @Inject(TestSetRunner) private readonly runner: TestSetRunner,
   ) {}
 
   @Get()
@@ -198,64 +197,104 @@ export class TestSetController {
       .strict()
       .safeParse(body);
     if (!input.success || !z.uuid().safeParse(id).success) throw badRequest('aiRulesInvalid');
-    const ready = await withCompany(this.db, membership.companyId, async (tx) => {
-      const item = await getTestItem(tx, id);
-      if (!item) throw notFound('conversationNotFound');
-      const card = (await listScorecards(tx)).find((c) => c.id === item.scorecardId);
-      if (!card) throw badRequest('reviewScorecard');
-      return { item, card };
-    });
-    const job = autoqaJob({
-      categories: ready.card.categories,
-      transcript: ready.item.text,
-      details: [{ name: 'channel', value: ready.item.channel }],
-      language: 'en',
-    });
-    const started = Date.now();
-    let run: Omit<TestRun, 'createdAt'>;
-    try {
-      const result = await this.engine.run({
-        type: job.type,
-        companyId: membership.companyId,
-        dataClass: 'test',
-        onlyModel: input.data.modelId,
-        system: job.system,
-        prompt: job.prompt,
+    const out = await reviewTestItem(this.db, this.engine, membership.companyId, id, input.data.modelId);
+    if (!out) throw notFound('conversationNotFound');
+    return out;
+  }
+
+  // ---------------------------------------------------------------------------------------------- runs (Phase 5)
+
+  /**
+   * Starts a run on the server: each chosen model reviews up to `perModel` of the scored conversations it hasn't
+   * reviewed well yet (in the chosen language, or all), one model after another. It goes on when the page is closed.
+   */
+  @Post('jobs')
+  @Allow('conversations.write')
+  async start(@CurrentMembership() membership: Membership, @Body() body: unknown) {
+    const input = z
+      .object({
+        modelIds: z
+          .array(z.enum(AUTOQA_MODELS as [string, ...string[]]))
+          .min(1)
+          .max(AUTOQA_MODELS.length),
+        language: z.enum(['', 'en', 'bg', 'fr']).default(''),
+        perModel: z.number().int().min(1).max(200),
+      })
+      .strict()
+      .safeParse(body);
+    if (!input.success) throw badRequest('testJobInvalid');
+    const out = await withCompany(this.db, membership.companyId, async (tx) => {
+      if (await runningTestJob(tx)) throw badRequest('testJobRunning');
+      const items = (await listTestItems(tx)).filter(
+        (i) => i.expected && (!input.data.language || i.language === input.data.language),
+      );
+      const runs = await latestTestRuns(tx);
+      const good = new Set(runs.filter((r) => r.status === 'ok').map((r) => `${r.itemId}|${r.modelId}`));
+      const steps = [...new Set(input.data.modelIds)].flatMap((modelId) =>
+        items
+          .filter((i) => !good.has(`${i.id}|${modelId}`))
+          .slice(0, input.data.perModel)
+          .map((i) => ({ itemId: i.id, modelId, tries: 0, result: '' as const })),
+      );
+      if (!steps.length) throw badRequest('testJobNothing');
+      const id = await addTestJob(tx, steps, membership.userName);
+      await logActivity(tx, actorOf(membership), {
+        action: 'testSetRunStarted',
+        targetName: '',
+        details: { reviews: String(steps.length) },
       });
-      const byId = new Map(result.data.answers.map((a) => [a.id, a]));
-      const answers = ready.card.categories.map((c, ci) =>
-        c.questions.map((_, qi) => ANSWER[byId.get(`c${ci + 1}q${qi + 1}`)?.answer ?? 'no']),
-      );
-      const scored = scoreReview(
-        ready.card.categories,
-        answers.map((row) => row.map((answer) => ({ answer }))),
-      );
-      run = {
-        itemId: id,
-        modelId: input.data.modelId,
-        status: 'ok',
-        answers: snapshot(ready.card.categories, answers),
-        score: scored.score,
-        waitMs: Date.now() - started,
-        problem: result.data.injection ? 'injection' : null,
-      };
-    } catch (e) {
-      if (!(e instanceof AiError)) throw e;
-      // the free plan's limit ("too many requests", or resting after it): not the model's fault, nothing is kept; the
-      // page waits as long as the AI company asked (retryMs) and tries again
-      if (e.code === 'aiUnavailable' && (e.detail === 'http429' || e.detail === 'resting'))
-        return { status: 'busy', retryMs: e.retryAfterMs ?? null };
-      run = {
-        itemId: id,
-        modelId: input.data.modelId,
-        status: 'failed',
-        answers: null,
-        score: null,
-        waitMs: Date.now() - started,
-        problem: `${e.code}${e.detail ? `: ${e.detail}` : ''}`.slice(0, 120),
-      };
-    }
-    await withCompany(this.db, membership.companyId, (tx) => addTestRun(tx, run));
-    return { status: run.status, score: run.score, problem: run.problem };
+      return { id, reviews: steps.length };
+    });
+    this.runner.kick(membership.companyId);
+    return out;
+  }
+
+  /** Stops the running run (the reviews already done are kept). */
+  @Post('jobs/stop')
+  @HttpCode(200)
+  @Allow('conversations.write')
+  async stop(@CurrentMembership() membership: Membership) {
+    return withCompany(this.db, membership.companyId, async (tx) => {
+      const job = await runningTestJob(tx);
+      if (job) await updateTestJob(tx, job.id, { state: 'stopped', finishedAt: new Date(), waitingUntil: null });
+      return { stopped: !!job };
+    });
+  }
+
+  /** The newest run, as the page shows it: how far it is, per model, and what it waits for. */
+  private summary(job: TestJob | undefined) {
+    if (!job) return null;
+    const count = (list: TestJob['steps']) => ({
+      total: list.length,
+      done: list.filter((s) => s.result !== '').length,
+      ok: list.filter((s) => s.result === 'ok').length,
+      failed: list.filter((s) => s.result === 'failed').length,
+      /** failed once, waiting for their second try */
+      retry: list.filter((s) => s.result === 'failed' && s.tries === 1).length,
+    });
+    const models = [...new Set(job.steps.map((s) => s.modelId))];
+    return {
+      id: job.id,
+      state: job.state,
+      ...count(job.steps),
+      models: models.map((m) => ({ id: m, ...count(job.steps.filter((s) => s.modelId === m)) })),
+      waitingUntil: job.state === 'running' ? job.waitingUntil : null,
+      waitingFor: job.state === 'running' ? job.waitingFor : '',
+      waitingOn: Object.entries(job.busy)
+        .filter(([, n]) => n > 0)
+        .map(([p]) => CATALOGUE.providers[p as keyof typeof CATALOGUE.providers]?.name ?? p),
+      byName: job.byName,
+      createdAt: job.createdAt,
+      finishedAt: job.finishedAt,
+    };
+  }
+
+  /** The newest run only (the page asks every few seconds while it runs). */
+  @Get('jobs/latest')
+  @Allow('conversations.write')
+  async latest(@CurrentMembership() membership: Membership) {
+    const job = await withCompany(this.db, membership.companyId, (tx) => latestTestJob(tx));
+    if (job?.state === 'running') this.runner.kick(membership.companyId);
+    return this.summary(job);
   }
 }

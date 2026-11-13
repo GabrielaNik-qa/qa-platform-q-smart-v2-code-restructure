@@ -236,6 +236,16 @@ describe('the AI engine', () => {
     expect(again?.ms).toBeLessThanOrEqual(25_500);
   });
 
+  it('counts an answer that did not fit as the model’s failure, also when its second chance is refused as busy', async () => {
+    const { engine } = engineWith({ b1: ['bad', 'rate25'] });
+    try {
+      await engine.run(demo({ onlyModel: 'beta/b1', dataClass: 'test' }));
+      expect.unreachable();
+    } catch (e) {
+      expect(e instanceof AiError ? e.detail : e).toBe('schema');
+    }
+  });
+
   it('says the AI is not available when every model fails, and records each try', async () => {
     const { engine } = engineWith({ a1: ['error'], a2: ['error'], b1: ['error'] });
     expect(await failsWith(engine.run(demo()))).toBe('aiUnavailable');

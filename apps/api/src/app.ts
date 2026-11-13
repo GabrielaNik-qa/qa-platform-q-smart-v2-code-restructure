@@ -44,6 +44,7 @@ import { CoachingController } from './coaching.controller.js';
 import { OneToOneController } from './one-to-one.controller.js';
 import { AutoqaPageController } from './autoqa-page.controller.js';
 import { autoqaQualities, TestSetController } from './test-set.controller.js';
+import { TestSetRunner } from './test-set.runner.js';
 import { storedAccounts } from './ai/accounts.js';
 import { realAdapters } from './ai/adapters.js';
 import { AiEngine, type AiEngineParts } from './ai/engine.js';
@@ -127,6 +128,7 @@ export class AppModule {
         CompanyMemberGuard,
         PermissionGuard,
         PlatformGuard,
+        TestSetRunner,
       ],
     };
   }

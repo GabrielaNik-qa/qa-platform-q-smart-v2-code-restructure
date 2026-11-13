@@ -254,7 +254,12 @@ export class AiEngine {
           );
         if ('failure' in outcome) {
           this.breaker.failed(breakerKey(model.provider), outcome.failure.kind, waitFromLimits(outcome.failure.limits));
-          lastProblem = outcome.failure.code;
+          // a model that already gave an answer that doesn't fit, then "too many requests" on its second chance: its
+          // own failure counts (the answer that didn't fit), not the busy free plan
+          lastProblem =
+            outcome.failure.kind === 'rateLimit' && tryOnModel === 2 && lastProblem === 'schema'
+              ? 'schema'
+              : outcome.failure.code;
           await log({ ...call, waitMs, status: outcome.failure.kind, error: outcome.failure.code.slice(0, 60) });
           break; // an AI company that failed: straight to the next model
         }

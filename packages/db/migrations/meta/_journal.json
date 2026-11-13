@@ -414,6 +414,20 @@
       "when": 1794493539306,
       "tag": "0058_one_to_ones",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1794568428177,
+      "tag": "0059_test_jobs_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1794568431414,
+      "tag": "0060_test_jobs",
+      "breakpoints": true
     }
   ]
 }

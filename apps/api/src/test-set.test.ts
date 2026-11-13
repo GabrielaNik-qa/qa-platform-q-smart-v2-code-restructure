@@ -31,9 +31,15 @@ const verifier: TokenVerifier = {
 /** The pretend AI: gpt-oss-120b answers Yes everywhere; gpt-oss-20b answers No everywhere; or it fails. */
 let failing = false;
 const asked: string[] = [];
+/** what the next calls do first: "too many requests" (free again in so many seconds), or a failure */
+const queue: ({ rate: string } | 'fail' | 'ok')[] = [];
 const pretend: ProviderAdapter = {
   complete(r: CompletionRequest) {
     asked.push(r.model);
+    const next = queue.shift();
+    if (next === 'fail') return Promise.reject(new ProviderError('error', 'http500'));
+    if (next && next !== 'ok')
+      return Promise.reject(new ProviderError('rateLimit', 'http429', { 'x-ratelimit-reset-tokens': next.rate }));
     if (failing) return Promise.reject(new ProviderError('error', 'http500'));
     const ids = [...r.prompt.matchAll(/id (c\d+q\d+):/g)].map((m) => m[1]);
     // a line of the conversation with real words (an e-mail starts with a heading)
@@ -193,6 +199,77 @@ describe("AutoQA's test set", () => {
     failing = false;
     expect((await overview()).models.find((m) => m.id === BIG)).toMatchObject({ failed: 1, items: 21 });
   });
+
+  it('runs on the server: waits for a busy free plan, tries a failed review once more, never skips', async () => {
+    interface Job {
+      state: string;
+      total: number;
+      done: number;
+      ok: number;
+      failed: number;
+      retry: number;
+      waitingFor: string;
+      waitingUntil: string | null;
+      models: { id: string; total: number }[];
+    }
+    const latest = async () => (await call('GET', '/autoqa/test-set/jobs/latest', 'reviewer')).json<Job | null>();
+    const until = async (test: (j: Job | null) => boolean) => {
+      for (let i = 0; i < 100; i++) {
+        const j = await latest();
+        if (test(j)) return j;
+        await new Promise((r) => setTimeout(r, 200));
+      }
+      return latest();
+    };
+    expect(await latest()).toBeNull();
+    // everything scored was reviewed well by 120b already: nothing to do
+    expect(
+      (await call('POST', '/autoqa/test-set/jobs', 'reviewer', { modelIds: [BIG], perModel: 36 })).json(),
+    ).toMatchObject({ code: 'testJobNothing' });
+    // three more conversations scored
+    const o = await overview();
+    const answers = (o.scorecards[0]?.categories ?? []).map((c) => c.questions.map(() => 'y'));
+    for (const item of o.items.slice(21, 24))
+      await call('PUT', `/autoqa/test-set/${item.id}/expected`, 'reviewer', { answers });
+    // the first call: "too many requests, free again in 1s"; then a good review; then a failure
+    queue.push({ rate: '1s' }, 'ok', 'fail');
+    asked.length = 0;
+    const started = await call('POST', '/autoqa/test-set/jobs', 'reviewer', { modelIds: [BIG], perModel: 36 });
+    expect(started.json()).toMatchObject({ reviews: 3 });
+    expect(
+      (await call('POST', '/autoqa/test-set/jobs', 'reviewer', { modelIds: [SMALL], perModel: 1 })).json(),
+    ).toMatchObject({ code: 'testJobRunning' });
+    const done = await until((j) => j?.state === 'done');
+    // the busy call was waited for (not skipped), the failed review got its second try: all 3 good
+    expect(done).toMatchObject({ state: 'done', total: 3, done: 3, ok: 3, failed: 0, retry: 0 });
+    expect(asked.length).toBe(5);
+    expect((await overview()).models.find((m) => m.id === BIG)?.items).toBe(24);
+    // short waits Groq asks for, three in a row, are its per-minute limit, never taken for the daily limit
+    const more = o.items.slice(26, 27);
+    for (const item of more) await call('PUT', `/autoqa/test-set/${item.id}/expected`, 'reviewer', { answers });
+    queue.push({ rate: '1s' }, { rate: '1s' }, { rate: '1s' });
+    await call('POST', '/autoqa/test-set/jobs', 'reviewer', { modelIds: [SMALL], perModel: 1 });
+    const seen: string[] = [];
+    const short = await until((j) => {
+      if (j?.waitingFor) seen.push(j.waitingFor);
+      return j?.state === 'done';
+    });
+    expect(short).toMatchObject({ state: 'done', ok: 1 });
+    expect(seen).not.toContain('daily');
+    // a run waiting for a long pause can be stopped; the people who don't score never start one
+    for (const item of o.items.slice(24, 26))
+      await call('PUT', `/autoqa/test-set/${item.id}/expected`, 'reviewer', { answers });
+    queue.push({ rate: '30s' });
+    await call('POST', '/autoqa/test-set/jobs', 'reviewer', { modelIds: [BIG], perModel: 36 });
+    const waiting = await until((j) => j?.waitingFor === 'busy');
+    expect(waiting).toMatchObject({ state: 'running', total: 3, done: 0, waitingFor: 'busy' });
+    expect((await call('POST', '/autoqa/test-set/jobs/stop', 'reviewer')).json()).toEqual({ stopped: true });
+    expect(await latest()).toMatchObject({ state: 'stopped', done: 0 });
+    for (const who of ['lead', 'agent'])
+      expect((await call('POST', '/autoqa/test-set/jobs', who, { modelIds: [BIG], perModel: 1 })).statusCode).toBe(403);
+    // another company never sees it
+    expect((await call('GET', '/autoqa/test-set/jobs/latest', 'admin', undefined, SECOND_COMPANY)).json()).toBeNull();
+  }, 60_000);
 
   it("never shows another company's test set", async () => {
     const other = await overview('admin', SECOND_COMPANY);
