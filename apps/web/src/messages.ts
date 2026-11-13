@@ -3084,7 +3084,8 @@ const en = {
       perModel: 'Conversations per model',
       run: 'Run the ticked models',
       runProgress: '{{done}} of {{of}} done · {{failed}} failed',
-      waiting: 'The free plan needs a short pause; trying again in 30 seconds…',
+      waiting_one: 'The free plan needs a short pause; trying again in {{count}} second…',
+      waiting_other: 'The free plan needs a short pause; trying again in {{count}} seconds…',
       runHelp:
         'Each model reviews the conversations you scored that it hasn’t reviewed yet (in the language shown below, or all). An AI review uses about 3,000 tokens: Groq’s free plan does about 3 a minute, Cloudflare’s about 55 a day.',
       itemsTitle: 'The conversations',
@@ -6389,7 +6390,8 @@ const bg: Messages = {
       perModel: 'Разговори на модел',
       run: 'Пусни отметнатите модели',
       runProgress: '{{done}} от {{of}} готови · {{failed}} неуспешни',
-      waiting: 'Безплатният план има нужда от кратка пауза; нов опит след 30 секунди…',
+      waiting_one: 'Безплатният план има нужда от кратка пауза; нов опит след {{count}} секунда…',
+      waiting_other: 'Безплатният план има нужда от кратка пауза; нов опит след {{count}} секунди…',
       runHelp:
         'Всеки модел оценява разговорите, които сте оценили и той още не е (на езика, избран по-долу, или всички). Една ИИ оценка използва около 3000 токена: безплатният план на Groq прави около 3 на минута, а на Cloudflare около 55 на ден.',
       itemsTitle: 'Разговорите',
@@ -9868,7 +9870,8 @@ const fr: Messages = {
       perModel: 'Conversations par modèle',
       run: 'Lancer les modèles cochés',
       runProgress: '{{done}} sur {{of}} faites · {{failed}} échecs',
-      waiting: 'Le plan gratuit a besoin d’une courte pause ; nouvel essai dans 30 secondes…',
+      waiting_one: 'Le plan gratuit a besoin d’une courte pause ; nouvel essai dans {{count}} seconde…',
+      waiting_other: 'Le plan gratuit a besoin d’une courte pause ; nouvel essai dans {{count}} secondes…',
       runHelp:
         'Chaque modèle évalue les conversations que vous avez évaluées et qu’il n’a pas encore évaluées (dans la langue choisie ci-dessous, ou toutes). Une évaluation par IA utilise environ 3 000 jetons : le plan gratuit de Groq en fait environ 3 par minute, celui de Cloudflare environ 55 par jour.',
       itemsTitle: 'Les conversations',

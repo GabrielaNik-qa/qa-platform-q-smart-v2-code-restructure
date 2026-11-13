@@ -241,9 +241,10 @@ export class TestSetController {
       };
     } catch (e) {
       if (!(e instanceof AiError)) throw e;
-      // the free plan's limit for now ("too many requests", or resting after it): not the model's fault, nothing
-      // is kept; the page waits and tries again
-      if (e.code === 'aiUnavailable' && (e.detail === 'http429' || e.detail === 'resting')) return { status: 'busy' };
+      // the free plan's limit ("too many requests", or resting after it): not the model's fault, nothing is kept; the
+      // page waits as long as the AI company asked (retryMs) and tries again
+      if (e.code === 'aiUnavailable' && (e.detail === 'http429' || e.detail === 'resting'))
+        return { status: 'busy', retryMs: e.retryAfterMs ?? null };
       run = {
         itemId: id,
         modelId: input.data.modelId,

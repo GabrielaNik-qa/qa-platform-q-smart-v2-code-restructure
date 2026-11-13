@@ -102,9 +102,26 @@ export function route(input: RouteInput): Routing {
 }
 
 /**
- * The circuit breaker: an AI company that fails 3 times in a row (or says "too many requests") rests for a minute,
- * so the next model is tried at once instead of waiting for another failure. Kept per company account, since free
- * plans' limits are per account. After its rest, the AI company gets one try again.
+ * How long an AI company asks us to wait after "too many requests", in milliseconds, from its own headers: retry-after
+ * (seconds), or else when its per-minute token limit is free again (Groq: x-ratelimit-reset-tokens, such as "25.5s",
+ * "1m2s" or "450ms"). Null when it doesn't say.
+ */
+export function waitFromLimits(limits: Record<string, string> | undefined): number | null {
+  const after = limits?.['retry-after'];
+  if (after && /^\d+(\.\d+)?$/.test(after.trim())) return Math.round(Number(after) * 1000);
+  const reset = limits?.['x-ratelimit-reset-tokens']?.trim();
+  if (!reset) return null;
+  const parts = [...reset.matchAll(/(\d+(?:\.\d+)?)(ms|h|m|s)/g)];
+  if (!parts.length || parts.map((p) => p[0]).join('') !== reset) return null;
+  const unit = { h: 3_600_000, m: 60_000, s: 1000, ms: 1 } as const;
+  return Math.round(parts.reduce((sum, p) => sum + Number(p[1]) * unit[p[2] as keyof typeof unit], 0));
+}
+
+/**
+ * The circuit breaker: an AI company that fails 3 times in a row rests for a minute, so the next model is tried at once
+ * instead of waiting for another failure. After "too many requests" it rests as long as the AI company asked (between
+ * 1 second and 15 minutes; a minute when it didn't say). Kept per company account, since free plans' limits are per
+ * account. After its rest, the AI company gets one try again.
  */
 export class CircuitBreaker {
   private readonly state = new Map<string, { failures: number; until: number }>();
@@ -120,11 +137,24 @@ export class CircuitBreaker {
     return !!s && s.until > this.now();
   }
 
-  failed(key: string, kind: 'rateLimit' | 'timeout' | 'error'): void {
+  /** The keys resting now that start with this (a company's AI companies). */
+  restingKeys(prefix: string): string[] {
+    return [...this.state.keys()].filter((k) => k.startsWith(prefix) && this.resting(k));
+  }
+
+  /** How long until the soonest of these keys' rests ends (0: one of them isn't resting). */
+  restLeft(keys: string[]): number {
+    const left = keys.map((k) => Math.max(0, (this.state.get(k)?.until ?? 0) - this.now()));
+    return left.length ? Math.min(...left) : 0;
+  }
+
+  /** a failure; after "too many requests", `waitMs` is how long the AI company asked us to wait (if it said) */
+  failed(key: string, kind: 'rateLimit' | 'timeout' | 'error', waitMs: number | null = null): void {
     const s = this.state.get(key) ?? { failures: 0, until: 0 };
     s.failures = kind === 'rateLimit' ? this.threshold : s.failures + 1;
     if (s.failures >= this.threshold) {
-      s.until = this.now() + this.restMs;
+      const rest = kind === 'rateLimit' && waitMs !== null ? Math.min(900_000, Math.max(1000, waitMs)) : this.restMs;
+      s.until = this.now() + rest;
       s.failures = this.threshold - 1; // after the rest, one more failure rests it again
     }
     this.state.set(key, s);

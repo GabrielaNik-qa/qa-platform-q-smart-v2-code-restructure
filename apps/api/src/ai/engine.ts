@@ -25,7 +25,7 @@ import { z } from 'zod';
 import { CATALOGUE, type Catalogue } from './catalogue.js';
 import type { JobType } from './jobs.js';
 import { type ProviderAccount, type ProviderAdapter, ProviderError, type Transcription } from './provider.js';
-import { CircuitBreaker, costMicroUsd, estimateTokens, route } from './router.js';
+import { CircuitBreaker, costMicroUsd, estimateTokens, route, waitFromLimits } from './router.js';
 
 export interface AiJob<T> {
   type: JobType<T>;
@@ -60,6 +60,8 @@ export class AiError extends Error {
     readonly code: AiErrorCode,
     /** the last AI company's short reason (e.g. auth401: the key was refused), for Admin › AI */
     readonly detail?: string,
+    /** when the AI companies are resting after "too many requests": how long until one is free again */
+    readonly retryAfterMs?: number,
   ) {
     super(code);
   }
@@ -188,7 +190,10 @@ export class AiEngine {
     if (!routing.choices.length) {
       const resting = Object.values(routing.skipped).includes('resting');
       await log({ ...blank, status: resting ? 'unavailable' : 'noModel' });
-      throw resting ? new AiError('aiUnavailable', 'resting') : new AiError('aiNoModel');
+      // resting: how long until the company's first AI company is free again
+      throw resting
+        ? new AiError('aiUnavailable', 'resting', this.breaker.restLeft(this.breaker.restingKeys(`${job.companyId}:`)))
+        : new AiError('aiNoModel');
     }
     return routing.choices;
   }
@@ -248,7 +253,7 @@ export class AiEngine {
             () => undefined,
           );
         if ('failure' in outcome) {
-          this.breaker.failed(breakerKey(model.provider), outcome.failure.kind);
+          this.breaker.failed(breakerKey(model.provider), outcome.failure.kind, waitFromLimits(outcome.failure.limits));
           lastProblem = outcome.failure.code;
           await log({ ...call, waitMs, status: outcome.failure.kind, error: outcome.failure.code.slice(0, 60) });
           break; // an AI company that failed: straight to the next model
@@ -270,7 +275,8 @@ export class AiEngine {
         lastProblem = 'schema';
       }
     }
-    throw new AiError('aiUnavailable', lastProblem);
+    const providers = [...new Set(choices.map((c) => c.model.provider))];
+    throw new AiError('aiUnavailable', lastProblem, this.breaker.restLeft(providers.map(breakerKey)) || undefined);
   }
 
   /**
@@ -318,7 +324,7 @@ export class AiEngine {
           () => undefined,
         );
       if ('failure' in outcome) {
-        this.breaker.failed(breakerKey(model.provider), outcome.failure.kind);
+        this.breaker.failed(breakerKey(model.provider), outcome.failure.kind, waitFromLimits(outcome.failure.limits));
         lastProblem = outcome.failure.code;
         await log({ ...call, waitMs, status: outcome.failure.kind, error: outcome.failure.code.slice(0, 60) });
         continue;

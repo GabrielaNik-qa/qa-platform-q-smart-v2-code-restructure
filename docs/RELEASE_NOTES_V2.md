@@ -2,6 +2,10 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
+## Phase 5 (Learning & Tools): in progress on branch `v2-phase-5`
+
+- **Fixed from Phase 3b: the free plan's pause follows the AI company's own wait** (your question, 13 November). When Groq says "too many requests", it also says when its per-minute limit is free again (for example in 25.5 seconds). Before, Q-smart ignored that: it rested Groq for a full minute and the test set's page tried again every 30 seconds, so a pause often lasted about a minute. Now Groq rests exactly as long as it asked (between 1 second and 15 minutes; a minute when it doesn't say), and the page waits that long plus a second, and shows it: "trying again in 26 seconds". AutoQA's reviews use the same rule. 3 new automatic tests (reading the wait, the rest, and the wait passed on to the page).
+
 ## 12 November 2026: Phase 4 (Coaching & Tasks), finished (tag `v2-phase-4`)
 
 Built on 12 November on branch `v2-phase-4`. Every step was checked in the browser as admin, reviewer, team lead, trainer and agent, and in English and Bulgarian; the automatic tests check that every French text is there too. 349 automatic tests pass.

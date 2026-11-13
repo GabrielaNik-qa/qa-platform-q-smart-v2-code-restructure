@@ -86,7 +86,7 @@ const job: JobType<{ reply: string }> = {
 };
 
 /** The pretend AI company: each model answers from a script (ok, bad JSON, error, too many requests, no answer). */
-type Step = 'ok' | 'bad' | 'error' | 'rate' | 'hang';
+type Step = 'ok' | 'bad' | 'error' | 'rate' | 'rate25' | 'hang';
 class Pretend implements ProviderAdapter {
   calls: string[] = [];
   requests: CompletionRequest[] = [];
@@ -97,6 +97,8 @@ class Pretend implements ProviderAdapter {
     const step = this.script[r.model]?.shift() ?? 'ok';
     if (step === 'error') return Promise.reject(new ProviderError('error', 'http500'));
     if (step === 'rate') return Promise.reject(new ProviderError('rateLimit', 'http429'));
+    if (step === 'rate25')
+      return Promise.reject(new ProviderError('rateLimit', 'http429', { 'x-ratelimit-reset-tokens': '25.5s' }));
     if (step === 'hang')
       return new Promise<never>((_, reject) => r.signal.addEventListener('abort', () => reject(new Error('aborted'))));
     const text = step === 'bad' ? 'I think it is fine.' : `{"reply":"${r.model} says OK"}`;
@@ -210,6 +212,28 @@ describe('the AI engine', () => {
     expect(await engine.run(demo())).toMatchObject({ model: 'a1', attempt: 2 });
     expect(await engine.run(demo())).toMatchObject({ model: 'a1', attempt: 1 });
     expect(pretend.calls).toEqual(['b1', 'a1', 'a1']);
+  });
+
+  it('rests it as long as it asked, and says how long until it is free again', async () => {
+    const { engine } = engineWith({ b1: ['rate25'] });
+    const job = demo({ onlyModel: 'beta/b1', dataClass: 'test' });
+    const wait = async () => {
+      try {
+        await engine.run(job);
+      } catch (e) {
+        return e instanceof AiError ? { detail: e.detail, ms: e.retryAfterMs ?? 0 } : null;
+      }
+      return null;
+    };
+    const first = await wait();
+    expect(first?.detail).toBe('http429');
+    expect(first?.ms).toBeGreaterThan(24_000);
+    expect(first?.ms).toBeLessThanOrEqual(25_500);
+    // asked again at once: still resting, with the time left
+    const again = await wait();
+    expect(again?.detail).toBe('resting');
+    expect(again?.ms).toBeGreaterThan(24_000);
+    expect(again?.ms).toBeLessThanOrEqual(25_500);
   });
 
   it('says the AI is not available when every model fails, and records each try', async () => {

@@ -6,7 +6,7 @@ import { CATALOGUE, type Catalogue, type ModelInfo, PROVIDERS } from './catalogu
 import { readAnswer } from './engine.js';
 import { AI_TEST, type JobType } from './jobs.js';
 import type { ProviderAccount } from './provider.js';
-import { CircuitBreaker, costMicroUsd, type RouteInput, route } from './router.js';
+import { CircuitBreaker, costMicroUsd, type RouteInput, route, waitFromLimits } from './router.js';
 
 const model = (id: string, provider: string, over: Partial<ModelInfo> = {}): ModelInfo => ({
   id,
@@ -191,6 +191,35 @@ describe('the circuit breaker', () => {
     const b = new CircuitBreaker(() => 0);
     b.failed('a', 'rateLimit');
     expect(b.resting('a')).toBe(true);
+  });
+
+  it('after "too many requests", rests exactly as long as the AI company asked (1 second to 15 minutes)', () => {
+    let now = 0;
+    const b = new CircuitBreaker(() => now);
+    b.failed('company:groq', 'rateLimit', 25_500);
+    b.failed('company:other', 'rateLimit'); // didn't say: a minute
+    expect(b.restingKeys('company:')).toEqual(['company:groq', 'company:other']);
+    expect(b.restLeft(b.restingKeys('company:'))).toBe(25_500);
+    now = 25_501;
+    expect(b.resting('company:groq')).toBe(false);
+    expect(b.resting('company:other')).toBe(true);
+    b.failed('x', 'rateLimit', 10); // never less than a second
+    expect(b.restLeft(['x'])).toBe(1000);
+    b.failed('y', 'rateLimit', 86_400_000); // never more than 15 minutes
+    expect(b.restLeft(['y'])).toBe(900_000);
+  });
+});
+
+describe("the AI company's own wait", () => {
+  it('reads retry-after first, else when the per-minute token limit is free again', () => {
+    expect(waitFromLimits({ 'retry-after': '7' })).toBe(7000);
+    expect(waitFromLimits({ 'retry-after': '2', 'x-ratelimit-reset-tokens': '25.5s' })).toBe(2000);
+    expect(waitFromLimits({ 'x-ratelimit-reset-tokens': '25.5s' })).toBe(25_500);
+    expect(waitFromLimits({ 'x-ratelimit-reset-tokens': '1m2.5s' })).toBe(62_500);
+    expect(waitFromLimits({ 'x-ratelimit-reset-tokens': '450ms' })).toBe(450);
+    expect(waitFromLimits({ 'x-ratelimit-reset-tokens': 'soon' })).toBeNull();
+    expect(waitFromLimits({ 'x-ratelimit-reset-requests': '4m19.2s' })).toBeNull();
+    expect(waitFromLimits(undefined)).toBeNull();
   });
 });
 

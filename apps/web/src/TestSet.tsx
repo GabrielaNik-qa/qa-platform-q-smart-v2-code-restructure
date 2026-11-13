@@ -141,7 +141,13 @@ export function TestSet({ company }: { company: CompanyRef }) {
   const [open, setOpen] = useState<string | null>(null);
   const [chosen, setChosen] = useState<string[]>([]);
   const [limit, setLimit] = useState(5);
-  const [progress, setProgress] = useState<{ done: number; of: number; failed: number; waiting: boolean } | null>(null);
+  const [progress, setProgress] = useState<{
+    done: number;
+    of: number;
+    failed: number;
+    /** seconds until the next try, while the free plan needs a pause (0: not waiting) */
+    waiting: number;
+  } | null>(null);
   const { message, run, fail } = useAction();
   const load = useCallback(() => {
     api<Overview>('/autoqa/test-set', company.id).then((d) => {
@@ -179,24 +185,30 @@ export function TestSet({ company }: { company: CompanyRef }) {
         .slice(0, limit)
         .map((i) => ({ modelId, itemId: i.id })),
     );
-    const state = { done: 0, of: jobs.length, failed: 0, waiting: false };
+    const state = { done: 0, of: jobs.length, failed: 0, waiting: 0 };
     setProgress({ ...state });
     for (const job of jobs) {
       for (let tries = 0; tries < 6; tries++) {
-        const out = await api<{ status: 'ok' | 'failed' | 'busy' }>(`/autoqa/test-set/${job.itemId}/run`, company.id, {
-          method: 'POST',
-          body: { modelId: job.modelId },
-        }).catch(() => ({ status: 'failed' as const }));
+        const out = await api<{ status: 'ok' | 'failed' | 'busy'; retryMs?: number | null }>(
+          `/autoqa/test-set/${job.itemId}/run`,
+          company.id,
+          {
+            method: 'POST',
+            body: { modelId: job.modelId },
+          },
+        ).catch(() => ({ status: 'failed' as const }));
         if (out.status !== 'busy') {
           if (out.status === 'failed') state.failed++;
           break;
         }
-        // the free plan's limit for now: wait a little and try again
-        setProgress({ ...state, waiting: true });
-        await new Promise((r) => setTimeout(r, 30_000));
+        // the free plan's limit: wait as long as the AI company asked (and a second more), then try again; 30
+        // seconds when it didn't say
+        const ms = out.status === 'busy' && out.retryMs ? out.retryMs + 1000 : 30_000;
+        setProgress({ ...state, waiting: Math.ceil(ms / 1000) });
+        await new Promise((r) => setTimeout(r, ms));
       }
       state.done++;
-      setProgress({ ...state, waiting: false });
+      setProgress({ ...state, waiting: 0 });
     }
     load();
   }
@@ -302,7 +314,8 @@ export function TestSet({ company }: { company: CompanyRef }) {
         </div>
         {progress && (
           <p role="status" className="text-sm">
-            {t('autoqa.testSet.runProgress', progress)} {progress.waiting && t('autoqa.testSet.waiting')}
+            {t('autoqa.testSet.runProgress', progress)}{' '}
+            {progress.waiting > 0 && t('autoqa.testSet.waiting', { count: progress.waiting })}
           </p>
         )}
         <p className="text-xs text-mu">{t('autoqa.testSet.runHelp')}</p>
