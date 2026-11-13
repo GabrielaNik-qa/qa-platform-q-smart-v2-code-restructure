@@ -11,6 +11,7 @@ import {
   aiUseToday,
   listAiCalls,
   listSeenLimits,
+  aiUseWindow,
   type Tx,
   listTeams,
   logActivity,
@@ -25,6 +26,7 @@ import { z } from 'zod';
 import { actorOf } from './activity.controller.js';
 import { CATALOGUE, CLOUDFLARE_FREE_NEURONS, cloudflareNeurons, type ProviderId, PROVIDERS } from './ai/catalogue.js';
 import { AiError, type AiEngine } from './ai/engine.js';
+import { expectedTokens, paceOf } from './ai/pacing.js';
 import { AI_TEST } from './ai/jobs.js';
 import { encryptKey, keyHint } from './ai/secrets.js';
 import { Allow, PermissionGuard } from './auth/permission.guard.js';
@@ -75,6 +77,41 @@ const accountInput = z
  * The free plans' allowance today: Groq's own latest figures per model (what is left and when it resets), Cloudflare's
  * Neurons counted from Q-smart's log, and what each model did since 00:00 UTC.
  */
+/**
+ * Each free-plan model's limits as the engine checks them (pacing.ts): requests and tokens per minute and per day
+ * (audio per hour and per day for speech), each with its source (the AI company's own figure for the account, or its
+ * published limit with Q-smart's own count), and its status. "Unavailable": its AI company is resting after failures.
+ */
+async function limitsOf(tx: Tx, companyId: string, engine: AiEngine) {
+  const accounts = (await listAiAccounts(tx)).filter((a) => a.enabled && a.plan === 'free');
+  const seen = await listSeenLimits(tx);
+  const now = Date.now();
+  return Promise.all(
+    CATALOGUE.models
+      .filter((m) => m.freeLimits && accounts.some((a) => a.provider === m.provider))
+      .map(async (m) => {
+        const use = await aiUseWindow(tx, m.provider, m.model);
+        const pace = paceOf({
+          limits: m.freeLimits,
+          use,
+          seen: seen.find((x) => x.provider === m.provider && x.model === m.model),
+          tokens: m.kind === 'speech' ? 0 : expectedTokens(3000, use.outputTokens, 4000),
+          now,
+        });
+        const resting = engine.breaker.restLeft([`${companyId}:${m.provider}`]);
+        return {
+          provider: m.provider,
+          model: m.model,
+          status: resting > 0 ? ('unavailable' as const) : pace.status,
+          waitMs: Math.max(resting, pace.waitMs),
+          rows: pace.rows,
+          checked: m.freeLimits?.checked ?? '',
+          source: m.freeLimits?.source ?? '',
+        };
+      }),
+  );
+}
+
 async function allowanceOf(tx: Tx) {
   const today = await aiUseToday(tx);
   const neurons = today
@@ -127,6 +164,7 @@ export class AiController {
       teams: (await listTeams(tx)).map((t) => ({ id: t.id, name: t.name })),
       recent: await listAiCalls(tx, 50),
       allowance: await allowanceOf(tx),
+      limits: await limitsOf(tx, membership.companyId, this.engine),
     }));
   }
 

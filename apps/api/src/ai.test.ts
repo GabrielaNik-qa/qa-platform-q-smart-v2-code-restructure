@@ -259,11 +259,28 @@ describe('Admin › AI', () => {
     expect(allowance.today.find((u) => u.provider === 'groq')?.calls).toBeGreaterThanOrEqual(1);
     expect(allowance.cloudflare.neuronsFree).toBe(10_000);
     expect(new Date(allowance.nextUtcMidnight).getUTCHours()).toBe(0);
+    // each free-plan model's limits, as the engine checks them, with their source and status
+    const { limits } = (await call('GET', '/ai', 'admin')).json<{
+      limits: { model: string; status: string; checked: string; rows: { kind: string; source: string }[] }[];
+    }>();
+    const small = limits.find((m) => m.model === 'openai/gpt-oss-20b');
+    expect(small).toMatchObject({ checked: '2026-11-13' });
+    expect(['available', 'approaching', 'reached', 'unavailable']).toContain(small?.status);
+    expect(small?.rows.map((r) => r.kind)).toEqual(['rpm', 'rpd', 'tpm', 'tpd']);
+    expect(small?.rows.find((r) => r.kind === 'rpm')?.source).toBe('published');
+    expect(limits.find((m) => m.model === 'whisper-large-v3')?.rows.map((r) => r.kind)).toEqual([
+      'rpm',
+      'rpd',
+      'ash',
+      'asd',
+    ]);
     // another company sees none of it
     const other = (await call('GET', '/ai', 'admin', undefined, SECOND_COMPANY)).json<{
       allowance: { seen: unknown[] };
+      limits: unknown[];
     }>();
     expect(other.allowance.seen).toEqual([]);
+    expect(other.limits).toEqual([]);
   });
 
   it("never shows or uses another company's AI accounts", async () => {

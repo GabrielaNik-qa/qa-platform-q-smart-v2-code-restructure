@@ -217,3 +217,53 @@ export async function aiUseToday(tx: Tx): Promise<AiUseToday[]> {
     )
     .groupBy(aiCalls.provider, aiCalls.model);
 }
+
+/** A model's use in the last minute, hour and 24 hours (for its free plan's limits), and its usual answer length. */
+export interface AiUseWindow {
+  minute: { requests: number; tokens: number; since: Date | null };
+  hour: { audioSeconds: number; since: Date | null };
+  day: { requests: number; tokens: number; audioSeconds: number; since: Date | null };
+  /** the average answer length of its last good calls (null: none yet) */
+  outputTokens: number | null;
+}
+
+/**
+ * Counts the calls that reached the AI company (answered, unusable, failed or timed out; not the ones it refused as
+ * "too many requests", nor the ones never sent). `since` is the oldest such call in each window: the window frees up
+ * when it is a minute (an hour, a day) old.
+ */
+export async function aiUseWindow(tx: Tx, provider: string, model: string): Promise<AiUseWindow> {
+  const sent = sql`${aiCalls.status} in ('ok', 'invalid', 'error', 'timeout')`;
+  const inLast = (interval: string) => sql`${aiCalls.createdAt} > now() - ${sql.raw(`interval '${interval}'`)}`;
+  const [row] = await tx
+    .select({
+      mReq: sql<number>`count(*) filter (where ${inLast('1 minute')})::int`,
+      mTok: sql<number>`coalesce(sum(${aiCalls.inputTokens} + ${aiCalls.outputTokens}) filter (where ${inLast('1 minute')}), 0)::int`,
+      mSince: sql<string | null>`min(${aiCalls.createdAt}) filter (where ${inLast('1 minute')})`,
+      hAudio: sql<number>`coalesce(sum(${aiCalls.audioSeconds}) filter (where ${inLast('1 hour')}), 0)::int`,
+      hSince: sql<string | null>`min(${aiCalls.createdAt}) filter (where ${inLast('1 hour')})`,
+      dReq: sql<number>`count(*)::int`,
+      dTok: sql<number>`coalesce(sum(${aiCalls.inputTokens} + ${aiCalls.outputTokens}), 0)::int`,
+      dAudio: sql<number>`coalesce(sum(${aiCalls.audioSeconds}), 0)::int`,
+      dSince: sql<string | null>`min(${aiCalls.createdAt})`,
+    })
+    .from(aiCalls)
+    .where(and(eq(aiCalls.provider, provider), eq(aiCalls.model, model), sent, inLast('1 day')));
+  const [out] = await tx
+    .select({ avg: sql<number | null>`avg(t.output_tokens)::float8` })
+    .from(
+      sql`(select ${aiCalls.outputTokens} as output_tokens from ${aiCalls} where ${aiCalls.provider} = ${provider} and ${aiCalls.model} = ${model} and ${aiCalls.status} = 'ok' order by ${aiCalls.createdAt} desc limit 20) t`,
+    );
+  const date = (v: string | null | undefined) => (v ? new Date(v) : null);
+  return {
+    minute: { requests: row?.mReq ?? 0, tokens: row?.mTok ?? 0, since: date(row?.mSince) },
+    hour: { audioSeconds: row?.hAudio ?? 0, since: date(row?.hSince) },
+    day: {
+      requests: row?.dReq ?? 0,
+      tokens: row?.dTok ?? 0,
+      audioSeconds: row?.dAudio ?? 0,
+      since: date(row?.dSince),
+    },
+    outputTokens: out?.avg === null || out?.avg === undefined ? null : Math.round(out.avg),
+  };
+}

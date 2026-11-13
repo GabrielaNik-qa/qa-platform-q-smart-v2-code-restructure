@@ -96,7 +96,7 @@ export async function reviewTestItem(
   } catch (e) {
     if (!(e instanceof AiError)) throw e;
     // the free plan's limit ("too many requests", or resting after it): not the model's fault, nothing is kept
-    if (e.code === 'aiUnavailable' && (e.detail === 'http429' || e.detail === 'resting'))
+    if (e.code === 'aiUnavailable' && (e.detail === 'http429' || e.detail === 'resting' || e.detail === 'paced'))
       return { status: 'busy', retryMs: e.retryAfterMs ?? null };
     run = {
       itemId,

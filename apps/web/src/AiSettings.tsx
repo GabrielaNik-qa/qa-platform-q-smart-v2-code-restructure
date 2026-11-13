@@ -7,7 +7,6 @@ import type { Language } from '@qsmart/shared';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from './api';
-import { durationMs } from './durations';
 import { currentLanguage } from './i18n';
 import {
   CheckList,
@@ -99,7 +98,25 @@ interface Overview {
     today: { provider: string; model: string; calls: number; inputTokens: number; outputTokens: number }[];
     cloudflare: { neuronsUsed: number; neuronsFree: number };
   };
+  /** each free-plan model's limits, as the engine checks them before every call */
+  limits: ModelLimits[];
 }
+type LimitKind = 'rpm' | 'rpd' | 'tpm' | 'tpd' | 'ash' | 'asd';
+interface ModelLimits {
+  provider: string;
+  model: string;
+  status: 'available' | 'approaching' | 'reached' | 'unavailable';
+  waitMs: number;
+  rows: { kind: LimitKind; limit: number; used: number; source: 'account' | 'published'; freeAt: string | null }[];
+  checked: string;
+  source: string;
+}
+const STATUS_LOOK: Record<ModelLimits['status'], string> = {
+  available: 'bg-ok/15 text-ok',
+  approaching: 'bg-wn/15 text-wn',
+  reached: 'bg-bad/15 text-bad',
+  unavailable: 'bg-bd/40 text-mu',
+};
 
 const LOCALES: Record<Language, string> = { en: 'en-GB', bg: 'bg-BG', fr: 'fr-FR' };
 const dollars = (microUsd: number, lang: Language) =>
@@ -886,7 +903,6 @@ function FreeAllowance({ data }: { data: Overview }) {
   };
   if (!connected.size) return null;
   const now = Date.parse(a.now);
-  const groqSeen = a.seen.filter((x) => x.provider === 'groq');
   const neurons = a.cloudflare;
   return (
     <section className={`${card} grid gap-4`} aria-labelledby="free-title">
@@ -900,44 +916,53 @@ function FreeAllowance({ data }: { data: Overview }) {
         <div className="grid gap-2">
           <h3 className="font-semibold">Groq</h3>
           <p className="text-sm">{t('ai.free.today', used('groq'))}</p>
-          {groqSeen.length === 0 && <p className="text-sm text-mu">{t('ai.free.noFigures')}</p>}
-          {groqSeen.map((g) => {
-            const seenAt = new Date(g.seenAt).getTime();
-            const rows = (['requests', 'tokens'] as const).flatMap((kind) => {
-              const limit = Number(g.limits[`x-ratelimit-limit-${kind}`]);
-              const left = Number(g.limits[`x-ratelimit-remaining-${kind}`]);
-              const reset = durationMs(g.limits[`x-ratelimit-reset-${kind}`]);
-              if (!Number.isFinite(limit) || !Number.isFinite(left) || limit <= 0) return [];
-              const resetAt = reset === null ? null : seenAt + reset;
-              const past = resetAt !== null && resetAt <= now;
-              return [
-                <div key={kind} className="grid gap-1">
-                  <p className="text-sm">
-                    <b>{t(`ai.free.groq.${kind}`)}</b>{' '}
-                    {past
-                      ? t('ai.free.fullAgain', { limit: number(limit, lang) })
-                      : t('ai.free.left', { left: number(left, lang), limit: number(limit, lang) })}
-                    {!past && resetAt !== null && (
-                      <span className="text-mu">
-                        {' '}
-                        · {t('ai.free.fullIn', { in: inTime(resetAt - now), at: clock(resetAt) })}
-                      </span>
-                    )}
-                  </p>
-                  <Meter used={past ? 0 : limit - left} of={limit} />
-                </div>,
-              ];
-            });
-            return (
-              <div key={g.model} className="grid gap-2 rounded-s border border-bd p-3">
-                <p className="text-sm font-semibold">
-                  <span className="font-mono">{g.model}</span>{' '}
-                  <small className="font-normal text-mu">{t('ai.free.asOf', { at: clock(g.seenAt) })}</small>
+          {data.limits
+            .filter((m) => m.provider === 'groq')
+            .map((m) => (
+              <div key={m.model} className="grid gap-2 rounded-s border border-bd p-3">
+                <p className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                  <span className="font-mono">{m.model}</span>
+                  <span className={`rounded-full px-2 text-xs font-semibold ${STATUS_LOOK[m.status]}`}>
+                    {m.status === 'available'
+                      ? '●'
+                      : m.status === 'approaching'
+                        ? '▲'
+                        : m.status === 'reached'
+                          ? '■'
+                          : '○'}{' '}
+                    {t(`ai.free.status.${m.status}`)}
+                  </span>
+                  {m.waitMs > 0 && (
+                    <small className="font-normal text-mu">
+                      {t('ai.free.nextCall', { in: inTime(m.waitMs), at: clock(now + m.waitMs) })}
+                    </small>
+                  )}
                 </p>
-                {rows.length ? rows : <p className="text-sm text-mu">{t('ai.free.noFigures')}</p>}
+                {m.rows.map((r) => {
+                  const freeAt = r.freeAt ? Date.parse(r.freeAt) : null;
+                  return (
+                    <div key={r.kind} className="grid gap-1">
+                      <p className="text-sm">
+                        <b>{t(`ai.free.kinds.${r.kind}`)}</b>{' '}
+                        {t('ai.free.usedOf', { used: number(r.used, lang), limit: number(r.limit, lang) })}
+                        {freeAt !== null && freeAt > now && r.used > 0 && (
+                          <span className="text-mu">
+                            {' '}
+                            · {t('ai.free.freeIn', { in: inTime(freeAt - now), at: clock(freeAt) })}
+                          </span>
+                        )}
+                      </p>
+                      <Meter used={r.used} of={r.limit} />
+                      <small className="text-xs text-mu">
+                        {r.source === 'account'
+                          ? t('ai.free.fromAccount')
+                          : t('ai.free.fromPublished', { date: m.checked })}
+                      </small>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+            ))}
           <p className="text-xs text-mu">{t('ai.free.groqNote')}</p>
         </div>
       )}

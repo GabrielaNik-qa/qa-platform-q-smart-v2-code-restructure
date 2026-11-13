@@ -246,6 +246,34 @@ describe('the AI engine', () => {
     }
   });
 
+  it('checks a free plan’s limits before sending: over them, nothing is sent and it says how long to wait', async () => {
+    const pretend = new Pretend({});
+    const paced = new AiEngine({
+      db,
+      adapters: { alpha: pretend, beta: pretend, trains: pretend },
+      accounts: async () => accounts,
+      catalogue: {
+        ...catalogue,
+        models: [
+          ...catalogue.models,
+          { ...model('beta', 'b9', 0.5), freeLimits: { rpm: 1, checked: '2026-11-13', source: 'test' } },
+        ],
+      },
+    });
+    const job9 = demo({ type: { ...job, candidates: ['beta/b9'] }, dataClass: 'test' });
+    expect(await paced.run(job9)).toMatchObject({ model: 'b9' });
+    try {
+      await paced.run(job9);
+      expect.unreachable();
+    } catch (e) {
+      expect(e instanceof AiError ? [e.code, e.detail] : e).toEqual(['aiUnavailable', 'paced']);
+      expect(e instanceof AiError ? e.retryAfterMs : 0).toBeGreaterThan(50_000);
+      expect(e instanceof AiError ? e.retryAfterMs : 0).toBeLessThanOrEqual(60_000);
+    }
+    expect(pretend.calls).toEqual(['b9']); // the second was never sent
+    expect((await lastCalls(1))[0]).toMatchObject({ status: 'unavailable', error: 'paced' });
+  });
+
   it('says the AI is not available when every model fails, and records each try', async () => {
     const { engine } = engineWith({ a1: ['error'], a2: ['error'], b1: ['error'] });
     expect(await failsWith(engine.run(demo()))).toBe('aiUnavailable');

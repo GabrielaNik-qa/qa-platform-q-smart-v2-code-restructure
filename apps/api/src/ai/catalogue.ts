@@ -77,7 +77,44 @@ export interface ModelInfo {
   pricePerHour?: number;
   /** speech on Cloudflare: Neurons per minute of audio (counted against the free 10,000 a day) */
   neuronsPerMinute?: number;
+  /**
+   * The free plan's limits as the AI company publishes them for this model (never taken for granted: the figures an
+   * AI company sends for the account itself come first, see pacing.ts). Missing: not published.
+   */
+  freeLimits?: FreeLimits;
 }
+
+/** Requests and tokens per minute and per day; audio seconds per hour and per day (speech). */
+export interface FreeLimits {
+  rpm?: number;
+  rpd?: number;
+  tpm?: number;
+  tpd?: number;
+  ash?: number;
+  asd?: number;
+  /** when they were read, and where */
+  checked: string;
+  source: string;
+}
+/** Groq's free plan (https://console.groq.com/docs/rate-limits, read on 13 November 2026; per organisation and per
+ * model). Groq also sends its requests-per-day and tokens-per-minute for the account with every answer. */
+const GROQ_LIMITS = 'https://console.groq.com/docs/rate-limits';
+const GROQ_TEXT_FREE: FreeLimits = {
+  rpm: 30,
+  rpd: 1000,
+  tpm: 8000,
+  tpd: 200_000,
+  checked: '2026-11-13',
+  source: GROQ_LIMITS,
+};
+const GROQ_SPEECH_FREE: FreeLimits = {
+  rpm: 20,
+  rpd: 2000,
+  ash: 7200,
+  asd: 28_800,
+  checked: '2026-11-13',
+  source: GROQ_LIMITS,
+};
 
 const GROQ_MODELS = 'https://console.groq.com/docs/models';
 const CF_PRICES = 'https://developers.cloudflare.com/workers-ai/platform/pricing/';
@@ -96,6 +133,7 @@ export const MODELS: ModelInfo[] = [
     languages: null,
     checked: '2026-11-11',
     source: GROQ_MODELS,
+    freeLimits: GROQ_TEXT_FREE,
   },
   {
     id: 'groq/openai/gpt-oss-120b',
@@ -108,6 +146,7 @@ export const MODELS: ModelInfo[] = [
     languages: null,
     checked: '2026-11-11',
     source: GROQ_MODELS,
+    freeLimits: GROQ_TEXT_FREE,
   },
   {
     id: 'cloudflare/@cf/openai/gpt-oss-120b',
@@ -162,6 +201,7 @@ export const MODELS: ModelInfo[] = [
     source: GROQ_SPEECH,
     kind: 'speech',
     pricePerHour: 0.111,
+    freeLimits: GROQ_SPEECH_FREE,
   },
   {
     id: 'groq/whisper-large-v3-turbo',
@@ -176,6 +216,7 @@ export const MODELS: ModelInfo[] = [
     source: GROQ_SPEECH,
     kind: 'speech',
     pricePerHour: 0.04,
+    freeLimits: GROQ_SPEECH_FREE,
   },
   {
     id: 'cloudflare/@cf/openai/whisper-large-v3-turbo',

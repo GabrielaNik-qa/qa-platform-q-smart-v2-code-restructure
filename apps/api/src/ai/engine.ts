@@ -6,12 +6,16 @@
 //    next model is tried; an error, a time-out or "too many requests" moves on to the next model at once, and the
 //    circuit breaker rests a failing AI company;
 // 4. records every call and every refusal (never what was sent or answered).
+// Before a call goes out on a free plan, its limits are checked (pacing.ts): a model whose requests or tokens per
+// minute or per day would go over is skipped, and when every model must wait, the job says how long.
 // When no model can answer, the job fails with a clear code and everything else in Q-smart keeps working.
 import {
   type AiCall,
   type AiLimit,
   type AiUse,
   aiUseThisMonth,
+  aiUseWindow,
+  listSeenLimits,
   type Db,
   getAiRules,
   teamExists,
@@ -25,6 +29,7 @@ import { z } from 'zod';
 import { CATALOGUE, type Catalogue } from './catalogue.js';
 import type { JobType } from './jobs.js';
 import { type ProviderAccount, type ProviderAdapter, ProviderError, type Transcription } from './provider.js';
+import { expectedTokens, paceOf } from './pacing.js';
 import { CircuitBreaker, costMicroUsd, estimateTokens, route, waitFromLimits } from './router.js';
 
 export interface AiJob<T> {
@@ -195,7 +200,30 @@ export class AiEngine {
         ? new AiError('aiUnavailable', 'resting', this.breaker.restLeft(this.breaker.restingKeys(`${job.companyId}:`)))
         : new AiError('aiNoModel');
     }
-    return routing.choices;
+    // a free plan's limits, checked before anything is sent (its own figures first, else its published ones)
+    const paced = await withCompany(db, job.companyId, async (tx) => {
+      const seen = await listSeenLimits(tx);
+      return Promise.all(
+        routing.choices.map(async (c) => {
+          if (c.account.plan !== 'free' || !c.model.freeLimits) return 0;
+          const use = await aiUseWindow(tx, c.model.provider, c.model.model);
+          return paceOf({
+            limits: c.model.freeLimits,
+            use,
+            seen: seen.find((x) => x.provider === c.model.provider && x.model === c.model.model),
+            tokens:
+              c.model.kind === 'speech' ? 0 : expectedTokens(inputTokens, use.outputTokens, job.type.maxOutputTokens),
+            now: this.now(),
+          }).waitMs;
+        }),
+      );
+    });
+    const free = routing.choices.filter((_, i) => paced[i] === 0);
+    if (!free.length) {
+      await log({ ...blank, status: 'unavailable', error: 'paced' });
+      throw new AiError('aiUnavailable', 'paced', Math.min(...paced));
+    }
+    return free;
   }
 
   async run<T>(job: AiJob<T>): Promise<AiResult<T>> {
