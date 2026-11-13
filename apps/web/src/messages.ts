@@ -2867,6 +2867,21 @@ const en = {
     dollars: 'US dollars',
     noLimit: 'No limit',
     limitsSaved: 'The limits are saved.',
+    today: {
+      title: 'Today, per AI task',
+      intro:
+        'Since 00:00 UTC: the calls with an answer, the ones that failed or were refused (a limit, a busy free plan, an error), the tokens sent and received, and the cost (0 on a free plan).',
+      calls: 'Answered',
+      failed: 'Failed or refused',
+      input: 'Tokens sent',
+      output: 'Tokens received',
+    },
+    trouble: {
+      title: 'Recent problems',
+      intro:
+        'The latest calls without a usable answer, with the technical reason for administrators. People using Q-smart see a plain message instead, and everything else keeps working.',
+      none: 'No problems recently.',
+    },
     recentTitle: 'Latest AI calls',
     recentIntro:
       'The last 50 calls and refusals. A try number above 1 means the first choice failed and the next model answered.',
@@ -6202,6 +6217,21 @@ const bg: Messages = {
     dollars: 'Щатски долари',
     noLimit: 'Без лимит',
     limitsSaved: 'Лимитите са запазени.',
+    today: {
+      title: 'Днес, по задачи на ИИ',
+      intro:
+        'От 00:00 UTC: заявките с отговор, неуспешните или отказаните (лимит, зает безплатен план, грешка), изпратените и получените токени и цената (0 при безплатен план).',
+      calls: 'С отговор',
+      failed: 'Неуспешни или отказани',
+      input: 'Изпратени токени',
+      output: 'Получени токени',
+    },
+    trouble: {
+      title: 'Последни проблеми',
+      intro:
+        'Последните заявки без използваем отговор, с техническата причина за администраторите. Хората, които ползват Q-smart, виждат ясно съобщение вместо нея и всичко останало продължава да работи.',
+      none: 'Няма скорошни проблеми.',
+    },
     recentTitle: 'Последни заявки към ИИ',
     recentIntro:
       'Последните 50 заявки и откази. Опит над 1 означава, че първият избор е отказал и е отговорил следващият модел.',
@@ -6781,6 +6811,7 @@ const bg: Messages = {
     sessionAgents: 'Изберете агенти (и отговорници за действията) от вашите работни пространства.',
     sessionNotFound: 'Тази сесия вече не съществува или не можете да я видите.',
     sessionNotHeld: 'Планираната сесия се подписва, след като бъде проведена.',
+    aiReviewRunning: 'ИИ вече оценява този разговор с тази карта за оценка. Резултатът идва след малко.',
     testJobInvalid: 'Изберете поне един модел и колко разговора да оцени всеки.',
     testJobRunning: 'Вече тече пускане. Изчакайте го да свърши или първо го спрете.',
     testJobNothing: 'Отметнатите модели вече са оценили всички оценени разговори (на този език).',
@@ -9715,6 +9746,21 @@ const fr: Messages = {
     dollars: 'Dollars américains',
     noLimit: 'Pas de limite',
     limitsSaved: 'Les limites sont enregistrées.',
+    today: {
+      title: 'Aujourd’hui, par tâche d’IA',
+      intro:
+        'Depuis 00:00 UTC : les appels avec une réponse, ceux qui ont échoué ou ont été refusés (une limite, un plan gratuit occupé, une erreur), les jetons envoyés et reçus, et le coût (0 sur un plan gratuit).',
+      calls: 'Avec réponse',
+      failed: 'Échoués ou refusés',
+      input: 'Jetons envoyés',
+      output: 'Jetons reçus',
+    },
+    trouble: {
+      title: 'Problèmes récents',
+      intro:
+        'Les derniers appels sans réponse utilisable, avec la raison technique pour les administrateurs. Les personnes qui utilisent Q-smart voient un message clair à la place, et tout le reste continue de fonctionner.',
+      none: 'Aucun problème récent.',
+    },
     recentTitle: 'Derniers appels à l’IA',
     recentIntro:
       'Les 50 derniers appels et refus. Un essai au-dessus de 1 signifie que le premier choix a échoué et que le modèle suivant a répondu.',
@@ -10310,6 +10356,7 @@ const fr: Messages = {
     sessionAgents: 'Choisissez les agents (et les responsables des actions) dans vos espaces de travail.',
     sessionNotFound: 'Cette séance n’existe plus, ou vous ne pouvez pas la voir.',
     sessionNotHeld: 'Une séance prévue se signe une fois tenue.',
+    aiReviewRunning: 'L’IA évalue déjà cette conversation avec cette grille. Le résultat arrive dans un instant.',
     testJobInvalid: 'Choisissez au moins un modèle et combien de conversations chacun doit évaluer.',
     testJobRunning: 'Un lancement est déjà en cours. Attendez qu’il se termine, ou arrêtez-le d’abord.',
     testJobNothing: 'Les modèles cochés ont déjà évalué toutes les conversations évaluées (dans cette langue).',

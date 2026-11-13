@@ -51,6 +51,17 @@ import { AI_ENGINE, DB } from './tokens.js';
 
 const input = z.object({ scorecardId: z.uuid() }).strict();
 const ANSWER = { yes: 'y', no: 'n', na: 'na' } as const;
+/** the AI reviews running now (company:conversation:scorecard): a second request for the same one is refused */
+const REVIEWING = new Set<string>();
+/** What an AI review works on, read behind the company wall before the AI is asked. */
+interface ReviewReady {
+  conversation: NonNullable<Awaited<ReturnType<typeof getConversation>>>;
+  card: Awaited<ReturnType<typeof visibleScorecards>>[number];
+  details: { name: string; value: string }[];
+  outcomes: { options: { id: string; name: string; guide: string }[]; chosen: string | null } | undefined;
+  names: Map<string, string>;
+  demo: boolean;
+}
 
 /** An option's name in the company's words (empty for Q-smart's own option the company never renamed). */
 const optionName = (o: FieldOption) => Object.values(o.labels).find(Boolean) ?? '';
@@ -139,8 +150,22 @@ export class AutoqaController {
             }
           : undefined;
       const names = new Map(outcomeField?.options.map((o) => [o.id, optionName(o)]));
-      return { conversation, card, details, outcomes, names, demo: await isDemoCompany(tx) };
+      return { conversation, card, details, outcomes, names, demo: await isDemoCompany(tx) } as ReviewReady;
     });
+    const { conversation, card } = ready;
+    // one AI review of a conversation with a scorecard at a time: a second click, or a network retry, is refused
+    // instead of asking the AI twice
+    const busyKey = `${membership.companyId}:${conversation.id}:${card.id}`;
+    if (REVIEWING.has(busyKey)) throw badRequest('aiReviewRunning');
+    REVIEWING.add(busyKey);
+    try {
+      return await this.reviewNow(membership, ready, language);
+    } finally {
+      REVIEWING.delete(busyKey);
+    }
+  }
+
+  private async reviewNow(membership: Membership, ready: ReviewReady, language: Language) {
     const { conversation, card } = ready;
 
     const hold = async () => {

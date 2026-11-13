@@ -143,6 +143,7 @@ export const ERROR_MESSAGES = {
   sessionAgents: 'Choose agents (and action owners) from your workspaces.',
   sessionNotFound: 'This session no longer exists, or you cannot see it.',
   sessionNotHeld: 'A planned session is signed once it has been held.',
+  aiReviewRunning: 'The AI is already reviewing this conversation with this scorecard. The result comes in a moment.',
   testJobInvalid: 'Choose at least one model and how many conversations each should review.',
   testJobRunning: 'A run is already going on. Wait for it to finish, or stop it first.',
   testJobNothing: 'The ticked models have already reviewed every scored conversation (in this language).',

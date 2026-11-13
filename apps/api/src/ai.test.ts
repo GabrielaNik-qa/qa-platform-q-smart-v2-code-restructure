@@ -274,13 +274,24 @@ describe('Admin › AI', () => {
       'ash',
       'asd',
     ]);
+    // today's use per AI task, and the calls without a usable answer
+    const { tasksToday, errors } = (await call('GET', '/ai', 'admin')).json<{
+      tasksToday: { feature: string; calls: number; failed: number; inputTokens: number }[];
+      errors: { status: string }[];
+    }>();
+    expect(tasksToday.find((x) => x.feature === 'ai.test')?.calls).toBeGreaterThanOrEqual(1);
+    expect(errors.every((e) => e.status !== 'ok')).toBe(true);
     // another company sees none of it
     const other = (await call('GET', '/ai', 'admin', undefined, SECOND_COMPANY)).json<{
       allowance: { seen: unknown[] };
       limits: unknown[];
+      tasksToday: unknown[];
+      errors: unknown[];
     }>();
     expect(other.allowance.seen).toEqual([]);
     expect(other.limits).toEqual([]);
+    expect(other.tasksToday).toEqual([]);
+    expect(other.errors).toEqual([]);
   });
 
   it("never shows or uses another company's AI accounts", async () => {

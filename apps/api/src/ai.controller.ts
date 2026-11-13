@@ -12,6 +12,8 @@ import {
   listAiCalls,
   listSeenLimits,
   aiUseWindow,
+  aiUseByTaskToday,
+  listAiErrors,
   type Tx,
   listTeams,
   logActivity,
@@ -165,6 +167,8 @@ export class AiController {
       recent: await listAiCalls(tx, 50),
       allowance: await allowanceOf(tx),
       limits: await limitsOf(tx, membership.companyId, this.engine),
+      tasksToday: await aiUseByTaskToday(tx),
+      errors: await listAiErrors(tx, 20),
     }));
   }
 

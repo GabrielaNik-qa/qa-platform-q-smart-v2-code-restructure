@@ -4,6 +4,13 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## Phase 5 (Learning & Tools): in progress on branch `v2-phase-5`
 
+- **AI, step 2: use per task, recent problems, and no double AI reviews:**
+  - **Admin › AI usage limits › Today, per AI task:** since 00:00 UTC, each AI task's calls with an answer, the ones that failed or were refused (a limit, a busy free plan, an error), the tokens sent and received, and the cost (0 on a free plan).
+  - **Recent problems:** the latest 20 calls without a usable answer, each with its technical reason, for administrators only. People using Q-smart keep seeing a plain message, and everything else keeps working.
+  - **No double AI reviews:** the same conversation reviewed with the same scorecard twice at the same moment (a second tab, or a network retry) asks the AI only once; the second request says "The AI is already reviewing this conversation with this scorecard". The buttons were already locked while a review runs.
+  - **Checked in the browser:** as admin, today's AI reviews (97 answered, 51 failed or refused, 110,379 tokens sent, 212,356 received, US$0.00) and the recent problems (Groq's "too many requests" and the quotes not found in the conversation); in Bulgarian too; no request failed.
+  - 1 new automatic test (two AI reviews at the same moment: the AI is asked once) and new checks (use per task, problems, the company wall); 363 pass.
+
 - **AI, step 1: a free plan's limits are checked before every call** (your request of 13 November: audit the AI module and Groq's limits). The audit found that the engine only reacted after Groq said "too many requests", and never counted Groq's 200,000 tokens a day per model: with about 3,000 tokens per AutoQA review, that is about 60 reviews a day per model, which is what stopped your test-set runs.
   - **Groq's limits per model, with their source.** Groq sends its requests per day and tokens per minute for your account with every answer (verified: 1,000 requests a day and 8,000 tokens a minute for gpt-oss-120b and 20b; 2,000 requests a day for Whisper). It never sends the requests per minute or the tokens per day, so those are its published free limits (30 a minute and 200,000 tokens a day for gpt-oss; 20 a minute and 7,200 / 28,800 audio seconds an hour / a day for Whisper; https://console.groq.com/docs/rate-limits, read on 13 November), counted from Q-smart's own calls. Never one AI company's figures for another; a paid plan is left to the AI company.
   - **Before sending**, the engine checks each model: a call that would go over a limit is not sent; the next model is used, or the job says how long to wait (the test set's run waits that long). Its usual answer length is counted, not a guess.

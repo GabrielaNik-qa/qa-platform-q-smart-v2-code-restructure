@@ -29,9 +29,12 @@ const verifier: TokenVerifier = {
 /** How the pretend AI answers: good quotes, made-up quotes, or "this conversation tries to instruct me". */
 let mode: 'good' | 'madeUp' | 'injection' | 'oneNo' = 'good';
 const requests: CompletionRequest[] = [];
+/** how long the pretend AI takes to answer */
+let slowMs = 0;
 const pretend: ProviderAdapter = {
-  complete(r) {
+  async complete(r) {
     requests.push(r);
+    if (slowMs) await new Promise((done) => setTimeout(done, slowMs));
     const ids = [...r.prompt.matchAll(/id (c\d+q\d+):/g)].map((m) => m[1]);
     const line = /<conversation>\n(.*)\n/.exec(r.prompt)?.[1]?.split(': ').slice(1).join(': ') ?? '';
     const answers = ids.map((id, i) => ({
@@ -51,7 +54,7 @@ const pretend: ProviderAdapter = {
       summary: 'A clear, polite conversation.',
       ...outcome,
     });
-    return Promise.resolve({ text, inputTokens: 800, outputTokens: 300 });
+    return { text, inputTokens: 800, outputTokens: 300 };
   },
 };
 
@@ -179,6 +182,19 @@ describe('AutoQA AI reviews', () => {
     expect(log.map((e) => e.action)).toEqual(
       expect.arrayContaining(['aiReviewAdded', 'aiReviewAgain', 'aiReviewsChanged']),
     );
+  });
+
+  it('asks the AI once when the same review is asked for twice at the same moment (a double click)', async () => {
+    mode = 'good';
+    slowMs = 300;
+    const before = requests.length;
+    const [first, second] = await Promise.all([aiReview(conversation), aiReview(conversation)]);
+    slowMs = 0;
+    expect([first.statusCode, second.statusCode].sort()).toEqual([201, 400]);
+    expect([first.json(), second.json()]).toContainEqual(expect.objectContaining({ code: 'aiReviewRunning' }));
+    expect(requests.length - before).toBe(1);
+    // once it is done, it may be asked again
+    expect((await aiReview(conversation)).statusCode).toBe(201);
   });
 
   it('refuses made-up quotes: the AI is asked again, then the next model, then it says so', async () => {

@@ -100,6 +100,18 @@ interface Overview {
   };
   /** each free-plan model's limits, as the engine checks them before every call */
   limits: ModelLimits[];
+  /** each AI task's use since 00:00 UTC */
+  tasksToday: {
+    feature: string;
+    calls: number;
+    failed: number;
+    inputTokens: number;
+    outputTokens: number;
+    audioSeconds: number;
+    microUsd: number;
+  }[];
+  /** the latest calls without a usable answer */
+  errors: Call[];
 }
 type LimitKind = 'rpm' | 'rpd' | 'tpm' | 'tpd' | 'ash' | 'asd';
 interface ModelLimits {
@@ -259,7 +271,7 @@ function ProviderCard({
               text: r.detail
                 ? t(`ai.problems.${r.detail}`, {
                     name: provider.name,
-                    defaultValue: `${t(`errors.${r.code ?? 'aiUnavailable'}`)} ${t('ai.problems.other', { code: r.detail })}`,
+                    defaultValue: `${t(`errors.${r.code ?? 'aiUnavailable'}`)} ${t('ai.trouble.other', { code: r.detail })}`,
                   })
                 : t(`errors.${r.code ?? 'aiUnavailable'}`),
             },
@@ -666,7 +678,88 @@ export function AiUsage({ company }: { company: CompanyRef }) {
         )}
       </div>
 
+      <div className={`${card} grid gap-3`}>
+        <h2 className="text-lg font-semibold">{t('ai.today.title')}</h2>
+        <p className="text-sm text-mu">{t('ai.today.intro')}</p>
+        {data.tasksToday.length === 0 ? (
+          <p className="text-sm text-mu">{t('ai.noUse')}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-left text-mu">
+                <tr>
+                  <th className={th}>{t('ai.task')}</th>
+                  <th className={`${th} text-right`}>{t('ai.today.calls')}</th>
+                  <th className={`${th} text-right`}>{t('ai.today.failed')}</th>
+                  <th className={`${th} text-right`}>{t('ai.today.input')}</th>
+                  <th className={`${th} text-right`}>{t('ai.today.output')}</th>
+                  <th className={`${th} text-right`}>{t('ai.cost')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.tasksToday.map((x) => (
+                  <tr key={x.feature} className="border-t border-bd">
+                    <td className={td}>{names.feature(x.feature)}</td>
+                    <td className={`${td} text-right`}>{number(x.calls, lang)}</td>
+                    <td className={`${td} text-right ${x.failed ? 'text-bad' : ''}`}>{number(x.failed, lang)}</td>
+                    <td className={`${td} text-right`}>
+                      {x.audioSeconds
+                        ? t('ai.audio', { n: number(x.audioSeconds, lang) })
+                        : number(x.inputTokens, lang)}
+                    </td>
+                    <td className={`${td} text-right`}>{number(x.outputTokens, lang)}</td>
+                    <td className={`${td} text-right`}>{dollars(x.microUsd, lang)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       <FreeAllowance data={data} />
+
+      <div className={`${card} grid gap-3`}>
+        <h2 className="text-lg font-semibold">{t('ai.trouble.title')}</h2>
+        <p className="text-sm text-mu">{t('ai.trouble.intro')}</p>
+        {data.errors.length === 0 ? (
+          <p className="text-sm text-ok">✓ {t('ai.trouble.none')}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-left text-mu">
+                <tr>
+                  <th className={th}>{t('ai.when')}</th>
+                  <th className={th}>{t('ai.task')}</th>
+                  <th className={th}>{t('ai.model')}</th>
+                  <th className={th}>{t('ai.result')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.errors.map((c) => (
+                  <tr key={c.id} className="border-t border-bd align-top">
+                    <td className={`${td} whitespace-nowrap font-mono text-xs`}>{when(c.createdAt, lang)}</td>
+                    <td className={td}>{names.feature(c.feature)}</td>
+                    <td className={td}>
+                      {c.provider ? (
+                        <>
+                          {providerName(c.provider)} <span className="font-mono text-xs text-mu">{c.model}</span>
+                        </>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                    <td className={td}>
+                      {names.status(c.status)}
+                      {c.error && <span className="block font-mono text-xs text-mu">{c.error}</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <form onSubmit={save} className={`${card} grid gap-3`}>
         <h2 className="text-lg font-semibold">{t('ai.limitsTitle')}</h2>

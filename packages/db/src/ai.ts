@@ -267,3 +267,41 @@ export async function aiUseWindow(tx: Tx, provider: string, model: string): Prom
     outputTokens: out?.avg === null || out?.avg === undefined ? null : Math.round(out.avg),
   };
 }
+
+/** One AI task's use today (since 00:00 UTC): calls answered, calls that failed or were refused, tokens and cost. */
+export interface AiTaskToday {
+  feature: string;
+  calls: number;
+  failed: number;
+  inputTokens: number;
+  outputTokens: number;
+  audioSeconds: number;
+  microUsd: number;
+}
+export async function aiUseByTaskToday(tx: Tx): Promise<AiTaskToday[]> {
+  return tx
+    .select({
+      feature: aiCalls.feature,
+      calls: sql<number>`count(*) filter (where ${aiCalls.status} in ('ok', 'invalid'))::int`,
+      failed: sql<number>`count(*) filter (where ${aiCalls.status} not in ('ok', 'invalid'))::int`,
+      inputTokens: sql<number>`coalesce(sum(${aiCalls.inputTokens}), 0)::int`,
+      outputTokens: sql<number>`coalesce(sum(${aiCalls.outputTokens}), 0)::int`,
+      audioSeconds: sql<number>`coalesce(sum(${aiCalls.audioSeconds}), 0)::int`,
+      microUsd: sql<number>`coalesce(sum(${aiCalls.costMicroUsd}), 0)::float8`,
+    })
+    .from(aiCalls)
+    .where(gte(aiCalls.createdAt, sql`date_trunc('day', now() at time zone 'UTC') at time zone 'UTC'`))
+    .groupBy(aiCalls.feature)
+    .orderBy(aiCalls.feature);
+}
+
+/** The latest calls that did not give a usable answer (errors, time-outs, refusals, limits), newest first. */
+export async function listAiErrors(tx: Tx, limit = 20): Promise<AiCallRow[]> {
+  const rows = await tx
+    .select()
+    .from(aiCalls)
+    .where(sql`${aiCalls.status} <> 'ok'`)
+    .orderBy(desc(aiCalls.createdAt))
+    .limit(limit);
+  return rows.map(({ companyId: _c, ...r }) => ({ ...r, dataClass: r.dataClass as AiCall['dataClass'] }) as AiCallRow);
+}
