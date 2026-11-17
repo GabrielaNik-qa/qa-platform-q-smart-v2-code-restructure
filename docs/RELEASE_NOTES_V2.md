@@ -4,6 +4,14 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## Phase 5 (Learning & Tools): in progress on branch `v2-phase-5`
 
+- **AI choices, step 3: Q-smart's own AI accounts** (your decision of 17 November: clients never connect keys or pay AI companies):
+  - **Owner area › Q-smart's AI accounts:** one key per AI company (with the plan, free or paid, an "In use" switch and, for Cloudflare, the account ID). The key is stored encrypted and only its last 4 characters are ever shown; leave the field empty to keep the stored key.
+  - **They serve every client company:** the AI engine uses Q-smart's account first; a company's own old key is used only for an AI company where Q-smart has none.
+  - **"Move the keys the companies connected":** moves keys connected before into Q-smart's accounts (opened and encrypted again on the server; they never leave it).
+  - **Only you change them,** through database functions that check again it is the owner.
+  - **Checked in the browser:** as owner, the demo's Groq and Cloudflare keys moved ("Keys moved: 2").
+  - 2 new automatic tests (moving keys, Q-smart's key serving both companies, only the owner; the database refuses anyone else and direct writes).
+
 - **AI choices, step 2: effort levels, set by you** (your decision of 17 November: Q-smart is the mediator, clients never see models):
   - **Three levels: light, standard and thorough.** In the owner area you list, for each level, the models that serve it, best first (move up, remove, add any model you offer); text and speech models in one list, and each task takes the kind it needs.
   - **Each AI task has a level**, chosen from a drop-down: AutoQA's scoring (standard), a call's transcript (standard), telling agent and customer apart (light), plus the tasks still to come, already listed so you can plan them (is it a real conversation, translating a transcript, coaching advice, AI agents, Quinn, Q Trainer's words and voice). Under each task, the models its level gives it.

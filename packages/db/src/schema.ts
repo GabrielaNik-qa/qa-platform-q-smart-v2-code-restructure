@@ -1369,6 +1369,23 @@ export interface OutcomeCheck {
 }
 
 /**
+ * Q-smart's own AI accounts (17 November: Q-smart is the mediator; every company's AI runs on them). The key is
+ * encrypted with the server's master key, bound to "platform" and the AI company, and never shown again (only its last
+ * 4 characters). Not a company table: the AI engine may read it; only the owner changes it, through
+ * platform_save_ai_account and platform_delete_ai_account.
+ */
+export const platformAiAccounts = pgTable('platform_ai_accounts', {
+  provider: text('provider').primaryKey(),
+  plan: text('plan').notNull().default('free'),
+  keyCipher: text('key_cipher').notNull(),
+  keyHint: text('key_hint').notNull(),
+  /** Cloudflare's account id (not a secret) */
+  accountId: text('account_id'),
+  enabled: boolean('enabled').notNull().default(true),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * The owner's effort levels (17 November): behind each level (light, standard, thorough), the AI models that serve it,
  * best first; text and speech models in one list (each task takes the kind it needs). Clients never see them. Missing:
  * the AI engine's defaults (ai/levels.ts). Not a company table; changed only through platform_set_ai_level.

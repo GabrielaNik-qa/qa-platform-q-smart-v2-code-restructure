@@ -7,8 +7,11 @@ import {
   isPlatformAdmin,
   listAiLevels,
   listAiOffers,
+  listPlatformAiAccounts,
   platformCompanies,
   platformCreateCompany,
+  platformDeleteAiAccount,
+  platformSaveAiAccount,
   platformSetAiLevel,
   platformSetAiOffer,
   platformSetAiTaskLevel,
@@ -242,6 +245,31 @@ describe('the platform owner area', () => {
       levels: [{ level: 'light', models: ['groq/openai/gpt-oss-20b'] }],
       tasks: [{ feature: 'autoqa.score', level: 'thorough' }],
     });
+  });
+
+  it('lets only the owner keep Q-smart’s own AI accounts', async () => {
+    const account = {
+      provider: 'groq',
+      plan: 'free' as const,
+      keyCipher: 'cipher',
+      keyHint: 'abcd',
+      accountId: null,
+      enabled: true,
+    };
+    expect(await refusal(platformSaveAiAccount(app, 'uid-ann', account))).toBe('42501');
+    expect(
+      await refusal(
+        app.execute(
+          sql`insert into platform_ai_accounts (provider, plan, key_cipher, key_hint) values ('groq', 'free', 'x', 'x')`,
+        ),
+      ),
+    ).toBe('42501');
+    await platformSaveAiAccount(app, 'uid-owner', account);
+    expect((await listPlatformAiAccounts(app)).map((a) => a.provider)).toEqual(['groq']);
+    expect(await refusal(app.execute(sql`update platform_ai_accounts set enabled = false`))).toBe('42501');
+    expect(await refusal(platformDeleteAiAccount(app, 'uid-ann', 'groq'))).toBe('42501');
+    await platformDeleteAiAccount(app, 'uid-owner', 'groq');
+    expect(await listPlatformAiAccounts(app)).toEqual([]);
   });
 
   it('creates a client company with its Administration team and first admin, for the owner only', async () => {

@@ -35,7 +35,17 @@ interface OfferList {
   models: OfferedModel[];
   levels: { level: Level; models: string[]; own: boolean }[];
   tasks: { feature: string; kind: 'text' | 'speech' | 'voice'; level: Level; live: boolean; models: string[] }[];
+  accounts: OwnAccount[];
+  canStoreKeys: boolean;
 }
+interface OwnAccount {
+  provider: string;
+  plan: 'free' | 'paid';
+  keyHint: string;
+  accountId: string | null;
+  enabled: boolean;
+}
+type OnMessage = (m: { ok: boolean; text: string } | null) => void;
 
 /**
  * Which AI companies' models Q-smart offers to client companies (17 November): a model switched off is never used by
@@ -112,6 +122,7 @@ function AiOffers() {
           </ul>
         </div>
       ))}
+      {data && <Accounts data={data} onSaved={setData} onMessage={setMessage} />}
       {data && <Levels data={data} onSaved={setData} onMessage={setMessage} />}
       {message && (
         <p role={message.ok ? 'status' : 'alert'} className={`text-sm ${message.ok ? 'text-ok' : 'text-bad'}`}>
@@ -119,6 +130,199 @@ function AiOffers() {
         </p>
       )}
     </section>
+  );
+}
+
+/**
+ * Q-smart's own AI accounts (17 November): one key per AI company, serving every client company. The key itself never
+ * comes back from the server, only its last 4 characters.
+ */
+function Accounts({
+  data,
+  onSaved,
+  onMessage,
+}: {
+  data: OfferList;
+  onSaved: (d: OfferList) => void;
+  onMessage: OnMessage;
+}) {
+  const { t } = useTranslation();
+  async function move() {
+    onMessage(null);
+    try {
+      const result = await api<OfferList & { moved: number }>(
+        '/platform/ai-models/accounts/move-from-companies',
+        undefined,
+        { method: 'POST', body: {} },
+      );
+      onSaved(result);
+      onMessage({ ok: true, text: t('platform.ai.accounts.moved', { count: result.moved }) });
+    } catch (e) {
+      onMessage({ ok: false, text: errorText(t, e) });
+    }
+  }
+  return (
+    <div className="grid gap-3 border-t border-bd pt-4">
+      <div>
+        <h3 className="font-semibold">{t('platform.ai.accounts.title')}</h3>
+        <p className="text-sm text-mu">{t('platform.ai.accounts.intro')}</p>
+      </div>
+      {!data.canStoreKeys && (
+        <p role="alert" className="text-sm text-bad">
+          {t('platform.ai.accounts.noMasterKey')}
+        </p>
+      )}
+      <ul className="grid gap-2">
+        {data.providers.map((p) => (
+          <AccountRow
+            key={p.id}
+            provider={p}
+            account={data.accounts.find((a) => a.provider === p.id)}
+            disabled={!data.canStoreKeys}
+            onSaved={onSaved}
+            onMessage={onMessage}
+          />
+        ))}
+      </ul>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          disabled={!data.canStoreKeys}
+          className="rounded-s border border-bd px-3 py-1.5 text-sm font-semibold hover:bg-bg disabled:opacity-40"
+          onClick={() => void move()}
+        >
+          {t('platform.ai.accounts.move')}
+        </button>
+        <small className="text-mu">{t('platform.ai.accounts.moveIntro')}</small>
+      </div>
+    </div>
+  );
+}
+
+function AccountRow({
+  provider,
+  account,
+  disabled,
+  onSaved,
+  onMessage,
+}: {
+  provider: OfferList['providers'][number];
+  account: OwnAccount | undefined;
+  disabled: boolean;
+  onSaved: (d: OfferList) => void;
+  onMessage: OnMessage;
+}) {
+  const { t } = useTranslation();
+  const [apiKey, setApiKey] = useState('');
+  const [accountId, setAccountId] = useState(account?.accountId ?? '');
+  const [plan, setPlan] = useState<'free' | 'paid'>(account?.plan ?? 'free');
+  const [enabled, setEnabled] = useState(account?.enabled ?? true);
+  useEffect(() => {
+    setAccountId(account?.accountId ?? '');
+    setPlan(account?.plan ?? 'free');
+    setEnabled(account?.enabled ?? true);
+  }, [account]);
+  const needsId = provider.id === 'cloudflare';
+  async function send(method: 'PUT' | 'DELETE', body?: object) {
+    onMessage(null);
+    try {
+      onSaved(
+        await api<OfferList>(`/platform/ai-models/accounts/${provider.id}`, undefined, {
+          method,
+          ...(body ? { body } : {}),
+        }),
+      );
+      setApiKey('');
+      onMessage({ ok: true, text: t('platform.ai.saved') });
+    } catch (e) {
+      onMessage({ ok: false, text: errorText(t, e) });
+    }
+  }
+  function save(event: FormEvent) {
+    event.preventDefault();
+    void send('PUT', {
+      ...(apiKey.trim() ? { apiKey: apiKey.trim() } : {}),
+      ...(needsId ? { accountId: accountId.trim() || null } : {}),
+      plan,
+      enabled,
+    });
+  }
+  const idBase = `own-ai-${provider.id}`;
+  return (
+    <li className="grid gap-2 rounded-s border border-bd p-3 text-sm">
+      <div className="flex flex-wrap items-baseline gap-2">
+        <strong>{provider.name}</strong>
+        <small className="text-mu">{account ? `•••• ${account.keyHint}` : t('platform.ai.accounts.none')}</small>
+      </div>
+      <form className="flex flex-wrap items-end gap-3" onSubmit={save}>
+        <label className="grid gap-1" htmlFor={`${idBase}-key`}>
+          <span className="text-xs text-mu">{t('platform.ai.accounts.key')}</span>
+          <input
+            id={`${idBase}-key`}
+            type="password"
+            autoComplete="off"
+            className="rounded-s border border-bd bg-bg px-2 py-1"
+            placeholder={account ? t('platform.ai.accounts.keyKeep') : ''}
+            value={apiKey}
+            disabled={disabled}
+            onChange={(e) => setApiKey(e.target.value)}
+          />
+        </label>
+        {needsId && (
+          <label className="grid gap-1" htmlFor={`${idBase}-id`}>
+            <span className="text-xs text-mu">{t('platform.ai.accounts.accountId')}</span>
+            <input
+              id={`${idBase}-id`}
+              className="rounded-s border border-bd bg-bg px-2 py-1 font-mono text-xs"
+              value={accountId}
+              disabled={disabled}
+              onChange={(e) => setAccountId(e.target.value)}
+            />
+          </label>
+        )}
+        <label className="grid gap-1" htmlFor={`${idBase}-plan`}>
+          <span className="text-xs text-mu">{t('platform.ai.accounts.plan')}</span>
+          <select
+            id={`${idBase}-plan`}
+            className="rounded-s border border-bd bg-bg px-2 py-1"
+            value={plan}
+            disabled={disabled}
+            onChange={(e) => setPlan(e.target.value === 'paid' ? 'paid' : 'free')}
+          >
+            <option value="free">{t('platform.ai.accounts.free')}</option>
+            <option value="paid">{t('platform.ai.accounts.paid')}</option>
+          </select>
+        </label>
+        <label className="inline-flex items-center gap-2 pb-1.5">
+          <input
+            type="checkbox"
+            className="accent-[var(--brand)]"
+            checked={enabled}
+            disabled={disabled}
+            onChange={(e) => setEnabled(e.target.checked)}
+          />
+          {t('platform.ai.accounts.enabled')}
+        </label>
+        <button
+          type="submit"
+          disabled={disabled || (!account && !apiKey.trim())}
+          className="rounded-s bg-[var(--brand)] px-3 py-1.5 font-semibold text-white disabled:opacity-40"
+        >
+          {t('platform.ai.accounts.save')}
+        </button>
+        {account && (
+          <button
+            type="button"
+            className="rounded-s border border-bd px-3 py-1.5 text-bad hover:bg-bg"
+            onClick={() => {
+              if (window.confirm(t('platform.ai.accounts.removeConfirm'))) void send('DELETE');
+            }}
+          >
+            {t('platform.ai.accounts.remove')}
+          </button>
+        )}
+      </form>
+    </li>
   );
 }
 

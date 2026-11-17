@@ -83,3 +83,48 @@ export async function platformSetAiLevel(db: Db, firebaseUid: string, level: AiL
 export async function platformSetAiTaskLevel(db: Db, firebaseUid: string, feature: string, level: AiLevel) {
   await db.execute(sql`select platform_set_ai_task_level(${firebaseUid}, ${feature}, ${level})`);
 }
+
+/** Q-smart's own AI accounts (the key stays encrypted; pages only ever get its last 4 characters). */
+export interface PlatformAiAccount {
+  provider: string;
+  plan: 'free' | 'paid';
+  keyCipher: string;
+  keyHint: string;
+  accountId: string | null;
+  enabled: boolean;
+  updatedAt: Date;
+}
+export async function listPlatformAiAccounts(db: Db | Tx): Promise<PlatformAiAccount[]> {
+  const result = await db.execute<{
+    provider: string;
+    plan: string;
+    key_cipher: string;
+    key_hint: string;
+    account_id: string | null;
+    enabled: boolean;
+    updated_at: Date;
+  }>(
+    sql`select provider, plan, key_cipher, key_hint, account_id, enabled, updated_at from platform_ai_accounts order by provider`,
+  );
+  return result.rows.map((r) => ({
+    provider: r.provider,
+    plan: r.plan === 'paid' ? 'paid' : 'free',
+    keyCipher: r.key_cipher,
+    keyHint: r.key_hint,
+    accountId: r.account_id,
+    enabled: r.enabled,
+    updatedAt: new Date(r.updated_at),
+  }));
+}
+export async function platformSaveAiAccount(
+  db: Db,
+  firebaseUid: string,
+  a: Omit<PlatformAiAccount, 'updatedAt'>,
+): Promise<void> {
+  await db.execute(
+    sql`select platform_save_ai_account(${firebaseUid}, ${a.provider}, ${a.plan}, ${a.keyCipher}, ${a.keyHint}, ${a.accountId}, ${a.enabled})`,
+  );
+}
+export async function platformDeleteAiAccount(db: Db, firebaseUid: string, provider: string): Promise<void> {
+  await db.execute(sql`select platform_delete_ai_account(${firebaseUid}, ${provider})`);
+}

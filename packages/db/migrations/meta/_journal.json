@@ -484,6 +484,20 @@
       "when": 1794910736587,
       "tag": "0068_ai_levels",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1794914542738,
+      "tag": "0069_platform_ai_accounts_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1794914545737,
+      "tag": "0070_platform_ai_accounts",
+      "breakpoints": true
     }
   ]
 }

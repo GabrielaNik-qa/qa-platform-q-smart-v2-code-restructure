@@ -22,7 +22,7 @@ import type { TokenVerifier } from './auth/token-verifier.js';
 
 const verifier: TokenVerifier = {
   async verify(token) {
-    if (!['admin', 'reviewer', 'lead', 'trainer', 'agent'].includes(token)) throw new Error('invalid token');
+    if (!['admin', 'reviewer', 'lead', 'trainer', 'agent', 'owner'].includes(token)) throw new Error('invalid token');
     return { uid: `demo-${token}`, email: `${token}@demo.test`, emailVerified: true };
   },
 };
@@ -309,6 +309,40 @@ describe('Admin › AI', () => {
     );
     await call('POST', '/ai/accounts/groq/test', 'admin', undefined, SECOND_COMPANY);
     expect(seenKeys.at(-1)).toBe('gsk_second_company_key_77');
+    await call('POST', '/ai/accounts/groq/test', 'admin');
+    expect(seenKeys.at(-1)).toBe(GROQ_KEY);
+  });
+
+  it("moves the companies' keys into Q-smart's own accounts, which then serve every company", async () => {
+    const owner = (method: 'GET' | 'POST' | 'PUT' | 'DELETE', url: string, payload?: object, who = 'owner') =>
+      app.inject({
+        method,
+        url: `/api/platform/ai-models${url}`,
+        headers: { authorization: `Bearer ${who}` },
+        ...(payload ? { payload } : {}),
+      });
+    expect((await owner('POST', '/accounts/move-from-companies', undefined, 'admin')).statusCode).toBe(403);
+    const moved = (await owner('POST', '/accounts/move-from-companies')).json<{
+      moved: number;
+      accounts: { provider: string; keyHint: string; keyCipher?: string }[];
+    }>();
+    expect(moved.moved).toBeGreaterThanOrEqual(1);
+    const groq = moved.accounts.find((a) => a.provider === 'groq');
+    expect(groq?.keyHint).toBe(GROQ_KEY.slice(-4));
+    expect(groq).not.toHaveProperty('keyCipher');
+    expect(JSON.stringify(moved)).not.toContain(GROQ_KEY);
+    // Q-smart's own key now serves every company, the second one too (its own old key is no longer used)
+    expect(
+      (await owner('PUT', '/accounts/groq', { apiKey: 'gsk_qsmart_own_key_4242', plan: 'free', enabled: true }))
+        .statusCode,
+    ).toBe(200);
+    await call('POST', '/ai/accounts/groq/test', 'admin');
+    expect(seenKeys.at(-1)).toBe('gsk_qsmart_own_key_4242');
+    await call('POST', '/ai/accounts/groq/test', 'admin', undefined, SECOND_COMPANY);
+    expect(seenKeys.at(-1)).toBe('gsk_qsmart_own_key_4242');
+    // only the owner, and never directly
+    expect((await owner('PUT', '/accounts/groq', { plan: 'free', enabled: false }, 'admin')).statusCode).toBe(403);
+    await owner('DELETE', '/accounts/groq');
     await call('POST', '/ai/accounts/groq/test', 'admin');
     expect(seenKeys.at(-1)).toBe(GROQ_KEY);
   });

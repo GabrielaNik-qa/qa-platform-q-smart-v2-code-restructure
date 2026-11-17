@@ -64,7 +64,7 @@ const en = {
     ai: {
       title: 'AI offered to client companies',
       intro:
-        'Switch an AI model off and no company can use it; it disappears from their choices. The star marks your recommended one. Each company still chooses among the models you offer and connects its own key, or uses Q-smart’s.',
+        'Switch an AI model off and no company can use it; it disappears from their choices. The star marks your recommended one. Clients never see AI companies or models: Q-smart uses its own AI accounts for them.',
       noTrain: 'its terms forbid training on what we send, with a data agreement',
       termsOpen: 'its data terms are not confirmed yet: not used for any data until they are',
       kind: { text: 'text AI', speech: 'speech to text', voice: 'voice' },
@@ -95,6 +95,27 @@ const en = {
         quinn_answer: 'Quinn’s answers',
         qtrainer_customer: 'Q Trainer: the customer’s words',
         qtrainer_voice: 'Q Trainer: the customer’s voice',
+      },
+      accounts: {
+        title: 'Q-smart’s AI accounts',
+        intro:
+          'The keys of Q-smart’s own accounts with each AI company. They serve every client company; a key is stored encrypted and only its last 4 characters are ever shown.',
+        none: 'not connected',
+        key: 'Key',
+        keyKeep: 'Leave empty to keep the stored key',
+        accountId: 'Cloudflare account ID',
+        plan: 'Plan',
+        free: 'free',
+        paid: 'paid',
+        enabled: 'In use',
+        save: 'Save',
+        remove: 'Remove',
+        removeConfirm: 'Remove Q-smart’s key for this AI company?',
+        move: 'Move the keys the companies connected',
+        moveIntro:
+          'Moves keys a company connected before into Q-smart’s accounts, for AI companies that have none here yet.',
+        moved: 'Keys moved: {{count}}',
+        noMasterKey: 'Keys can’t be stored: the server has no master key.',
       },
       recommend: 'Recommend',
       recommended: 'Recommended',
@@ -3434,7 +3455,7 @@ const bg: Messages = {
     ai: {
       title: 'ИИ, предлаган на клиентските компании',
       intro:
-        'Изключете модел на ИИ и никоя компания не може да го използва; той изчезва от избора ѝ. Звездата отбелязва препоръчания от вас. Всяка компания избира сред моделите, които предлагате, и свързва свой ключ или използва този на Q-smart.',
+        'Изключете модел на ИИ и никоя компания не може да го използва; той изчезва от избора ѝ. Звездата отбелязва препоръчания от вас. Клиентите никога не виждат компаниите за ИИ и моделите: Q-smart използва за тях собствените си акаунти за ИИ.',
       noTrain: 'условията му забраняват обучение с изпратеното, със споразумение за данните',
       termsOpen: 'условията му за данните още не са потвърдени: не се използва за никакви данни, докато не бъдат',
       kind: { text: 'текстов ИИ', speech: 'реч в текст', voice: 'глас' },
@@ -3465,6 +3486,27 @@ const bg: Messages = {
         quinn_answer: 'Отговорите на Quinn',
         qtrainer_customer: 'Q Trainer: думите на клиента',
         qtrainer_voice: 'Q Trainer: гласът на клиента',
+      },
+      accounts: {
+        title: 'Акаунтите за ИИ на Q-smart',
+        intro:
+          'Ключовете на собствените акаунти на Q-smart при всяка компания за ИИ. Те обслужват всички клиентски компании; ключът се пази шифрован и се показват само последните му 4 знака.',
+        none: 'не е свързан',
+        key: 'Ключ',
+        keyKeep: 'Оставете празно, за да запазите пазения ключ',
+        accountId: 'ID на акаунта в Cloudflare',
+        plan: 'План',
+        free: 'безплатен',
+        paid: 'платен',
+        enabled: 'Използва се',
+        save: 'Запази',
+        remove: 'Премахни',
+        removeConfirm: 'Да се премахне ли ключът на Q-smart за тази компания за ИИ?',
+        move: 'Премести ключовете, свързани от компаниите',
+        moveIntro:
+          'Премества ключове, свързани по-рано от компания, в акаунтите на Q-smart, за компаниите за ИИ, които още нямат такъв тук.',
+        moved: 'Преместени ключове: {{count}}',
+        noMasterKey: 'Ключовете не могат да се пазят: сървърът няма главен ключ.',
       },
       recommend: 'Препоръчай',
       recommended: 'Препоръчан',
@@ -6987,7 +7029,7 @@ const fr: Messages = {
     ai: {
       title: 'IA proposée aux entreprises clientes',
       intro:
-        'Désactivez un modèle d’IA et aucune entreprise ne peut l’utiliser ; il disparaît de leurs choix. L’étoile marque celui que vous recommandez. Chaque entreprise choisit parmi les modèles que vous proposez et connecte sa propre clé, ou utilise celle de Q-smart.',
+        'Désactivez un modèle d’IA et aucune entreprise ne peut l’utiliser ; il disparaît de leurs choix. L’étoile marque celui que vous recommandez. Les clients ne voient jamais les entreprises d’IA ni les modèles : Q-smart utilise pour eux ses propres comptes d’IA.',
       noTrain: 'ses conditions interdisent l’entraînement sur ce que nous envoyons, avec un accord sur les données',
       termsOpen:
         'ses conditions sur les données ne sont pas encore confirmées : non utilisé pour aucune donnée d’ici là',
@@ -7019,6 +7061,27 @@ const fr: Messages = {
         quinn_answer: 'Les réponses de Quinn',
         qtrainer_customer: 'Q Trainer : les mots du client',
         qtrainer_voice: 'Q Trainer : la voix du client',
+      },
+      accounts: {
+        title: 'Les comptes d’IA de Q-smart',
+        intro:
+          'Les clés des propres comptes de Q-smart auprès de chaque entreprise d’IA. Elles servent toutes les entreprises clientes ; une clé est conservée chiffrée et seuls ses 4 derniers caractères sont affichés.',
+        none: 'non connecté',
+        key: 'Clé',
+        keyKeep: 'Laissez vide pour garder la clé enregistrée',
+        accountId: 'ID du compte Cloudflare',
+        plan: 'Offre',
+        free: 'gratuite',
+        paid: 'payante',
+        enabled: 'Utilisé',
+        save: 'Enregistrer',
+        remove: 'Retirer',
+        removeConfirm: 'Retirer la clé de Q-smart pour cette entreprise d’IA ?',
+        move: 'Déplacer les clés connectées par les entreprises',
+        moveIntro:
+          'Déplace les clés qu’une entreprise a connectées dans les comptes de Q-smart, pour les entreprises d’IA qui n’en ont pas encore ici.',
+        moved: 'Clés déplacées : {{count}}',
+        noMasterKey: 'Les clés ne peuvent pas être conservées : le serveur n’a pas de clé principale.',
       },
       recommend: 'Recommander',
       recommended: 'Recommandé',
