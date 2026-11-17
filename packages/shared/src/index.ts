@@ -3,6 +3,7 @@ export * from './accuracy.js';
 export * from './coaching.js';
 export * from './errors.js';
 export * from './fields.js';
+export * from './knowledge.js';
 export * from './permissions.js';
 export * from './scoring.js';
 export * from './performance.js';

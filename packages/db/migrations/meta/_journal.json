@@ -512,6 +512,20 @@
       "when": 1794920904318,
       "tag": "0072_company_intake",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1794927416986,
+      "tag": "0073_knowledge_base_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1794927417986,
+      "tag": "0074_knowledge_base",
+      "breakpoints": true
     }
   ]
 }

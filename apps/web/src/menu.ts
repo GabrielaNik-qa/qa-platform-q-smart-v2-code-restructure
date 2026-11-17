@@ -57,6 +57,7 @@ export const BUILT = new Set([
   'quality/sign-ins',
   'quality/exports-and-downloads',
   'admin/ai',
+  'learning/knowledge-base',
   'admin/fields',
   'quality/conversations',
   'quality/autoqa',

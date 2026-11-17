@@ -14,6 +14,7 @@ import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { PermissionGuard } from './auth/permission.guard.js';
 import { PlatformGuard } from './auth/platform.guard.js';
 import { HealthController, MeController, MySkillsController, PlatformController } from './controllers.js';
+import { KnowledgeController } from './knowledge.controller.js';
 import { PlatformAiController } from './platform-ai.controller.js';
 import { PeopleController } from './people.controller.js';
 import {
@@ -108,6 +109,7 @@ export class AppModule {
         ConversationsController,
         TranscriptDaysController,
         IntakeController,
+        KnowledgeController,
         AutoqaController,
         SpeechController,
         TasksController,

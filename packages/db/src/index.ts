@@ -9,6 +9,7 @@ export * from './conversations.js';
 export * from './disputes.js';
 export * from './flags.js';
 export * from './intake.js';
+export * from './knowledge.js';
 export * from './local-postgres.js';
 export * from './log.js';
 export * from './migrate.js';
@@ -22,6 +23,7 @@ export * from './reviewer-checks.js';
 export * from './reviews.js';
 export * from './seed.js';
 export * from './seed-coaching.js';
+export * from './seed-knowledge.js';
 export * from './seed-reviews.js';
 export * from './task-library.js';
 export * from './tasks.js';
@@ -35,6 +37,9 @@ export type {
   AiReviewRules,
   AnsweredCategory,
   AnswerMark,
+  KbComment,
+  KbQuestion,
+  KbQuiz,
   OutcomeCheck,
   CompanyDashboards,
   DashboardView,

@@ -2,6 +2,24 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
+## 17 November 2026: Phase 6, step 3, piece 1 of 4 (Learning › Knowledge Base)
+
+Built on branch `v2-phase-6`, following your answers of 17 November (four pieces; AI helpers later in this phase; text and links only for now). Today's Knowledge Base is the checklist.
+
+- **Folders in a tree** (any depth): name, icon, colour, description. A folder can be **open to some teams only**: an agent of another team never receives that folder, its sub-folders or its articles (the server decides; asking for one by its address says "not found"). Staff see everything. A folder can be **required reading**, for some teams or for all agents.
+- **Articles** in Markdown (headings, lists, quotes, **bold**, *italic*, `code` and links), with an emoji, topics, a folder, "required reading" and a Write / Preview editor. Only http and https links become links and nothing in an article can run as a script (tested with a script, an image with an event and a javascript link).
+- **Search** by keywords, filter by topic, group by topic or folder.
+- **Everyone reads and joins in:** mark an article (or a whole folder) as read or unread, star it, react with 👍 ❤️ 🎉 👏 💡 and comment; the author is told about a comment in the bell. A comment is removed by its writer or by staff.
+- **A test at the end of a lesson:** the pass mark and the questions (up to 30, any number of options, the right one marked, and why). Agents receive the questions **without the right answers**; the score and the right answers come back after they submit. Every try is kept; passing marks the article as read.
+- **Required reading** shows for agents (a red dot on the folder and a tag on the article), from the article's own setting or from a folder above it, for their team.
+- **Who writes:** admins, reviewers, team leads and trainers. Agents read. Adding, changing and deleting go in the activity log.
+- **Deleting a folder** asks: keep what is inside (it moves up one level) or delete everything inside it.
+- **Demo data:** today's demo Knowledge Base (Onboarding, Sales skills, Objection handling; 4 articles; the greeting lesson test) is in the demo company.
+- **Database:** five new tables (folders, articles, reads, stars, tries at tests), all behind the company wall with row-level security; the server can't change an article's author or company, and the tries only ever grow.
+- **Not in this piece (they come in the next pieces):** quizzes and My Learning with the progress report and the AI question writer (piece 2), the newsletter with import and export of articles (piece 3), help inside the app and Tools (piece 4).
+- **Checked in the browser** as an agent (required reading, mark as read, the lesson test with a wrong answer: 50%, no write buttons) and as admin (new folder, new article with a test and links, reaction, comment, delete a folder with everything in it); no console errors. Reviewer, lead and trainer share the admin's writing right (tested) and were not opened one by one.
+- 414 automatic tests pass (20 new: the rules, the Markdown reader, and 10 server tests: who writes, folders for some teams only, loops refused, keeping or deleting a folder's content, tests, reading, stars, reactions, comments, the company wall).
+
 ## 17 November 2026: Phase 6, step 2 (the three AI pieces left over from Phase 5)
 
 Built on branch `v2-phase-6`.

@@ -116,6 +116,12 @@ export const ERROR_MESSAGES = {
   fieldNotHidden:
     'Hide the field first. A hidden field keeps its values and can come back; only then can it be deleted for good.',
   transcriptDaysInvalid: 'Choose how long transcripts are kept from the list.',
+  kbInvalid: 'Check the folder or article: a name or title is needed, and nothing is too long.',
+  kbFolderNotFound: 'This folder is not there any more.',
+  kbArticleNotFound: 'This article is not there any more, or it is not open to you.',
+  kbLoop: 'A folder cannot be moved inside itself.',
+  kbNoTest: 'This article has no test.',
+  kbCommentEmpty: 'Write a comment first.',
   minCallInvalid: 'Enter a whole number of seconds between 1 and 86400, or leave it empty.',
   aiReviewNoTranscript: 'This conversation has no transcript to review.',
   aiReviewsNotAnnounced:

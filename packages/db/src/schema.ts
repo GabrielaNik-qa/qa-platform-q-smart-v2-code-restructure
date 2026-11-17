@@ -1965,3 +1965,185 @@ export const coachingSessions = pgTable(
     }),
   ],
 );
+
+// ---------------------------------------------------------------------------------------------- Learning: Knowledge Base
+
+/** A lesson test's question: the options, the index of the right one and why (shown after the test). */
+export interface KbQuestion {
+  q: string;
+  opts: string[];
+  a: number;
+  why: string;
+}
+/** The test at the end of a lesson: the pass mark (%) and the questions. */
+export interface KbQuiz {
+  pass: number;
+  questions: KbQuestion[];
+}
+export interface KbComment {
+  id: string;
+  /** the membership that wrote it (null once that person is gone) */
+  byId: string | null;
+  name: string;
+  text: string;
+  at: string;
+}
+
+/**
+ * Learning › Knowledge Base, folders (Confluence-like, any depth). A folder can be open to some teams only (agents of
+ * other teams never see it, its sub-folders or its articles; staff see everything) and can be required reading.
+ */
+export const kbFolders = pgTable(
+  'kb_folders',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    parentId: uuid('parent_id'),
+    name: text('name').notNull(),
+    colour: text('colour').notNull().default('#2563eb'),
+    icon: text('icon').notNull().default('📁'),
+    description: text('description').notNull().default(''),
+    /** required reading: agents (of the teams below, or all) have to read everything in it */
+    reqOn: boolean('req_on').notNull().default(false),
+    reqTeams: uuid('req_teams').array().notNull().default([]),
+    /** open to these teams only (empty: everybody) */
+    teams: uuid('teams').array().notNull().default([]),
+    byName: text('by_name').notNull().default(''),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('kb_folders_id_company').on(t.id, t.companyId),
+    index('kb_folders_parent').on(t.companyId, t.parentId),
+    foreignKey({
+      name: 'kb_folders_parent_same_company',
+      columns: [t.parentId, t.companyId],
+      foreignColumns: [t.id, t.companyId],
+    }),
+  ],
+);
+
+/** Learning › Knowledge Base, articles (Markdown text and links; pictures and files come with online storage). */
+export const kbArticles = pgTable(
+  'kb_articles',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    folderId: uuid('folder_id'),
+    title: text('title').notNull(),
+    emoji: text('emoji').notNull().default(''),
+    topics: jsonb('topics').$type<string[]>().notNull().default([]),
+    body: text('body').notNull().default(''),
+    reqOn: boolean('req_on').notNull().default(false),
+    reqTeams: uuid('req_teams').array().notNull().default([]),
+    /** the test at the end of the lesson */
+    quiz: jsonb('quiz').$type<KbQuiz | null>(),
+    /** emoji → the memberships that reacted */
+    reactions: jsonb('reactions').$type<Record<string, string[]>>().notNull().default({}),
+    comments: jsonb('comments').$type<KbComment[]>().notNull().default([]),
+    authorId: uuid('author_membership_id'),
+    authorName: text('author_name').notNull().default(''),
+    editorName: text('editor_name').notNull().default(''),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('kb_articles_id_company').on(t.id, t.companyId),
+    index('kb_articles_folder').on(t.companyId, t.folderId),
+    foreignKey({
+      name: 'kb_articles_folder_same_company',
+      columns: [t.folderId, t.companyId],
+      foreignColumns: [kbFolders.id, kbFolders.companyId],
+    }),
+    foreignKey({
+      name: 'kb_articles_author_same_company',
+      columns: [t.authorId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/** Who has read which article (and when). */
+export const kbReads = pgTable(
+  'kb_reads',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    membershipId: uuid('membership_id').notNull(),
+    articleId: uuid('article_id').notNull(),
+    readAt: timestamp('read_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.companyId, t.membershipId, t.articleId] }),
+    foreignKey({
+      name: 'kb_reads_member_same_company',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'kb_reads_article_same_company',
+      columns: [t.articleId, t.companyId],
+      foreignColumns: [kbArticles.id, kbArticles.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+/** A person's starred articles. */
+export const kbStars = pgTable(
+  'kb_stars',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    membershipId: uuid('membership_id').notNull(),
+    articleId: uuid('article_id').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.companyId, t.membershipId, t.articleId] }),
+    foreignKey({
+      name: 'kb_stars_member_same_company',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'kb_stars_article_same_company',
+      columns: [t.articleId, t.companyId],
+      foreignColumns: [kbArticles.id, kbArticles.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+/** Every try at a lesson test (the log only grows). Passing also marks the article as read. */
+export const kbAttempts = pgTable(
+  'kb_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    membershipId: uuid('membership_id').notNull(),
+    articleId: uuid('article_id').notNull(),
+    score: integer('score').notNull(),
+    passed: boolean('passed').notNull(),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('kb_attempts_person').on(t.companyId, t.membershipId, t.articleId),
+    foreignKey({
+      name: 'kb_attempts_member_same_company',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'kb_attempts_article_same_company',
+      columns: [t.articleId, t.companyId],
+      foreignColumns: [kbArticles.id, kbArticles.companyId],
+    }).onDelete('cascade'),
+  ],
+);

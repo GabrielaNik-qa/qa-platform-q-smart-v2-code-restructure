@@ -40,6 +40,8 @@ export interface PageSearch {
   task?: string;
   /** One-to-One: the one-to-one to open (the bell's links) */
   session?: string;
+  /** Knowledge Base: the article to open (the bell's links) */
+  article?: string;
 }
 const pick = (v: unknown) => (typeof v === 'string' && v.length <= 64 ? v : undefined);
 const page = createRoute({
@@ -62,6 +64,8 @@ const page = createRoute({
     if (task) out.task = task;
     const session = pick(search.session);
     if (session) out.session = session;
+    const article = pick(search.article);
+    if (article) out.article = article;
     return out;
   },
 });

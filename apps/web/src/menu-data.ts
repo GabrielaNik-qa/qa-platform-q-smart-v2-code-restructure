@@ -448,7 +448,7 @@ export const MENU: MenuApp[] = [
             id: 'knowledge-base',
             key: 'kb',
             roles: null,
-            phase: '5',
+            phase: '6',
           },
           {
             id: 'quizzes',
