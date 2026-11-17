@@ -159,6 +159,14 @@ describe("AutoQA's test set", () => {
     const small = models.find((m) => m.id === SMALL);
     // 120b answers Yes everywhere: it disagrees only on the first question (10 of 11 the same)
     expect(big).toMatchObject({ items: 21, failed: 0, score: 90.9, passes: true });
+    // enough in total and in each language of the scored conversations (12 Bulgarian, 9 English so far); its tokens
+    // per review (the pretend AI says 1 in, 1 out) and every answer in the expected form
+    expect(big).toMatchObject({
+      qualified: true,
+      itemsByLanguage: { bg: 12, en: 9 },
+      tokensPerReview: 2,
+      expectedForm: 100,
+    });
     expect(big?.byLanguage.en).toBe(90.9);
     expect(big?.scoreGap).toBeGreaterThan(0);
     // 20b answers No everywhere: 1 of 11 the same
@@ -269,6 +277,13 @@ describe("AutoQA's test set", () => {
       expect((await call('POST', '/autoqa/test-set/jobs', who, { modelIds: [BIG], perModel: 1 })).statusCode).toBe(403);
     // another company never sees it
     expect((await call('GET', '/autoqa/test-set/jobs/latest', 'admin', undefined, SECOND_COMPANY)).json()).toBeNull();
+    // French conversations are scored now, and 120b hasn't reviewed one yet: no verdict until it has 5 in French
+    const now = (await overview()).models.find((m) => m.id === BIG) as unknown as {
+      qualified: boolean;
+      passes: boolean;
+      missing: { total: number; byLanguage: Record<string, number> };
+    };
+    expect(now).toMatchObject({ qualified: false, passes: false, missing: { total: 0, byLanguage: { fr: 5 } } });
   }, 60_000);
 
   it("never shows another company's test set", async () => {

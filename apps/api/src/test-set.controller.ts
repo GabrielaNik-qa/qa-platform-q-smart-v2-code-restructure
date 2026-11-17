@@ -2,7 +2,9 @@
 // once, and their answers become the yardstick. Each AI model runs on them; per model the page shows how often it gave
 // the expert's answer (overall and per language), how far its scores are from the expert's, how long it takes and how
 // often it fails. A model is used for AI reviews only if it agrees on at least 75% of the questions once tested on at
-// least 20 scored conversations (until a model is, the bar doesn't apply).
+// least 20 scored conversations, at least 5 of them in each language of the test set (Phase 5: no verdict on a handful
+// of conversations, nor on one language for another); until a model is, the bar doesn't apply. Since Phase 5 the page
+// also shows each model's tokens per review and how many of its answers came back in the expected form.
 // Since Phase 5 the models run on the server (test-set.runner.ts): the page starts a run, follows it and can stop it.
 import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
 import {
@@ -11,6 +13,8 @@ import {
   getTestItem,
   latestTestJob,
   latestTestRuns,
+  testRunUsage,
+  type TestUsage,
   listScorecards,
   listTestItems,
   logActivity,
@@ -40,6 +44,8 @@ import { AI_ENGINE, DB } from './tokens.js';
 
 /** A model must be tested on this many of the expert's conversations before its result counts. */
 export const TEST_SET_MIN_ITEMS = 20;
+/** ... and this many in each language of the test set */
+export const TEST_SET_MIN_PER_LANGUAGE = 5;
 export const TEST_SET_BAR = 75;
 
 interface ModelResult {
@@ -53,11 +59,23 @@ interface ModelResult {
   /** how far its review scores are from the expert's, on average (percentage points) */
   scoreGap: number | null;
   waitMs: number | null;
+  /** tested on enough conversations, in total and in each language */
+  qualified: boolean;
   passes: boolean;
+  /** the scored conversations it reviewed well, per language */
+  itemsByLanguage: Record<string, number>;
+  /** how many more it needs before a verdict: in total, and per language */
+  missing: { total: number; byLanguage: Record<string, number> };
+  /** the tokens of a good review, on average (null: not measured yet) */
+  tokensPerReview: number | null;
+  /** the share of its answers that came back in the expected form, in % (null: not measured yet) */
+  expectedForm: number | null;
 }
 
 /** Each model's agreement with the expert, from its latest run on each scored conversation. */
-export function testResults(items: TestItem[], runs: TestRun[]): ModelResult[] {
+export function testResults(items: TestItem[], runs: TestRun[], usage: TestUsage[] = []): ModelResult[] {
+  // the languages of the test set's scored conversations: each needs its own minimum
+  const languages = [...new Set(items.filter((i) => i.expected).map((i) => i.language))];
   return AUTOQA_MODELS.map((id) => {
     const model = CATALOGUE.models.find((m) => m.id === id);
     const mine = runs.filter((r) => r.modelId === id);
@@ -89,6 +107,19 @@ export function testResults(items: TestItem[], runs: TestRun[]): ModelResult[] {
       .map(({ item, run }) => Math.abs((run.score ?? 0) - (item.expectedScore ?? 0)));
     const waits = mine.filter((r) => r.status === 'ok').map((r) => r.waitMs);
     const score = tally(scored);
+    const itemsByLanguage = Object.fromEntries(
+      languages.map((l) => [l, scored.filter((x) => x.item.language === l).length]),
+    );
+    const missing = {
+      total: Math.max(0, TEST_SET_MIN_ITEMS - scored.length),
+      byLanguage: Object.fromEntries(
+        languages
+          .map((l) => [l, Math.max(0, TEST_SET_MIN_PER_LANGUAGE - (itemsByLanguage[l] ?? 0))] as const)
+          .filter(([, n]) => n > 0),
+      ),
+    };
+    const qualified = missing.total === 0 && Object.keys(missing.byLanguage).length === 0;
+    const used = usage.find((u) => u.modelId === id);
     return {
       id,
       name: model?.model ?? id,
@@ -101,7 +132,15 @@ export function testResults(items: TestItem[], runs: TestRun[]): ModelResult[] {
       ),
       scoreGap: gaps.length ? Math.round((gaps.reduce((a, b) => a + b, 0) / gaps.length) * 10) / 10 : null,
       waitMs: waits.length ? Math.round(waits.reduce((a, b) => a + b, 0) / waits.length) : null,
-      passes: scored.length >= TEST_SET_MIN_ITEMS && score !== null && score >= TEST_SET_BAR,
+      qualified,
+      passes: qualified && score !== null && score >= TEST_SET_BAR,
+      itemsByLanguage,
+      missing,
+      tokensPerReview: used?.good ? Math.round(used.tokens / used.good) : null,
+      expectedForm:
+        used && used.usable + used.unusable > 0
+          ? Math.round((used.usable / (used.usable + used.unusable)) * 1000) / 10
+          : null,
     };
   });
 }
@@ -110,9 +149,7 @@ export function testResults(items: TestItem[], runs: TestRun[]): ModelResult[] {
 export async function autoqaQualities(tx: Tx, feature: string): Promise<Map<string, number>> {
   if (feature !== 'autoqa.score') return new Map();
   const results = testResults(await listTestItems(tx), await latestTestRuns(tx));
-  return new Map(
-    results.filter((r) => r.items >= TEST_SET_MIN_ITEMS && r.score !== null).map((r) => [r.id, r.score ?? 0]),
-  );
+  return new Map(results.filter((r) => r.qualified && r.score !== null).map((r) => [r.id, r.score ?? 0]));
 }
 
 const answersInput = z.object({ answers: z.array(z.array(z.enum(ANSWERS)).max(30)).max(20) }).strict();
@@ -135,6 +172,7 @@ export class TestSetController {
       const cards = await listScorecards(tx);
       return {
         minItems: TEST_SET_MIN_ITEMS,
+        minPerLanguage: TEST_SET_MIN_PER_LANGUAGE,
         bar: TEST_SET_BAR,
         scored: items.filter((i) => i.expected).length,
         scorecards: cards
@@ -156,7 +194,7 @@ export class TestSetController {
             runs.filter((r) => r.itemId === i.id).map((r) => [r.modelId, r.status === 'ok' ? r.score : null]),
           ),
         })),
-        models: testResults(items, runs),
+        models: testResults(items, runs, await testRunUsage(tx)),
       };
     });
   }

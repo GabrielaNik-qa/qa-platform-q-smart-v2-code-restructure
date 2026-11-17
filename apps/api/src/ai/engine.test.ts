@@ -154,7 +154,13 @@ describe('the AI engine', () => {
     const result = await engine.run(demo());
     // "trains" is free but may train on the data; the free EU model and the paid ones cost more or less:
     // b1 is free (0), so it goes first
-    expect(result).toEqual({ data: { reply: 'b1 says OK' }, provider: 'beta', model: 'b1', attempt: 1 });
+    expect(result).toEqual({
+      data: { reply: 'b1 says OK' },
+      provider: 'beta',
+      model: 'b1',
+      attempt: 1,
+      usage: { inputTokens: 1000, outputTokens: 10, unusable: 0 },
+    });
     expect(pretend.calls).toEqual(['b1']);
     expect(pretend.requests[0]).toMatchObject({ temperature: 0, json: true, prompt: SECRET });
     expect(pretend.requests[0]?.system).toContain('Answer with JSON only.');

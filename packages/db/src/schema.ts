@@ -1476,6 +1476,11 @@ export const aiTestRuns = pgTable(
     score: numeric('score', { precision: 4, scale: 1, mode: 'number' }),
     waitMs: integer('wait_ms').notNull().default(0),
     problem: text('problem'),
+    /** the tokens this review used (every call, the unusable answers too); null: measured only since 17 November */
+    inputTokens: integer('input_tokens'),
+    outputTokens: integer('output_tokens'),
+    /** answers that came back but not in the expected form (null: not measured) */
+    unusable: integer('unusable'),
     createdAt: createdAt(),
   },
   (t) => [

@@ -4,6 +4,16 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## Phase 5 (Learning & Tools): in progress on branch `v2-phase-5`
 
+- **AI, step 3: a fairer test set** (AutoQA › Test set):
+  - **No verdict on a handful of conversations, nor on one language for another:** a model is judged (and may be used for AI reviews) only after at least 20 conversations reviewed well, **with at least 5 in each language of the scored conversations**. Until then the last column says what is missing ("14 more to test", or "more needed per language: 5 FR").
+  - **Per language, how many it reviewed** under each agreement (n=10).
+  - **Two new columns:** tokens per good review (every try included) and **expected form**, the share of its answers that came back usable. A request that failed counts under Failed, not here, so a wrong evaluation, an answer in the wrong form and a failed request are three separate things. Both are measured from 17 November; older runs show "-".
+  - Every model already gets the same conversations, the same instructions and the same scorecard, and is compared the same way; the page now says so.
+  - **Today's results** (preliminary): Cloudflare's gpt-oss-120b 76.7% over 24 conversations (passes); Groq's gpt-oss-120b 74.3% over 32 (just below the 75% bar); Groq's gpt-oss-20b 73.3% over 6 (14 more to test, 3,854 tokens per review, 100% in the expected form); Mistral Small and Llama 3.3 not tested yet.
+  - **Fixed from step 2:** the "no double AI reviews" guard began only after Q-smart had read the conversation, so on a busy computer two requests could still both ask the AI. It now begins at the very first moment of the request (found by the automatic test).
+  - **Checked in the browser:** a real run of gpt-oss-20b on 1 conversation filled the new columns; the verdicts and the per-language counts; in Bulgarian too; no request failed.
+  - New checks in the automatic tests (tokens and expected form measured, no verdict until 5 French conversations); 363 pass.
+
 - **AI, step 2: use per task, recent problems, and no double AI reviews:**
   - **Admin › AI usage limits › Today, per AI task:** since 00:00 UTC, each AI task's calls with an answer, the ones that failed or were refused (a limit, a busy free plan, an error), the tokens sent and received, and the cost (0 on a free plan).
   - **Recent problems:** the latest 20 calls without a usable answer, each with its technical reason, for administrators only. People using Q-smart keep seeing a plain message, and everything else keeps working.

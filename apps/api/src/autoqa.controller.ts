@@ -104,6 +104,25 @@ export class AutoqaController {
   ) {
     const parsed = input.safeParse(body);
     if (!parsed.success || !z.uuid().safeParse(id).success) throw badRequest('conversationInvalid');
+    // one AI review of a conversation with a scorecard at a time, from the very first moment: a second click, a
+    // second tab or a network retry is refused instead of asking the AI twice
+    const busyKey = `${membership.companyId}:${id}:${parsed.data.scorecardId}`;
+    if (REVIEWING.has(busyKey)) throw badRequest('aiReviewRunning');
+    REVIEWING.add(busyKey);
+    try {
+      return await this.reviewOnce(membership, scope, person, id, parsed.data.scorecardId);
+    } finally {
+      REVIEWING.delete(busyKey);
+    }
+  }
+
+  private async reviewOnce(
+    membership: Membership,
+    scope: Scope,
+    person: VerifiedPerson,
+    id: string,
+    scorecardId: string,
+  ) {
     const language: Language = await myProfile(this.db, person.uid).then((p) =>
       p && (LANGUAGES as readonly string[]).includes(p.language ?? '') ? (p.language as Language) : 'en',
     );
@@ -120,9 +139,7 @@ export class AutoqaController {
       const channels = rules.reviews.channels ?? [];
       if (channels.length && !channels.includes(conversation.channel)) throw badRequest('aiReviewsChannelOff');
       const cardScope = scopeOf(membership.role, 'scorecards.read') ?? 'own';
-      const card = (await visibleScorecards(tx, membership.userId, cardScope)).find(
-        (s) => s.id === parsed.data.scorecardId,
-      );
+      const card = (await visibleScorecards(tx, membership.userId, cardScope)).find((s) => s.id === scorecardId);
       if (!card) throw badRequest('reviewScorecard');
       // the brake: an admin paused AI reviews for a category of this scorecard
       const paused = new Set(rules.reviews.paused ?? []);
@@ -152,17 +169,7 @@ export class AutoqaController {
       const names = new Map(outcomeField?.options.map((o) => [o.id, optionName(o)]));
       return { conversation, card, details, outcomes, names, demo: await isDemoCompany(tx) } as ReviewReady;
     });
-    const { conversation, card } = ready;
-    // one AI review of a conversation with a scorecard at a time: a second click, or a network retry, is refused
-    // instead of asking the AI twice
-    const busyKey = `${membership.companyId}:${conversation.id}:${card.id}`;
-    if (REVIEWING.has(busyKey)) throw badRequest('aiReviewRunning');
-    REVIEWING.add(busyKey);
-    try {
-      return await this.reviewNow(membership, ready, language);
-    } finally {
-      REVIEWING.delete(busyKey);
-    }
+    return this.reviewNow(membership, ready, language);
   }
 
   private async reviewNow(membership: Membership, ready: ReviewReady, language: Language) {

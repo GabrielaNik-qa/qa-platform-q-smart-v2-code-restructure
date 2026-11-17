@@ -57,6 +57,14 @@ export interface AiResult<T> {
   model: string;
   /** 1 when the first choice answered */
   attempt: number;
+  /** everything this job used: the tokens of every call (the unusable answers too), and the answers that didn't fit */
+  usage: JobUsage;
+}
+export interface JobUsage {
+  inputTokens: number;
+  outputTokens: number;
+  /** answers that came back but were not in the expected form (not JSON, or failed the job's checks) */
+  unusable: number;
 }
 
 type AiErrorCode = Extract<ErrorCode, 'aiOff' | 'aiLimit' | 'aiNoModel' | 'aiUnavailable'>;
@@ -67,6 +75,8 @@ export class AiError extends Error {
     readonly detail?: string,
     /** when the AI companies are resting after "too many requests": how long until one is free again */
     readonly retryAfterMs?: number,
+    /** what the job used before it failed */
+    readonly usage?: JobUsage,
   ) {
     super(code);
   }
@@ -238,6 +248,7 @@ export class AiEngine {
     const system = job.type.structured ? `${job.system}\n\nAnswer with JSON only.` : job.system;
     let attempt = 0;
     let lastProblem: string | undefined;
+    const usage: JobUsage = { inputTokens: 0, outputTokens: 0, unusable: 0 };
     for (const { model, account } of choices) {
       const adapter = this.parts.adapters[model.provider];
       if (!adapter) continue;
@@ -299,17 +310,25 @@ export class AiEngine {
           costMicroUsd: costMicroUsd(model, account.plan, answer.inputTokens, answer.outputTokens),
           waitMs,
         };
+        usage.inputTokens += answer.inputTokens;
+        usage.outputTokens += answer.outputTokens;
         const read = readAnswer(answer.text, job.type.schema);
         if (read.ok) {
           await log({ ...call, ...used, status: 'ok' });
-          return { data: read.data, provider: model.provider, model: model.model, attempt };
+          return { data: read.data, provider: model.provider, model: model.model, attempt, usage };
         }
+        usage.unusable++;
         await log({ ...call, ...used, status: 'invalid', error: `schema: ${read.problem}`.slice(0, 60) });
         lastProblem = 'schema';
       }
     }
     const providers = [...new Set(choices.map((c) => c.model.provider))];
-    throw new AiError('aiUnavailable', lastProblem, this.breaker.restLeft(providers.map(breakerKey)) || undefined);
+    throw new AiError(
+      'aiUnavailable',
+      lastProblem,
+      this.breaker.restLeft(providers.map(breakerKey)) || undefined,
+      usage,
+    );
   }
 
   /**

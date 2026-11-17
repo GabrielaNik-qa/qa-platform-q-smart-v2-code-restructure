@@ -92,6 +92,7 @@ export async function reviewTestItem(
       score: scored.score,
       waitMs: Date.now() - started,
       problem: result.data.injection ? 'injection' : null,
+      ...result.usage,
     };
   } catch (e) {
     if (!(e instanceof AiError)) throw e;
@@ -106,6 +107,7 @@ export async function reviewTestItem(
       score: null,
       waitMs: Date.now() - started,
       problem: `${e.code}${e.detail ? `: ${e.detail}` : ''}`.slice(0, 120),
+      ...(e.usage ?? {}),
     };
   }
   await withCompany(db, companyId, (tx) => addTestRun(tx, run));

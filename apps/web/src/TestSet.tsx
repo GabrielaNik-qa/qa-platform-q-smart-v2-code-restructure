@@ -34,10 +34,16 @@ interface ModelResult {
   byLanguage: Record<string, number | null>;
   scoreGap: number | null;
   waitMs: number | null;
+  qualified: boolean;
   passes: boolean;
+  itemsByLanguage: Record<string, number>;
+  missing: { total: number; byLanguage: Record<string, number> };
+  tokensPerReview: number | null;
+  expectedForm: number | null;
 }
 interface Overview {
   minItems: number;
+  minPerLanguage: number;
   bar: number;
   scored: number;
   scorecards: { id: string; name: string; categories: ScorecardCategory[] }[];
@@ -231,6 +237,9 @@ export function TestSet({ company }: { company: CompanyRef }) {
       <div className={`${card} grid gap-2`}>
         <h2 className="text-lg font-semibold">{t('autoqa.testSet.title')}</h2>
         <p className="text-sm text-mu">{t('autoqa.testSet.intro', { min: data.minItems, bar: data.bar })}</p>
+        <p className="text-sm text-mu">
+          {t('autoqa.testSet.fairNote', { min: data.minItems, perLanguage: data.minPerLanguage })}
+        </p>
         <p className="text-sm font-semibold">
           {t('autoqa.testSet.progress', { scored: data.scored, total: data.items.length })}
         </p>
@@ -255,6 +264,8 @@ export function TestSet({ company }: { company: CompanyRef }) {
                 ))}
                 <th className={th}>{t('autoqa.testSet.gap')}</th>
                 <th className={th}>{t('autoqa.testSet.wait')}</th>
+                <th className={th}>{t('autoqa.testSet.tokens')}</th>
+                <th className={th}>{t('autoqa.testSet.form')}</th>
                 <th className={th}>{t('autoqa.testSet.failed')}</th>
                 <th className={th}>{t('autoqa.testSet.verdict')}</th>
               </tr>
@@ -281,17 +292,32 @@ export function TestSet({ company }: { company: CompanyRef }) {
                   {LANGS.map((l) => (
                     <td key={l} className={`${td} font-mono`}>
                       {pct(m.byLanguage[l])}
+                      {(m.itemsByLanguage[l] ?? 0) > 0 && (
+                        <small className="block text-mu" title={t('autoqa.testSet.inLanguage')}>
+                          n={m.itemsByLanguage[l]}
+                        </small>
+                      )}
                     </td>
                   ))}
                   <td className={td}>{m.scoreGap === null ? '-' : t('autoqa.testSet.points', { n: m.scoreGap })}</td>
                   <td className={td}>
                     {m.waitMs === null ? '-' : t('ai.seconds', { n: (m.waitMs / 1000).toFixed(1) })}
                   </td>
+                  <td className={td}>{m.tokensPerReview === null ? '-' : m.tokensPerReview.toLocaleString()}</td>
+                  <td className={`${td} font-mono`}>{pct(m.expectedForm)}</td>
                   <td className={td}>{m.failed}</td>
                   <td className={td}>
-                    {m.items < data.minItems ? (
+                    {m.missing.total > 0 ? (
                       <span className="text-mu">
-                        {t('autoqa.testSet.notYet', { count: data.minItems - m.items, n: data.minItems - m.items })}
+                        {t('autoqa.testSet.notYet', { count: m.missing.total, n: m.missing.total })}
+                      </span>
+                    ) : !m.qualified ? (
+                      <span className="text-mu">
+                        {t('autoqa.testSet.notYetLanguage', {
+                          list: Object.entries(m.missing.byLanguage)
+                            .map(([l, n]) => `${n} ${l.toUpperCase()}`)
+                            .join(', '),
+                        })}
                       </span>
                     ) : m.passes ? (
                       <b className="text-ok">✓ {t('autoqa.testSet.passes')}</b>

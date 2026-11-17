@@ -186,7 +186,7 @@ describe('AutoQA AI reviews', () => {
 
   it('asks the AI once when the same review is asked for twice at the same moment (a double click)', async () => {
     mode = 'good';
-    slowMs = 300;
+    slowMs = 1500;
     const before = requests.length;
     const [first, second] = await Promise.all([aiReview(conversation), aiReview(conversation)]);
     slowMs = 0;

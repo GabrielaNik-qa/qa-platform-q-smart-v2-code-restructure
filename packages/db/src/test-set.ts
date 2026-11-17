@@ -40,6 +40,10 @@ export interface TestRun {
   score: number | null;
   waitMs: number;
   problem: string | null;
+  /** the tokens the review used, and the answers that came back not in the expected form (null: not measured) */
+  inputTokens?: number | null;
+  outputTokens?: number | null;
+  unusable?: number | null;
   createdAt: Date;
 }
 
@@ -163,4 +167,27 @@ export async function seedAutoqaTestSet(owner: Db): Promise<number> {
         .where(and(eq(aiTestItems.companyId, demo.id), eq(aiTestItems.key, i.key), isNull(aiTestItems.expected)));
     return added.length;
   });
+}
+
+/** Each model's measured use over all its test runs (since 17 November): tokens per good review, unusable answers. */
+export interface TestUsage {
+  modelId: string;
+  /** good runs with their tokens measured */
+  good: number;
+  tokens: number;
+  /** answers that came back in the expected form, and those that didn't, over every measured run */
+  usable: number;
+  unusable: number;
+}
+export async function testRunUsage(tx: Tx): Promise<TestUsage[]> {
+  return tx
+    .select({
+      modelId: aiTestRuns.modelId,
+      good: sql<number>`count(*) filter (where ${aiTestRuns.status} = 'ok' and ${aiTestRuns.inputTokens} is not null)::int`,
+      tokens: sql<number>`coalesce(sum(${aiTestRuns.inputTokens} + ${aiTestRuns.outputTokens}) filter (where ${aiTestRuns.status} = 'ok'), 0)::int`,
+      usable: sql<number>`count(*) filter (where ${aiTestRuns.status} = 'ok' and ${aiTestRuns.unusable} is not null)::int`,
+      unusable: sql<number>`coalesce(sum(${aiTestRuns.unusable}), 0)::int`,
+    })
+    .from(aiTestRuns)
+    .groupBy(aiTestRuns.modelId);
 }
