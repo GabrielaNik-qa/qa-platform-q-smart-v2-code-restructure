@@ -246,18 +246,23 @@ The rule for clients costs little: a small paid model costs well under one cent 
 
 "All for everywhere" means: each AI company is offered for every task it can technically do. The data rules above still apply per task: a plan that may not receive clients' data (for example ElevenLabs below Enterprise for agents' real voices, or a free plan with training on) is shown greyed out for those tasks, with the reason.
 
-**Who chooses which AI is used (17 November):**
-- **You, as Q-smart's owner** (the owner area): which AI companies and models are offered to client companies at all, switched on or off one by one, with a "recommended" mark. When one option becomes your clear favourite, you can switch the others off one day: the companies that used them move to their next choice and are told.
-- **Each company's admin**, in Admin › AI › Tasks: **a drop-down per task** (AutoQA, AI evaluations, the AI agents, coaching, analytics, Quinn, speech to text, Q Trainer's voice): "Automatic (recommended): the cheapest that passes the test set", or one chosen AI company and model, plus the order of the fallbacks. Only the options you allow, and that the company has connected, are listed. A company may connect its own key with an AI company, or use Q-smart's account as part of its AI add-on (section 6).
-- The pages never need rewriting when a model changes: the choices live in the AI engine's catalogue and in each company's settings.
+**Q-smart is the mediator: clients use Q-smart's AI, never the AI companies behind it (your decision, 17 November, later the same day).**
+- **Clients never see which AI companies or models Q-smart uses**, in the app or its reports. They know Q-smart is an AI-supported app with AI features. They don't connect their own keys and don't pay any AI company: Q-smart's own accounts serve every company, and AI is part of Q-smart's price and add-ons (section 6).
+- **Effort levels instead of models:** every AI task has an effort level, **light, standard or thorough** (like small, medium and large models). Behind each level, in the owner area only, you choose which models serve it and in which order, and the default level of each task, after the test sets show which level is good enough for each task. The engine still uses the cheapest model of that level that passes, and the next one if it is down.
+- **You, as Q-smart's owner** (the owner area): Q-smart's own AI accounts and keys (stored encrypted); which AI companies and models are used at all, switched on or off one by one, with a "recommended" mark (built 17 November); the models behind each effort level; each task's level; and the test sets and accuracy per model.
+- **Clients don't need to know which answers come from AI** and which from rules and keywords (Quinn, the Help Center, the reports): most reports need no AI. Two things stay visible by law and by your own rules:
+  - **AI reviews stay marked as AI**, with their accuracy against the reviewers' scores, and agents may dispute them. Pay, bonuses and warnings never rest on them alone (the AI rules above). The EU AI Act and GDPR article 22 require telling people when an automated system judges their work.
+  - **Quinn says it is an AI assistant** (EU AI Act, article 50: people must know when they talk to an AI).
+- **The AI companies are named in the data agreement with each client, not in the app:** GDPR article 28 requires a processor to list its sub-processors (the AI companies that receive the client's data) and to tell the client before adding one. That list lives in the legal documents (Phase 7, GDPR › sub-processors), checked by the lawyer before the first client.
+- The pages never need rewriting when a model changes: the choices live in the AI engine's catalogue and the owner's settings.
 
-**Admin › AI, better organised (17 November):** one AI area with tabs:
-- **Overview:** each AI company's status light (available, approaching a limit, limit reached, unavailable), today's use and the latest problems;
-- **AI companies:** connect (the key, stored encrypted), plan, test, and a short summary of each company's data terms with their sources;
-- **Tasks:** the drop-downs above;
-- **Usage & limits:** this month's use and cost, per task, team and AI company; the monthly limits; the free plans' allowances;
-- **Rules:** AI on or off, "EU only", paid plans allowed or not, the AI reviews' rules;
-- **Quality:** each model's accuracy per task (the test sets: AutoQA's first) and its reply time and failures.
+**Admin › AI for a client company, simpler (17 November):** no AI company or model names anywhere:
+- **Overview:** whether AI is working normally, today's use per AI task, and recent problems in plain words;
+- **Usage & limits:** this month's use per task and team, against the company's AI allowance and monthly limits;
+- **Rules:** AI on or off, "EU only", the AI reviews' rules (announced to agents, channels, the brake);
+- **Quality:** AutoQA's accuracy against the company's own reviewers (as today on the AutoQA page).
+
+**The owner area's AI part:** Q-smart's AI accounts (keys, plans, tests, each company's data terms with their sources), the models offered and recommended, the effort levels and each task's level, the free plans' allowances and limits, the test sets with every model's results (AutoQA's test set moves here from AutoQA), and AI use and cost per client company.
 
 **Voices and speech work the same way:**
 - **Q Trainer's customer voice:** always a natural voice, chosen per company from the voices of ElevenLabs, Microsoft Azure Speech and Mistral (17 November; the table above), after a listening test in English, Bulgarian and French. ElevenLabs' free plan forbids commercial use and its data agreement is only on Enterprise; Microsoft has Bulgarian voices and a free monthly allowance. The browser's own voice is only a back-up while building, never shown to clients (5 Nov, evening; section 9).
@@ -359,6 +364,14 @@ Built as decided on 4 November, and as you asked in your notes: **it works only 
 - Each company connects its own accounts. The keys are stored encrypted, and nobody pastes keys into chats or files.
 - New conversations arrive by themselves (webhooks), and sampling rules decide which ones get a transcript and an AutoQA score.
 - When there's no ready transcript, a speech-to-text service (about $0.10-$0.40 per hour of audio) transcribes the recording from its link, without the audio passing through our storage.
+
+**Added on 17 November** (from your questions, and from trying one call in the QA app you use at work):
+- **Only calls of a minimum length enter:** each company sets "calls shorter than [ ] seconds don't enter the app" (any number, changeable at any time; empty: all calls). Shorter calls never become conversations, are never scored and never count in averages; the app shows how many were left out. Chats and e-mails always enter. (The setting itself is built in Phase 5, with the AI choices.)
+- **Listening without storing:** "Listen" plays the recording from the phone system's own link; Q-smart keeps no audio (the app you use at work keeps recordings 90 days; Q-smart keeps none).
+- **Transcribe again, even months later:** while the phone system still has the recording, a "Transcribe again" button fetches the audio through the company's connection to it, makes a new transcript and discards the audio; the transcript is deleted again after the company's chosen days. Until a phone system is connected, uploading the recording again does the same.
+- **No conversation, no score:** before any AI score, a quick check marks calls without a real conversation, "No answer" (no speech, or a few seconds) and "Voicemail" (one voice, a voicemail greeting). They are not scored, never count as 0% or 100%, and are counted apart. (In the app you use at work, a voicemail's scorecard starts at 100%.)
+- **A calls-to-review list:** statuses (to review, listening, escalated, dismissed), priority and the phone system's own flags; in Q-smart, AutoQA's findings set the priority.
+- **Better transcripts:** the call's language chosen by the company (better than auto-detect on poor audio); a **shared vocabulary** per company (names, brands, offer names) given to speech to text; the two speakers split (stereo channels, or our speaker separation); comparing two speech-to-text models on the same call (in the owner area, for the test sets); **topic highlights** each company sets (for example "recording consent", "responsible gaming"); and translating a transcript.
 
 **Transcripts: the cheapest source first (your idea of 5 November, evening):**
 1. **The platform's own transcript**, when the company has one and its language is supported. It costs us nothing. Voiso has them (18 languages, not Bulgarian), Ringover has them (whether its API gives them is to check), and Modjo's can be read through its API with a key from Modjo's *Settings › Integrations › API* (other tools already take Modjo's transcripts this way, without the audio).
