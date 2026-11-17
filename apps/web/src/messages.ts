@@ -61,6 +61,17 @@ const en = {
     signOut: 'Sign out',
   },
   platform: {
+    ai: {
+      title: 'AI offered to client companies',
+      intro:
+        'Switch an AI model off and no company can use it; it disappears from their choices. The star marks your recommended one. Each company still chooses among the models you offer and connects its own key, or uses Q-smart’s.',
+      noTrain: 'its terms forbid training on what we send, with a data agreement',
+      termsOpen: 'its data terms are not confirmed yet: not used for any data until they are',
+      kind: { text: 'text AI', speech: 'speech to text' },
+      recommend: 'Recommend',
+      recommended: 'Recommended',
+      saved: 'Saved.',
+    },
     title: 'Platform owner area',
     intro: 'Only you, as the owner of Q-smart, see this: all client companies, and a new one with its first admin.',
     company: 'Company',
@@ -3392,6 +3403,17 @@ const bg: Messages = {
     signOut: 'Изход',
   },
   platform: {
+    ai: {
+      title: 'ИИ, предлаган на клиентските компании',
+      intro:
+        'Изключете модел на ИИ и никоя компания не може да го използва; той изчезва от избора ѝ. Звездата отбелязва препоръчания от вас. Всяка компания избира сред моделите, които предлагате, и свързва свой ключ или използва този на Q-smart.',
+      noTrain: 'условията му забраняват обучение с изпратеното, със споразумение за данните',
+      termsOpen: 'условията му за данните още не са потвърдени: не се използва за никакви данни, докато не бъдат',
+      kind: { text: 'текстов ИИ', speech: 'реч в текст' },
+      recommend: 'Препоръчай',
+      recommended: 'Препоръчан',
+      saved: 'Запазено.',
+    },
     title: 'Собственик на платформата',
     intro:
       'Само вие, като собственик на Q-smart, виждате това: всички клиентски компании и нова компания с първия ѝ администратор.',
@@ -6906,6 +6928,18 @@ const fr: Messages = {
     signOut: 'Se déconnecter',
   },
   platform: {
+    ai: {
+      title: 'IA proposée aux entreprises clientes',
+      intro:
+        'Désactivez un modèle d’IA et aucune entreprise ne peut l’utiliser ; il disparaît de leurs choix. L’étoile marque celui que vous recommandez. Chaque entreprise choisit parmi les modèles que vous proposez et connecte sa propre clé, ou utilise celle de Q-smart.',
+      noTrain: 'ses conditions interdisent l’entraînement sur ce que nous envoyons, avec un accord sur les données',
+      termsOpen:
+        'ses conditions sur les données ne sont pas encore confirmées : non utilisé pour aucune donnée d’ici là',
+      kind: { text: 'IA texte', speech: 'parole en texte' },
+      recommend: 'Recommander',
+      recommended: 'Recommandé',
+      saved: 'Enregistré.',
+    },
     title: 'Espace propriétaire de la plateforme',
     intro:
       'Vous seul, propriétaire de Q-smart, voyez ceci : toutes les entreprises clientes, et une nouvelle avec son premier administrateur.',

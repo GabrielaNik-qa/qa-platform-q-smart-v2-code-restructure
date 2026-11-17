@@ -4,6 +4,12 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## Phase 5 (Learning & Tools): in progress on branch `v2-phase-5`
 
+- **AI choices, step 1: you choose which AI models client companies may use** (your decision of 17 November; the plan's section 7):
+  - **Owner area › AI offered to client companies:** every AI company's models, each with an on/off switch and a "Recommended" star. A model you switch off is never used by any company (the AI engine leaves it out, also as a fallback) and will disappear from their choices; a model can't be recommended while it is off.
+  - **Safe like the rest of the owner area:** the list is changed only through a database function that checks again, inside the database, that you are the owner; every company's AI engine may read it, and nobody can change it directly.
+  - **Checked in the browser:** as owner, Llama 3.3 switched off and Groq's gpt-oss-120b recommended, then both put back; no request failed. The owner area has no language switch, so its Bulgarian and French texts are checked by the automatic tests only.
+  - 3 new automatic tests (only the owner may change it, and not directly; the engine skips a switched-off model; the owner's routes); 367 pass.
+
 - **AI, step 4: a cache for identical AI requests, ready but not used by AutoQA:**
   - **How it works:** a task may allow the AI engine to keep an answer for a set time; the very same request (the same task, instructions, data and language) is then answered with the kept answer, without asking the AI, until it expires. Only a fingerprint of the request is kept (SHA-256), never the request itself. Each company only finds its own answers (behind the company wall, and the company is part of the fingerprint). Never for the test set or Admin › AI's Test (one chosen model or AI company), and never while the company's AI is switched off. Each answer from the cache is in the AI log ("From the cache", no tokens, no cost), with a new column in Admin › AI usage limits › Today, per AI task.
   - **Not used by AutoQA, on purpose:** a person who presses "Score again" wants a new answer, and an automatic test showed the cache would have handed back the previous one. Two clicks at the same moment are already stopped (step 2). Quinn and the Help Center's answers will use it (Phases 5 and 8), where the same question should get the same kept answer.

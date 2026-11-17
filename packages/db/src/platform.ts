@@ -2,6 +2,7 @@
 // inside the database, that the given Firebase account (verified by the server) is a platform owner.
 import { sql } from 'drizzle-orm';
 import type { Db } from './client.js';
+import type { Tx } from './company.js';
 
 export async function isPlatformAdmin(db: Db, firebaseUid: string): Promise<boolean> {
   const result = await db.execute<{ yes: boolean }>(sql`select is_platform_admin(${firebaseUid}) as yes`);
@@ -41,4 +42,23 @@ export async function platformCreateCompany(
   const id = result.rows[0]?.id;
   if (!id) throw new Error('The company was not created.');
   return id;
+}
+
+/** The owner's choices of AI models offered to client companies (models missing from it are offered). */
+export interface AiOffer {
+  modelId: string;
+  offered: boolean;
+  recommended: boolean;
+}
+export async function listAiOffers(db: Db | Tx): Promise<AiOffer[]> {
+  const result = await db.execute<{ model_id: string; offered: boolean; recommended: boolean }>(
+    sql`select model_id, offered, recommended from ai_offers order by model_id`,
+  );
+  return result.rows.map((r) => ({ modelId: r.model_id, offered: r.offered, recommended: r.recommended }));
+}
+/** The owner switches a model on or off for client companies, and marks it recommended (checked in the database). */
+export async function platformSetAiOffer(db: Db, firebaseUid: string, offer: AiOffer): Promise<void> {
+  await db.execute(
+    sql`select platform_set_ai_offer(${firebaseUid}, ${offer.modelId}, ${offer.offered}, ${offer.recommended})`,
+  );
 }

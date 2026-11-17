@@ -17,7 +17,7 @@ import {
   startLocalPostgres,
   withCompany,
 } from '@qsmart/db';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { PROVIDERS, type Catalogue, type ModelInfo } from './catalogue.js';
@@ -278,6 +278,18 @@ describe('the AI engine', () => {
     }
     expect(pretend.calls).toEqual(['b9']); // the second was never sent
     expect((await lastCalls(1))[0]).toMatchObject({ status: 'unavailable', error: 'paced' });
+  });
+
+  it('never uses a model Q-smart’s owner switched off for client companies', async () => {
+    await owner.execute(sql`insert into ai_offers (model_id, offered) values ('beta/b1', false)`);
+    try {
+      const { engine, pretend } = engineWith();
+      // b1 (free) would go first; switched off, the next one answers
+      expect(await engine.run(demo())).toMatchObject({ model: 'a1' });
+      expect(pretend.calls).not.toContain('b1');
+    } finally {
+      await owner.execute(sql`delete from ai_offers`);
+    }
   });
 
   it('says the AI is not available when every model fails, and records each try', async () => {

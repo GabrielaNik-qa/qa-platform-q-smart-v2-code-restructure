@@ -456,6 +456,20 @@
       "when": 1794901710285,
       "tag": "0064_ai_cache",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1794905450662,
+      "tag": "0065_ai_offers_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1794905452777,
+      "tag": "0066_ai_offers",
+      "breakpoints": true
     }
   ]
 }

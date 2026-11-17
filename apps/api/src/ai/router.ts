@@ -26,6 +26,8 @@ export interface Choice {
 
 export type Skip =
   | 'unknown'
+  /** switched off by Q-smart's owner for every client company */
+  | 'notOffered'
   | 'terms'
   | 'noAccount'
   | 'paid'
@@ -61,6 +63,8 @@ export interface RouteInput {
   /** a model's test-set score for a job type (0-100), when it has one */
   quality: (modelId: string, feature: string) => number | undefined;
   resting: (provider: string) => boolean;
+  /** whether Q-smart's owner offers this model to client companies (missing: offered) */
+  offered?: (modelId: string) => boolean;
 }
 
 export function route(input: RouteInput): Routing {
@@ -73,6 +77,7 @@ export function route(input: RouteInput): Routing {
     const account = model && input.accounts.find((a) => a.provider === model.provider);
     const why = ((): Skip | null => {
       if (!model || !provider) return 'unknown';
+      if (input.offered && !input.offered(model.id)) return 'notOffered';
       if (provider.terms !== 'no-train-dpa') return 'terms';
       if (!account) return 'noAccount';
       if (account.plan === 'paid' && !rules.allowPaid) return 'paid';

@@ -127,6 +127,28 @@ describe('the server', () => {
     expect(list.json().map((c: { name: string }) => c.name)).toEqual([DEMO_COMPANY, SECOND_COMPANY]);
   });
 
+  it('lets the owner choose which AI models client companies may use', async () => {
+    const put = (token: string, payload: object) =>
+      app.inject({
+        method: 'PUT',
+        url: '/api/platform/ai-models',
+        headers: { authorization: `Bearer ${token}` },
+        payload,
+      });
+    expect((await get('/api/platform/ai-models', 'token-admin')).statusCode).toBe(403);
+    expect((await put('token-admin', { modelId: 'groq/openai/gpt-oss-20b', offered: false })).statusCode).toBe(403);
+    const list = (await get('/api/platform/ai-models', 'token-owner')).json<{
+      models: { id: string; offered: boolean; recommended: boolean }[];
+    }>();
+    expect(list.models.every((m) => m.offered)).toBe(true);
+    expect((await put('token-owner', { modelId: 'someone/else', offered: false })).statusCode).toBe(400);
+    const after = (
+      await put('token-owner', { modelId: 'groq/openai/gpt-oss-120b', offered: true, recommended: true })
+    ).json<{ models: { id: string; recommended: boolean }[] }>();
+    expect(after.models.find((m) => m.id === 'groq/openai/gpt-oss-120b')?.recommended).toBe(true);
+    await put('token-owner', { modelId: 'groq/openai/gpt-oss-120b', offered: true, recommended: false });
+  });
+
   it('creates a client company whose first admin gets it at their first sign-in', async () => {
     const create = (token: string, payload: object) =>
       app.inject({

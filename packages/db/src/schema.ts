@@ -1369,6 +1369,20 @@ export interface OutcomeCheck {
 }
 
 /**
+ * Which AI models Q-smart offers to client companies (the owner area; 17 November): a model switched off here is never
+ * used by any company and isn't listed in their choices; "recommended" is the owner's own pick. A model missing from
+ * this table is offered (the catalogue's default). Not a company table: every company's AI engine may read it, and only
+ * the owner changes it, through platform_set_ai_offer (migrations), which checks again that they are the owner.
+ */
+export const aiOffers = pgTable('ai_offers', {
+  /** the catalogue's model id, e.g. groq/openai/gpt-oss-120b */
+  modelId: text('model_id').primaryKey(),
+  offered: boolean('offered').notNull().default(true),
+  recommended: boolean('recommended').notNull().default(false),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * The AI engine's cache (Phase 5, AI step 4): an AI answer kept for a short time, so the very same request (the same
  * task, instructions, data and language) is not sent twice. Only for the tasks that allow it, each with its own time
  * (none yet: AutoQA must ask the AI again on "Score again"; Quinn and the Help Center's answers will). The request

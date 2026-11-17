@@ -3,7 +3,13 @@ import { and, eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createDb, type Db } from './client.js';
 import { claimInvitation, membershipsFor, withCompany } from './company.js';
-import { isPlatformAdmin, platformCompanies, platformCreateCompany } from './platform.js';
+import {
+  isPlatformAdmin,
+  listAiOffers,
+  platformCompanies,
+  platformCreateCompany,
+  platformSetAiOffer,
+} from './platform.js';
 import { startLocalPostgres, type LocalPostgres } from './local-postgres.js';
 import { runMigrations } from './migrate.js';
 import {
@@ -200,6 +206,24 @@ describe('the platform owner area', () => {
     expect(await platformCompanies(app, 'uid-ann')).toEqual([]);
     expect(await isPlatformAdmin(app, 'uid-owner')).toBe(true);
     expect(await isPlatformAdmin(app, 'uid-ann')).toBe(false);
+  });
+
+  it('lets only the owner choose the AI models offered to client companies; everyone may read them', async () => {
+    const offer = { modelId: 'groq/openai/gpt-oss-20b', offered: false, recommended: false };
+    expect(await refusal(platformSetAiOffer(app, 'uid-ann', offer))).toBe('42501');
+    expect(await refusal(app.execute(sql`insert into ai_offers (model_id) values ('groq/x')`))).toBe('42501');
+    await platformSetAiOffer(app, 'uid-owner', offer);
+    // a model switched off can't be recommended
+    await platformSetAiOffer(app, 'uid-owner', {
+      modelId: 'groq/openai/gpt-oss-120b',
+      offered: false,
+      recommended: true,
+    });
+    expect(await listAiOffers(app)).toEqual([
+      { modelId: 'groq/openai/gpt-oss-120b', offered: false, recommended: false },
+      { modelId: 'groq/openai/gpt-oss-20b', offered: false, recommended: false },
+    ]);
+    expect(await refusal(app.execute(sql`update ai_offers set offered = true`))).toBe('42501');
   });
 
   it('creates a client company with its Administration team and first admin, for the owner only', async () => {

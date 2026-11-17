@@ -19,6 +19,7 @@ import {
   aiUseThisMonth,
   aiUseWindow,
   getCachedAnswer,
+  listAiOffers,
   listSeenLimits,
   putCachedAnswer,
   type Db,
@@ -187,7 +188,8 @@ export class AiEngine {
         job.type.minQuality !== undefined && !job.onlyModel && this.parts.qualities
           ? await this.parts.qualities(tx, job.type.feature)
           : new Map<string, number>();
-      return { rules, accounts, qualities };
+      const offers = await listAiOffers(tx);
+      return { rules, accounts, qualities, offers };
     });
     if (ready === 'off' || ready === 'limit') {
       await log({ ...blank, status: ready });
@@ -209,6 +211,8 @@ export class AiEngine {
       catalogue: this.catalogue,
       quality: (modelId) => ready.qualities.get(modelId),
       resting: (provider) => this.breaker.resting(breakerKey(provider)),
+      // the owner's switches: a model they switched off is never used by any company
+      offered: (modelId) => ready.offers.find((o) => o.modelId === modelId)?.offered ?? true,
     });
     if (!routing.choices.length) {
       const resting = Object.values(routing.skipped).includes('resting');

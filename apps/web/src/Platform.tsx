@@ -10,8 +10,115 @@ interface PlatformCompany {
   admins: number;
 }
 
-/** The platform owner area (only for the owner of Q-smart): all client companies, and a new one. */
+/** The platform owner area (only for the owner of Q-smart): all client companies, and the AI they may use. */
 export function Platform() {
+  return (
+    <div className="grid gap-4">
+      <Companies />
+      <AiOffers />
+    </div>
+  );
+}
+
+interface OfferedModel {
+  id: string;
+  provider: string;
+  model: string;
+  kind?: 'text' | 'speech';
+  offered: boolean;
+  recommended: boolean;
+}
+interface OfferList {
+  providers: { id: string; name: string; terms: string; freePlan: boolean; checked: string }[];
+  models: OfferedModel[];
+}
+
+/**
+ * Which AI companies' models Q-smart offers to client companies (17 November): a model switched off is never used by
+ * any company and isn't listed in their choices; the star is the owner's recommended pick.
+ */
+function AiOffers() {
+  const { t } = useTranslation();
+  const [data, setData] = useState<OfferList | null>(null);
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  useEffect(() => {
+    api<OfferList>('/platform/ai-models').then(setData, (e: unknown) =>
+      setMessage({ ok: false, text: errorText(t, e) }),
+    );
+  }, [t]);
+  async function set(m: OfferedModel, change: Partial<Pick<OfferedModel, 'offered' | 'recommended'>>) {
+    setMessage(null);
+    try {
+      const next = { offered: m.offered, recommended: m.recommended, ...change };
+      setData(
+        await api<OfferList>('/platform/ai-models', undefined, {
+          method: 'PUT',
+          body: { modelId: m.id, offered: next.offered, recommended: next.offered && next.recommended },
+        }),
+      );
+      setMessage({ ok: true, text: t('platform.ai.saved') });
+    } catch (e) {
+      setMessage({ ok: false, text: errorText(t, e) });
+    }
+  }
+  return (
+    <section className="bg-pn border border-bd rounded-m p-5 grid gap-4" aria-labelledby="platform-ai-title">
+      <div>
+        <h2 id="platform-ai-title" className="font-display text-xl font-bold">
+          {t('platform.ai.title')}
+        </h2>
+        <p className="text-sm text-mu">{t('platform.ai.intro')}</p>
+      </div>
+      {!data && !message && <p className="text-mu">{t('common.loading')}</p>}
+      {data?.providers.map((p) => (
+        <div key={p.id} className="grid gap-1">
+          <h3 className="font-semibold">
+            {p.name}{' '}
+            <small className="font-normal text-mu">
+              {p.terms === 'no-train-dpa' ? t('platform.ai.noTrain') : t('platform.ai.termsOpen')}
+            </small>
+          </h3>
+          <ul className="grid gap-1">
+            {data.models
+              .filter((m) => m.provider === p.id)
+              .map((m) => (
+                <li key={m.id} className="flex flex-wrap items-center gap-3 border-t border-bd py-1.5 text-sm">
+                  <label className="inline-flex flex-1 items-center gap-2">
+                    <input
+                      type="checkbox"
+                      className="accent-[var(--brand)]"
+                      checked={m.offered}
+                      onChange={(e) => void set(m, { offered: e.target.checked })}
+                    />
+                    <span className="font-mono text-xs">{m.model}</span>
+                    <small className="text-mu">{t(`platform.ai.kind.${m.kind ?? 'text'}`)}</small>
+                  </label>
+                  <button
+                    type="button"
+                    disabled={!m.offered}
+                    aria-pressed={m.recommended}
+                    title={t('platform.ai.recommend')}
+                    className={`rounded-full border px-2 text-xs font-semibold disabled:opacity-40 ${m.recommended ? 'border-wn bg-wn/15 text-wn' : 'border-bd text-mu hover:text-tx'}`}
+                    onClick={() => void set(m, { recommended: !m.recommended })}
+                  >
+                    ★ {m.recommended ? t('platform.ai.recommended') : t('platform.ai.recommend')}
+                  </button>
+                </li>
+              ))}
+          </ul>
+        </div>
+      ))}
+      {message && (
+        <p role={message.ok ? 'status' : 'alert'} className={`text-sm ${message.ok ? 'text-ok' : 'text-bad'}`}>
+          {message.text}
+        </p>
+      )}
+    </section>
+  );
+}
+
+/** All client companies, and a new one with its first admin invited. */
+function Companies() {
   const { t, i18n } = useTranslation();
   const [companies, setCompanies] = useState<PlatformCompany[] | null>(null);
   const [name, setName] = useState('');
