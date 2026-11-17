@@ -21,6 +21,11 @@ export interface JobType<T = unknown> {
   minQuality?: number;
   /** the models to choose from, best first (the engine still picks the cheapest that passes everything) */
   candidates: string[];
+  /**
+   * How long the very same request may be answered from the cache, without asking the AI again (none: never). Keep it
+   * short when the answer quotes a client's data.
+   */
+  cacheMs?: number;
 }
 
 /** Admin › AI's "Test" button: one short answer, to see that a key works. No company data in it. */

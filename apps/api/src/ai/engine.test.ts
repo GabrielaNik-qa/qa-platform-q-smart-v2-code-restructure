@@ -368,4 +368,35 @@ describe('the AI engine', () => {
         /permission denied/,
       );
   });
+
+  it('answers the very same request from the cache, for its own company only, and never while the AI is off', async () => {
+    const cachedJob = { ...job, feature: 'test.cached', cacheMs: 1500 };
+    const { engine, pretend } = engineWith();
+    const ask = (over: Partial<AiJob<{ reply: string }>> = {}) =>
+      engine.run(demo({ type: cachedJob, prompt: 'The same question', ...over }));
+    const first = await ask();
+    expect(first.cached).toBeUndefined();
+    const second = await ask();
+    expect(second).toMatchObject({ cached: true, data: first.data, usage: { inputTokens: 0, outputTokens: 0 } });
+    expect(pretend.calls).toHaveLength(1);
+    expect((await lastCalls(1))[0]).toMatchObject({ status: 'cached', inputTokens: 0, costMicroUsd: 0 });
+    // another question is asked; another company never gets this company's answer; one chosen model never uses it
+    await ask({ prompt: 'Another question' });
+    await ask({ companyId: company[SECOND_COMPANY] ?? '', teamId: null });
+    await ask({ onlyModel: 'beta/b1' });
+    expect(pretend.calls).toHaveLength(4);
+    // the AI switched off: not even the cache answers
+    await setRules({ enabled: false });
+    expect(await failsWith(ask())).toBe('aiOff');
+    await setRules({});
+    // only a fingerprint of the request is kept, and only behind the company's wall
+    const kept = await withCompany(db, company[DEMO_COMPANY] ?? '', (tx) => tx.select().from(schema.aiCache));
+    expect(kept.length).toBeGreaterThan(0);
+    expect(JSON.stringify(kept)).not.toContain('The same question');
+    expect(kept.every((k) => /^[0-9a-f]{64}$/.test(k.key))).toBe(true);
+    // after its time, the AI is asked again
+    await new Promise((r) => setTimeout(r, 2100));
+    await ask();
+    expect(pretend.calls).toHaveLength(5);
+  });
 });

@@ -1369,6 +1369,31 @@ export interface OutcomeCheck {
 }
 
 /**
+ * The AI engine's cache (Phase 5, AI step 4): an AI answer kept for a short time, so the very same request (the same
+ * task, instructions, data and language) is not sent twice. Only for the tasks that allow it, each with its own time
+ * (none yet: AutoQA must ask the AI again on "Score again"; Quinn and the Help Center's answers will). The request
+ * itself is never kept: only a fingerprint of it (SHA-256). Behind the company wall: a company only finds its own.
+ */
+export const aiCache = pgTable(
+  'ai_cache',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    /** the request's fingerprint (SHA-256, hex) */
+    key: text('key').notNull(),
+    feature: text('feature').notNull(),
+    provider: text('provider').notNull(),
+    model: text('model').notNull(),
+    data: jsonb('data').notNull(),
+    createdAt: createdAt(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [uniqueIndex('ai_cache_key').on(t.companyId, t.key), index('ai_cache_expiry').on(t.expiresAt)],
+);
+
+/**
  * Admin › AI › AI usage limits, "Free allowance": the latest figures an AI company sent about its limits (Groq sends
  * them with every answer: requests and tokens, what is left and when it resets), per model. Nothing else is kept.
  */

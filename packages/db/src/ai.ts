@@ -2,7 +2,16 @@
 // sent to the AI or what it answered: only who, what for, which model, how much and how it went.
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import type { Tx } from './company.js';
-import { aiAccounts, aiCalls, type AiLimits, aiLimitsSeen, type AiReviewRules, aiSettings, teams } from './schema.js';
+import {
+  aiAccounts,
+  aiCache,
+  aiCalls,
+  type AiLimits,
+  aiLimitsSeen,
+  type AiReviewRules,
+  aiSettings,
+  teams,
+} from './schema.js';
 
 const thisCompany = sql<string>`app_company()`;
 
@@ -40,7 +49,17 @@ export async function saveAiRules(tx: Tx, change: Partial<AiRules>): Promise<voi
 }
 
 export type AiCallStatus =
-  'ok' | 'invalid' | 'error' | 'timeout' | 'rateLimit' | 'off' | 'limit' | 'noModel' | 'unavailable';
+  | 'ok'
+  | 'invalid'
+  | 'error'
+  | 'timeout'
+  | 'rateLimit'
+  | 'off'
+  | 'limit'
+  | 'noModel'
+  | 'unavailable'
+  /** answered from the cache: the AI was not asked */
+  | 'cached';
 
 export interface AiCall {
   teamId: string | null;
@@ -273,6 +292,8 @@ export interface AiTaskToday {
   feature: string;
   calls: number;
   failed: number;
+  /** answered from the cache, without asking the AI */
+  cached: number;
   inputTokens: number;
   outputTokens: number;
   audioSeconds: number;
@@ -283,7 +304,8 @@ export async function aiUseByTaskToday(tx: Tx): Promise<AiTaskToday[]> {
     .select({
       feature: aiCalls.feature,
       calls: sql<number>`count(*) filter (where ${aiCalls.status} in ('ok', 'invalid'))::int`,
-      failed: sql<number>`count(*) filter (where ${aiCalls.status} not in ('ok', 'invalid'))::int`,
+      failed: sql<number>`count(*) filter (where ${aiCalls.status} not in ('ok', 'invalid', 'cached'))::int`,
+      cached: sql<number>`count(*) filter (where ${aiCalls.status} = 'cached')::int`,
       inputTokens: sql<number>`coalesce(sum(${aiCalls.inputTokens}), 0)::int`,
       outputTokens: sql<number>`coalesce(sum(${aiCalls.outputTokens}), 0)::int`,
       audioSeconds: sql<number>`coalesce(sum(${aiCalls.audioSeconds}), 0)::int`,
@@ -300,8 +322,47 @@ export async function listAiErrors(tx: Tx, limit = 20): Promise<AiCallRow[]> {
   const rows = await tx
     .select()
     .from(aiCalls)
-    .where(sql`${aiCalls.status} <> 'ok'`)
+    .where(sql`${aiCalls.status} not in ('ok', 'cached')`)
     .orderBy(desc(aiCalls.createdAt))
     .limit(limit);
   return rows.map(({ companyId: _c, ...r }) => ({ ...r, dataClass: r.dataClass as AiCall['dataClass'] }) as AiCallRow);
+}
+
+// ---------------------------------------------------------------------------------------------- the cache (Phase 5)
+
+export interface CachedAnswer {
+  provider: string;
+  model: string;
+  data: unknown;
+}
+/** A kept answer for this fingerprint, if it hasn't expired. */
+export async function getCachedAnswer(tx: Tx, key: string): Promise<CachedAnswer | undefined> {
+  const [row] = await tx
+    .select({ provider: aiCache.provider, model: aiCache.model, data: aiCache.data })
+    .from(aiCache)
+    .where(and(eq(aiCache.key, key), sql`${aiCache.expiresAt} > now()`));
+  return row;
+}
+/** Keeps an answer for a while, and removes the company's expired ones. */
+export async function putCachedAnswer(
+  tx: Tx,
+  input: { key: string; feature: string; provider: string; model: string; data: unknown; ttlMs: number },
+): Promise<void> {
+  await tx.delete(aiCache).where(sql`${aiCache.expiresAt} <= now()`);
+  const expiresAt = sql`now() + ${sql.raw(`interval '${Math.max(1, Math.round(input.ttlMs / 1000))} seconds'`)}`;
+  await tx
+    .insert(aiCache)
+    .values({
+      companyId: thisCompany,
+      key: input.key,
+      feature: input.feature,
+      provider: input.provider,
+      model: input.model,
+      data: input.data,
+      expiresAt,
+    })
+    .onConflictDoUpdate({
+      target: [aiCache.companyId, aiCache.key],
+      set: { provider: input.provider, model: input.model, data: input.data, createdAt: sql`now()`, expiresAt },
+    });
 }

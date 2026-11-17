@@ -8,6 +8,9 @@
 // 4. records every call and every refusal (never what was sent or answered).
 // Before a call goes out on a free plan, its limits are checked (pacing.ts): a model whose requests or tokens per
 // minute or per day would go over is skipped, and when every model must wait, the job says how long.
+// A job type may allow the cache (jobs.ts, cacheMs): the very same request is then answered with the kept answer,
+// without asking the AI, until it expires; only a fingerprint of the request is kept, behind the company wall. Never
+// for one chosen model or AI company (the test set, Admin › AI's Test), and never while the company's AI is off.
 // When no model can answer, the job fails with a clear code and everything else in Q-smart keeps working.
 import {
   type AiCall,
@@ -15,7 +18,9 @@ import {
   type AiUse,
   aiUseThisMonth,
   aiUseWindow,
+  getCachedAnswer,
   listSeenLimits,
+  putCachedAnswer,
   type Db,
   getAiRules,
   teamExists,
@@ -25,6 +30,7 @@ import {
   withCompany,
 } from '@qsmart/db';
 import type { ErrorCode, Language } from '@qsmart/shared';
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { CATALOGUE, type Catalogue } from './catalogue.js';
 import type { JobType } from './jobs.js';
@@ -59,6 +65,8 @@ export interface AiResult<T> {
   attempt: number;
   /** everything this job used: the tokens of every call (the unusable answers too), and the answers that didn't fit */
   usage: JobUsage;
+  /** answered from the cache: the AI was not asked */
+  cached?: boolean;
 }
 export interface JobUsage {
   inputTokens: number;
@@ -241,6 +249,39 @@ export class AiEngine {
     const { blank, log } = this.logging(job);
     const breakerKey = (provider: string) => `${job.companyId}:${provider}`;
     const inputTokens = estimateTokens(job.system) + estimateTokens(job.prompt);
+    // the cache: the very same request, kept for a while (only a fingerprint of it is stored)
+    const cacheKey =
+      job.type.cacheMs && !job.onlyModel && !job.onlyProvider
+        ? createHash('sha256')
+            .update(
+              JSON.stringify([
+                job.companyId,
+                job.type.feature,
+                job.dataClass,
+                job.language ?? '',
+                job.system,
+                job.prompt,
+              ]),
+            )
+            .digest('hex')
+        : null;
+    if (cacheKey) {
+      const hit = await withCompany(db, job.companyId, async (tx) =>
+        (await getAiRules(tx)).enabled ? getCachedAnswer(tx, cacheKey) : undefined,
+      );
+      const data = hit ? job.type.schema.safeParse(hit.data) : null;
+      if (hit && data?.success) {
+        await log({ ...blank, provider: hit.provider, model: hit.model, status: 'cached' });
+        return {
+          data: data.data,
+          provider: hit.provider,
+          model: hit.model,
+          attempt: 1,
+          usage: { inputTokens: 0, outputTokens: 0, unusable: 0 },
+          cached: true,
+        };
+      }
+    }
     const choices = await this.choose(job, inputTokens);
 
     // 3-4. Each model in turn; an answer that doesn't fit is asked once more before moving on.
@@ -315,6 +356,19 @@ export class AiEngine {
         const read = readAnswer(answer.text, job.type.schema);
         if (read.ok) {
           await log({ ...call, ...used, status: 'ok' });
+          if (cacheKey && job.type.cacheMs) {
+            const ttlMs = job.type.cacheMs;
+            await withCompany(db, job.companyId, (tx) =>
+              putCachedAnswer(tx, {
+                key: cacheKey,
+                feature: job.type.feature,
+                provider: model.provider,
+                model: model.model,
+                data: read.data,
+                ttlMs,
+              }),
+            ).catch(() => undefined); // keeping it is a bonus: the answer counts either way
+          }
           return { data: read.data, provider: model.provider, model: model.model, attempt, usage };
         }
         usage.unusable++;

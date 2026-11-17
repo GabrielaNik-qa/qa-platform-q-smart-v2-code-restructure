@@ -105,6 +105,7 @@ interface Overview {
     feature: string;
     calls: number;
     failed: number;
+    cached: number;
     inputTokens: number;
     outputTokens: number;
     audioSeconds: number;
@@ -691,6 +692,7 @@ export function AiUsage({ company }: { company: CompanyRef }) {
                   <th className={th}>{t('ai.task')}</th>
                   <th className={`${th} text-right`}>{t('ai.today.calls')}</th>
                   <th className={`${th} text-right`}>{t('ai.today.failed')}</th>
+                  <th className={`${th} text-right`}>{t('ai.today.cached')}</th>
                   <th className={`${th} text-right`}>{t('ai.today.input')}</th>
                   <th className={`${th} text-right`}>{t('ai.today.output')}</th>
                   <th className={`${th} text-right`}>{t('ai.cost')}</th>
@@ -702,6 +704,7 @@ export function AiUsage({ company }: { company: CompanyRef }) {
                     <td className={td}>{names.feature(x.feature)}</td>
                     <td className={`${td} text-right`}>{number(x.calls, lang)}</td>
                     <td className={`${td} text-right ${x.failed ? 'text-bad' : ''}`}>{number(x.failed, lang)}</td>
+                    <td className={`${td} text-right`}>{number(x.cached, lang)}</td>
                     <td className={`${td} text-right`}>
                       {x.audioSeconds
                         ? t('ai.audio', { n: number(x.audioSeconds, lang) })

@@ -201,6 +201,7 @@ ${input.transcript}
     // a review is worth some thinking: careful answers and exact quotes
     effort: 'medium',
     candidates: AUTOQA_MODELS,
+    // never from the cache: "Score again" must really ask the AI again (double clicks are stopped by the route)
     // a model is used for AI reviews only if it agrees enough with the expert on the test set (once one has been
     // tested on enough of it: until then the bar doesn't apply)
     minQuality: 75,

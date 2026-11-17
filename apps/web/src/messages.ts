@@ -2873,6 +2873,7 @@ const en = {
         'Since 00:00 UTC: the calls with an answer, the ones that failed or were refused (a limit, a busy free plan, an error), the tokens sent and received, and the cost (0 on a free plan).',
       calls: 'Answered',
       failed: 'Failed or refused',
+      cached: 'From the cache',
       input: 'Tokens sent',
       output: 'Tokens received',
     },
@@ -2909,6 +2910,7 @@ const en = {
       limit: 'Limit reached',
       noModel: 'No model allowed',
       unavailable: 'AI unavailable',
+      cached: 'From the cache',
     },
     switchIntro:
       'Switch the AI off for the whole company. Every AI feature then says so, and everything else keeps working.',
@@ -6229,6 +6231,7 @@ const bg: Messages = {
         'От 00:00 UTC: заявките с отговор, неуспешните или отказаните (лимит, зает безплатен план, грешка), изпратените и получените токени и цената (0 при безплатен план).',
       calls: 'С отговор',
       failed: 'Неуспешни или отказани',
+      cached: 'От кеша',
       input: 'Изпратени токени',
       output: 'Получени токени',
     },
@@ -6265,6 +6268,7 @@ const bg: Messages = {
       limit: 'Лимитът е достигнат',
       noModel: 'Няма разрешен модел',
       unavailable: 'ИИ не е достъпен',
+      cached: 'От кеша',
     },
     switchIntro:
       'Изключете ИИ за цялата компания. Тогава всяка функция с ИИ казва това, а всичко останало продължава да работи.',
@@ -9764,6 +9768,7 @@ const fr: Messages = {
         'Depuis 00:00 UTC : les appels avec une réponse, ceux qui ont échoué ou ont été refusés (une limite, un plan gratuit occupé, une erreur), les jetons envoyés et reçus, et le coût (0 sur un plan gratuit).',
       calls: 'Avec réponse',
       failed: 'Échoués ou refusés',
+      cached: 'Depuis le cache',
       input: 'Jetons envoyés',
       output: 'Jetons reçus',
     },
@@ -9800,6 +9805,7 @@ const fr: Messages = {
       limit: 'Limite atteinte',
       noModel: 'Aucun modèle autorisé',
       unavailable: 'IA indisponible',
+      cached: 'Depuis le cache',
     },
     switchIntro:
       'Désactivez l’IA pour toute l’entreprise. Chaque fonction d’IA l’indique alors, et tout le reste continue de fonctionner.',

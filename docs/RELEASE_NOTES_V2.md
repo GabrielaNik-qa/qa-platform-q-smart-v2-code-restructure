@@ -4,6 +4,12 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## Phase 5 (Learning & Tools): in progress on branch `v2-phase-5`
 
+- **AI, step 4: a cache for identical AI requests, ready but not used by AutoQA:**
+  - **How it works:** a task may allow the AI engine to keep an answer for a set time; the very same request (the same task, instructions, data and language) is then answered with the kept answer, without asking the AI, until it expires. Only a fingerprint of the request is kept (SHA-256), never the request itself. Each company only finds its own answers (behind the company wall, and the company is part of the fingerprint). Never for the test set or Admin › AI's Test (one chosen model or AI company), and never while the company's AI is switched off. Each answer from the cache is in the AI log ("From the cache", no tokens, no cost), with a new column in Admin › AI usage limits › Today, per AI task.
+  - **Not used by AutoQA, on purpose:** a person who presses "Score again" wants a new answer, and an automatic test showed the cache would have handed back the previous one. Two clicks at the same moment are already stopped (step 2). Quinn and the Help Center's answers will use it (Phases 5 and 8), where the same question should get the same kept answer.
+  - **Checked in the browser:** Admin › AI usage limits shows the new column (0 from the cache today); in Bulgarian too; no request failed.
+  - 1 new automatic test (the same request answered once by the AI then from the cache; another question, another company and one chosen model asked anew; nothing while the AI is off; only a fingerprint kept; asked again once expired); 364 pass.
+
 - **AI, step 3: a fairer test set** (AutoQA › Test set):
   - **No verdict on a handful of conversations, nor on one language for another:** a model is judged (and may be used for AI reviews) only after at least 20 conversations reviewed well, **with at least 5 in each language of the scored conversations**. Until then the last column says what is missing ("14 more to test", or "more needed per language: 5 FR").
   - **Per language, how many it reviewed** under each agreement (n=10).
