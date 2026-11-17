@@ -170,6 +170,7 @@ If you want v2 online earlier for demos, the hosting part of Phase 10 can move u
   - **Payment method**: the card or bank account.
   - **EU VAT**: the company's VAT number, and reverse charge for business clients in other EU countries.
 - **How the extras are sold (5 Nov, evening):** the basic plan is per seat. The extras that cost us per use are **add-ons with a monthly allowance**, in a few sizes: **AI** (AutoQA, Quinn's AI answers) and **Q Trainer** (practice minutes). The admin is warned at 80%; at 100% that extra stops until next month, unless the admin buys an extra pack. **No surprise bills**, and nothing per voice or per use for the client to work out. Each app (Workforce, Learning, Q Trainer, AI) can also be sold on its own (your yes of 5 November).
+- **The plans (your decision, 17 November; replaces the add-ons above for AI):** the price depends first on **the team size** (seats, as most companies do), then on the **plan: Basic, Extra, Maxi and Maxi+**. Each plan includes everything in it, AI too: more features and a larger AI allowance in each higher plan. The exact features, allowances and prices per plan are decided with billing (Phase 10).
 - **How paying works:** Stripe's own payment page (Checkout) and portal (change plan or card, cancel). Q-smart never sees card numbers. Stripe tells Q-smart about every payment, and Q-smart updates seats and limits by itself.
 - **A free trial** for new companies. What happens when a payment fails (reminders, then read-only after a number of days) is decided when we build it.
 - **The Stripe keys** are typed into Admin › Billing and stored encrypted, as today. Bigger clients can also pay by bank transfer or SEPA Direct Debit.
@@ -255,6 +256,11 @@ The rule for clients costs little: a small paid model costs well under one cent 
   - **Quinn says it is an AI assistant** (EU AI Act, article 50: people must know when they talk to an AI).
 - **The AI companies are named in the data agreement with each client, not in the app:** GDPR article 28 requires a processor to list its sub-processors (the AI companies that receive the client's data) and to tell the client before adding one. That list lives in the legal documents (Phase 7, GDPR › sub-processors), checked by the lawyer before the first client.
 - The pages never need rewriting when a model changes: the choices live in the AI engine's catalogue and the owner's settings.
+
+**Your answers of 17 November:**
+- **Effort levels are yours only:** clients never see or choose them; you use them to arrange which models do what, when they switch, and in what order.
+- **The combined average** (per period) gives **equal weight** to the AI's average and the reviewers' average. Bonuses still rest only on the reviewers' scores.
+- **When Quinn's AI allowance is used up:** it answers from the Help Center and keywords; then it sends the person to **Support**, which says "typically replies within several hours" and offers a form; the form goes straight to Q-smart's support e-mail, and the answer comes back by e-mail.
 
 **Admin › AI for a client company, simpler (17 November):** no AI company or model names anywhere:
 - **Overview:** whether AI is working normally, today's use per AI task, and recent problems in plain words;
