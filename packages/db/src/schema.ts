@@ -1369,6 +1369,24 @@ export interface OutcomeCheck {
 }
 
 /**
+ * The owner's effort levels (17 November): behind each level (light, standard, thorough), the AI models that serve it,
+ * best first; text and speech models in one list (each task takes the kind it needs). Clients never see them. Missing:
+ * the AI engine's defaults (ai/levels.ts). Not a company table; changed only through platform_set_ai_level.
+ */
+export const aiLevels = pgTable('ai_levels', {
+  level: text('level').primaryKey(),
+  models: jsonb('models').$type<string[]>().notNull().default([]),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** The owner's effort level for each AI task (missing: the task's default). Changed only through platform_set_ai_task_level. */
+export const aiTaskLevels = pgTable('ai_task_levels', {
+  feature: text('feature').primaryKey(),
+  level: text('level').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
  * Which AI models Q-smart offers to client companies (the owner area; 17 November): a model switched off here is never
  * used by any company and isn't listed in their choices; "recommended" is the owner's own pick. A model missing from
  * this table is offered (the catalogue's default). Not a company table: every company's AI engine may read it, and only

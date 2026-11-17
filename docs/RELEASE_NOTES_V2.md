@@ -4,6 +4,14 @@ Newest first. Each step is tested before it's saved: automatic tests, then a che
 
 ## Phase 5 (Learning & Tools): in progress on branch `v2-phase-5`
 
+- **AI choices, step 2: effort levels, set by you** (your decision of 17 November: Q-smart is the mediator, clients never see models):
+  - **Three levels: light, standard and thorough.** In the owner area you list, for each level, the models that serve it, best first (move up, remove, add any model you offer); text and speech models in one list, and each task takes the kind it needs.
+  - **Each AI task has a level**, chosen from a drop-down: AutoQA's scoring (standard), a call's transcript (standard), telling agent and customer apart (light), plus the tasks still to come, already listed so you can plan them (is it a real conversation, translating a transcript, coaching advice, AI agents, Quinn, Q Trainer's words and voice). Under each task, the models its level gives it.
+  - **The AI engine follows them:** a task uses its level's models (still the cheapest that passes every rule first, the next one if it is down). Until you change anything, the defaults are today's models. The test set still measures one chosen model at a time.
+  - **Only you change them:** through database functions that check again it is the owner; nobody can write them directly.
+  - **Checked in the browser:** as owner, the three levels with their models, and AutoQA moved to "Thorough" (its models changed) and back; no request failed.
+  - 3 new automatic tests (the level rules; only the owner, never directly, a wrong level refused; the owner's routes); 370 pass.
+
 - **AI choices, step 1: you choose which AI models client companies may use** (your decision of 17 November; the plan's section 7):
   - **Owner area › AI offered to client companies:** every AI company's models, each with an on/off switch and a "Recommended" star. A model you switch off is never used by any company (the AI engine leaves it out, also as a fallback) and will disappear from their choices; a model can't be recommended while it is off.
   - **Safe like the rest of the owner area:** the list is changed only through a database function that checks again, inside the database, that you are the owner; every company's AI engine may read it, and nobody can change it directly.

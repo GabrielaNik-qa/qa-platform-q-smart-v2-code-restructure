@@ -19,6 +19,7 @@ import {
   aiUseThisMonth,
   aiUseWindow,
   getCachedAnswer,
+  listAiLevels,
   listAiOffers,
   listSeenLimits,
   putCachedAnswer,
@@ -36,6 +37,7 @@ import { z } from 'zod';
 import { CATALOGUE, type Catalogue } from './catalogue.js';
 import type { JobType } from './jobs.js';
 import { type ProviderAccount, type ProviderAdapter, ProviderError, type Transcription } from './provider.js';
+import { modelsFor } from './levels.js';
 import { expectedTokens, paceOf } from './pacing.js';
 import { CircuitBreaker, costMicroUsd, estimateTokens, route, waitFromLimits } from './router.js';
 
@@ -189,7 +191,8 @@ export class AiEngine {
           ? await this.parts.qualities(tx, job.type.feature)
           : new Map<string, number>();
       const offers = await listAiOffers(tx);
-      return { rules, accounts, qualities, offers };
+      const levels = await listAiLevels(tx);
+      return { rules, accounts, qualities, offers, levels };
     });
     if (ready === 'off' || ready === 'limit') {
       await log({ ...blank, status: ready });
@@ -198,7 +201,10 @@ export class AiEngine {
     // the quality bar applies once a model is qualified on the test set; one chosen model is measured as it is
     const type = {
       ...job.type,
-      candidates: job.onlyModel ? job.type.candidates.filter((c) => c === job.onlyModel) : job.type.candidates,
+      // one chosen model (the test set) is measured as it is; otherwise the task's effort level decides the models
+      candidates: job.onlyModel
+        ? job.type.candidates.filter((c) => c === job.onlyModel)
+        : (modelsFor(job.type.feature, ready.levels)?.models ?? job.type.candidates),
       ...(ready.qualities.size ? {} : { minQuality: undefined }),
     };
     const routing = route({

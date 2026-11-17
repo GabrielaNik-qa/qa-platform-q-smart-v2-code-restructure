@@ -147,6 +147,32 @@ describe('the server', () => {
     ).json<{ models: { id: string; recommended: boolean }[] }>();
     expect(after.models.find((m) => m.id === 'groq/openai/gpt-oss-120b')?.recommended).toBe(true);
     await put('token-owner', { modelId: 'groq/openai/gpt-oss-120b', offered: true, recommended: false });
+    // effort levels: the owner's models behind a level, and a task's level
+    const send = (path: string, token: string, payload: object) =>
+      app.inject({
+        method: 'PUT',
+        url: `/api/platform/ai-models/${path}`,
+        headers: { authorization: `Bearer ${token}` },
+        payload,
+      });
+    expect((await send('tasks', 'token-admin', { feature: 'autoqa.score', level: 'light' })).statusCode).toBe(403);
+    expect((await send('tasks', 'token-owner', { feature: 'not.a_task', level: 'light' })).statusCode).toBe(400);
+    const lv = (
+      await send('levels', 'token-owner', { level: 'thorough', models: ['cloudflare/@cf/openai/gpt-oss-120b'] })
+    ).json<{ levels: { level: string; models: string[]; own: boolean }[] }>();
+    expect(lv.levels.find((l) => l.level === 'thorough')).toEqual({
+      level: 'thorough',
+      models: ['cloudflare/@cf/openai/gpt-oss-120b'],
+      own: true,
+    });
+    const tk = (await send('tasks', 'token-owner', { feature: 'autoqa.score', level: 'thorough' })).json<{
+      tasks: { feature: string; level: string; models: string[] }[];
+    }>();
+    expect(tk.tasks.find((t) => t.feature === 'autoqa.score')).toMatchObject({
+      level: 'thorough',
+      models: ['cloudflare/@cf/openai/gpt-oss-120b'],
+    });
+    await send('tasks', 'token-owner', { feature: 'autoqa.score', level: 'standard' });
   });
 
   it('creates a client company whose first admin gets it at their first sign-in', async () => {

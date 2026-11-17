@@ -5,10 +5,13 @@ import { createDb, type Db } from './client.js';
 import { claimInvitation, membershipsFor, withCompany } from './company.js';
 import {
   isPlatformAdmin,
+  listAiLevels,
   listAiOffers,
   platformCompanies,
   platformCreateCompany,
+  platformSetAiLevel,
   platformSetAiOffer,
+  platformSetAiTaskLevel,
 } from './platform.js';
 import { startLocalPostgres, type LocalPostgres } from './local-postgres.js';
 import { runMigrations } from './migrate.js';
@@ -224,6 +227,21 @@ describe('the platform owner area', () => {
       { modelId: 'groq/openai/gpt-oss-20b', offered: false, recommended: false },
     ]);
     expect(await refusal(app.execute(sql`update ai_offers set offered = true`))).toBe('42501');
+  });
+
+  it('lets only the owner set the effort levels and each task’s level', async () => {
+    expect(await refusal(platformSetAiLevel(app, 'uid-ann', 'light', ['groq/openai/gpt-oss-20b']))).toBe('42501');
+    expect(await refusal(platformSetAiTaskLevel(app, 'uid-ann', 'autoqa.score', 'light'))).toBe('42501');
+    expect(
+      await refusal(app.execute(sql`insert into ai_task_levels (feature, level) values ('autoqa.score', 'light')`)),
+    ).toBe('42501');
+    await platformSetAiLevel(app, 'uid-owner', 'light', ['groq/openai/gpt-oss-20b']);
+    await platformSetAiTaskLevel(app, 'uid-owner', 'autoqa.score', 'thorough');
+    expect(await refusal(platformSetAiTaskLevel(app, 'uid-owner', 'autoqa.score', 'huge' as 'light'))).toBe('23514');
+    expect(await listAiLevels(app)).toEqual({
+      levels: [{ level: 'light', models: ['groq/openai/gpt-oss-20b'] }],
+      tasks: [{ feature: 'autoqa.score', level: 'thorough' }],
+    });
   });
 
   it('creates a client company with its Administration team and first admin, for the owner only', async () => {

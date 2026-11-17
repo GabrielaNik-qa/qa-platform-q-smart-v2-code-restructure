@@ -62,3 +62,24 @@ export async function platformSetAiOffer(db: Db, firebaseUid: string, offer: AiO
     sql`select platform_set_ai_offer(${firebaseUid}, ${offer.modelId}, ${offer.offered}, ${offer.recommended})`,
   );
 }
+
+export type AiLevel = 'light' | 'standard' | 'thorough';
+/** The owner's model lists per effort level, and each task's level (rows that exist; the engine has defaults). */
+export async function listAiLevels(db: Db | Tx): Promise<{
+  levels: { level: AiLevel; models: string[] }[];
+  tasks: { feature: string; level: AiLevel }[];
+}> {
+  const levels = await db.execute<{ level: AiLevel; models: string[] }>(
+    sql`select level, models from ai_levels order by level`,
+  );
+  const tasks = await db.execute<{ feature: string; level: AiLevel }>(
+    sql`select feature, level from ai_task_levels order by feature`,
+  );
+  return { levels: levels.rows, tasks: tasks.rows };
+}
+export async function platformSetAiLevel(db: Db, firebaseUid: string, level: AiLevel, models: string[]): Promise<void> {
+  await db.execute(sql`select platform_set_ai_level(${firebaseUid}, ${level}, ${JSON.stringify(models)}::jsonb)`);
+}
+export async function platformSetAiTaskLevel(db: Db, firebaseUid: string, feature: string, level: AiLevel) {
+  await db.execute(sql`select platform_set_ai_task_level(${firebaseUid}, ${feature}, ${level})`);
+}

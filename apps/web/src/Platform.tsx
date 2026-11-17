@@ -28,9 +28,13 @@ interface OfferedModel {
   offered: boolean;
   recommended: boolean;
 }
+type Level = 'light' | 'standard' | 'thorough';
+const LEVELS: Level[] = ['light', 'standard', 'thorough'];
 interface OfferList {
   providers: { id: string; name: string; terms: string; freePlan: boolean; checked: string }[];
   models: OfferedModel[];
+  levels: { level: Level; models: string[]; own: boolean }[];
+  tasks: { feature: string; kind: 'text' | 'speech' | 'voice'; level: Level; live: boolean; models: string[] }[];
 }
 
 /**
@@ -108,12 +112,160 @@ function AiOffers() {
           </ul>
         </div>
       ))}
+      {data && <Levels data={data} onSaved={setData} onMessage={setMessage} />}
       {message && (
         <p role={message.ok ? 'status' : 'alert'} className={`text-sm ${message.ok ? 'text-ok' : 'text-bad'}`}>
           {message.text}
         </p>
       )}
     </section>
+  );
+}
+
+/**
+ * Effort levels (17 November): behind each level, the models that serve it, best first; and each AI task's level.
+ * Clients never see any of it.
+ */
+function Levels({
+  data,
+  onSaved,
+  onMessage,
+}: {
+  data: OfferList;
+  onSaved: (d: OfferList) => void;
+  onMessage: (m: { ok: boolean; text: string } | null) => void;
+}) {
+  const { t } = useTranslation();
+  const [drafts, setDrafts] = useState<Record<string, string[]>>({});
+  const nameOf = (id: string) => data.models.find((m) => m.id === id)?.model ?? id;
+  const kindOf = (id: string) => data.models.find((m) => m.id === id)?.kind ?? 'text';
+  const listOf = (l: Level) => drafts[l] ?? data.levels.find((x) => x.level === l)?.models ?? [];
+  const setList = (l: Level, models: string[]) => setDrafts({ ...drafts, [l]: models });
+  async function send(path: string, body: object, after?: () => void) {
+    onMessage(null);
+    try {
+      onSaved(await api<OfferList>(`/platform/ai-models/${path}`, undefined, { method: 'PUT', body }));
+      after?.();
+      onMessage({ ok: true, text: t('platform.ai.saved') });
+    } catch (e) {
+      onMessage({ ok: false, text: errorText(t, e) });
+    }
+  }
+  return (
+    <div className="grid gap-4 border-t border-bd pt-4">
+      <div>
+        <h3 className="font-semibold">{t('platform.ai.levels.title')}</h3>
+        <p className="text-sm text-mu">{t('platform.ai.levels.intro')}</p>
+      </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        {LEVELS.map((l) => {
+          const list = listOf(l);
+          const free = data.models.filter((m) => m.offered && !list.includes(m.id));
+          return (
+            <section
+              key={l}
+              className="grid content-start gap-2 rounded-s border border-bd p-3"
+              aria-label={t(`platform.ai.level.${l}`)}
+            >
+              <b>{t(`platform.ai.level.${l}`)}</b>
+              <ol className="grid gap-1 text-sm">
+                {list.map((id, i) => (
+                  <li key={id} className="flex items-center gap-1">
+                    <span className="w-4 text-mu">{i + 1}.</span>
+                    <span className="flex-1 font-mono text-xs">{nameOf(id)}</span>
+                    <small className="text-mu">{t(`platform.ai.kind.${kindOf(id)}`)}</small>
+                    <button
+                      type="button"
+                      className="px-1 text-mu hover:text-tx disabled:opacity-30"
+                      disabled={!i}
+                      aria-label={t('platform.ai.levels.up')}
+                      onClick={() =>
+                        setList(
+                          l,
+                          list.map((x, j) => (j === i - 1 ? id : j === i ? (list[i - 1] ?? x) : x)),
+                        )
+                      }
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      className="px-1 text-mu hover:text-bad"
+                      aria-label={t('platform.ai.levels.remove')}
+                      onClick={() =>
+                        setList(
+                          l,
+                          list.filter((x) => x !== id),
+                        )
+                      }
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              {free.length > 0 && (
+                <select
+                  className="rounded-s border border-bd2 bg-pn px-2 py-1 text-sm"
+                  aria-label={t('platform.ai.levels.add')}
+                  value=""
+                  onChange={(e) => e.target.value && setList(l, [...list, e.target.value])}
+                >
+                  <option value="">+ {t('platform.ai.levels.add')}</option>
+                  {free.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.model}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {drafts[l] && (
+                <button
+                  type="button"
+                  className="justify-self-start rounded-m bg-brand px-3 py-1 text-sm font-semibold text-on-brand"
+                  onClick={() =>
+                    void send('levels', { level: l, models: list }, () =>
+                      setDrafts(Object.fromEntries(Object.entries(drafts).filter(([k]) => k !== l))),
+                    )
+                  }
+                >
+                  {t('platform.ai.levels.save')}
+                </button>
+              )}
+            </section>
+          );
+        })}
+      </div>
+      <div>
+        <h3 className="font-semibold">{t('platform.ai.tasks.title')}</h3>
+        <p className="text-sm text-mu">{t('platform.ai.tasks.intro')}</p>
+      </div>
+      <ul className="grid gap-1">
+        {data.tasks.map((task) => (
+          <li key={task.feature} className="flex flex-wrap items-center gap-3 border-t border-bd py-1.5 text-sm">
+            <span className="flex-1">
+              <b>{t(`platform.ai.task.${task.feature.replace('.', '_')}`)}</b>{' '}
+              {!task.live && <small className="text-mu">({t('platform.ai.tasks.later')})</small>}
+              <small className="block text-mu">
+                {task.models.length ? task.models.map(nameOf).join(' › ') : t('platform.ai.tasks.noModel')}
+              </small>
+            </span>
+            <select
+              className="rounded-s border border-bd2 bg-pn px-2 py-1 text-sm"
+              aria-label={t(`platform.ai.task.${task.feature.replace('.', '_')}`)}
+              value={task.level}
+              onChange={(e) => void send('tasks', { feature: task.feature, level: e.target.value })}
+            >
+              {LEVELS.map((l) => (
+                <option key={l} value={l}>
+                  {t(`platform.ai.level.${l}`)}
+                </option>
+              ))}
+            </select>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
