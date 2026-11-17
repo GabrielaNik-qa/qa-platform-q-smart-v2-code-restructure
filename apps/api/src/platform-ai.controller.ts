@@ -112,12 +112,17 @@ export class PlatformAiController {
     const existing = (await listPlatformAiAccounts(this.db)).find((a) => a.provider === id.data);
     const { apiKey } = input.data;
     if (!apiKey && !existing) throw badRequest('aiAccountInvalid');
+    // Cloudflare needs its account ID, Azure its region (a plain lower-case name, never an address)
+    const extra = CATALOGUE.providers[id.data]?.extra;
+    const account = input.data.accountId ?? existing?.accountId ?? null;
+    if (extra && !account) throw badRequest('aiAccountInvalid');
+    if (extra === 'region' && !/^[a-z0-9-]{3,30}$/.test(account ?? '')) throw badRequest('aiAccountInvalid');
     await platformSaveAiAccount(this.db, person.uid, {
       provider: id.data,
       plan: input.data.plan,
       keyCipher: apiKey ? encryptKey(this.masterKey, PLATFORM, id.data, apiKey) : (existing?.keyCipher ?? ''),
       keyHint: apiKey ? keyHint(apiKey) : (existing?.keyHint ?? ''),
-      accountId: input.data.accountId ?? existing?.accountId ?? null,
+      accountId: account,
       enabled: input.data.enabled,
     });
     return this.list();

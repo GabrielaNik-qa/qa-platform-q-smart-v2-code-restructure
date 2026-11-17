@@ -1091,6 +1091,21 @@ export const aiSettings = pgTable('ai_settings', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * Which calls enter the app (Phase 6): a company sets "calls shorter than [ ] seconds don't enter" (empty: all calls
+ * enter), and Q-smart counts the calls it left out. Chats and e-mails always enter. One row per company.
+ */
+export const companyIntake = pgTable('company_intake', {
+  companyId: uuid('company_id')
+    .primaryKey()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  /** a call shorter than this many seconds never becomes a conversation (null: none is left out) */
+  minCallSeconds: integer('min_call_seconds'),
+  /** how many calls were left out for being too short, since the setting was first used */
+  callsLeftOut: integer('calls_left_out').notNull().default(0),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export interface AiLimit {
   /** millionths of a US dollar (AI companies price in dollars) */
   microUsd?: number;

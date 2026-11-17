@@ -246,10 +246,17 @@ export function Conversations({ company }: { company: CompanyRef }) {
     };
     setBad([]);
     try {
-      const saved = await api<Full>(draft.id ? `/conversations/${draft.id}` : '/conversations', company.id, {
-        method: draft.id ? 'PUT' : 'POST',
-        body,
-      });
+      const saved = await api<Full | { leftOut: true; minCallSeconds: number }>(
+        draft.id ? `/conversations/${draft.id}` : '/conversations',
+        company.id,
+        { method: draft.id ? 'PUT' : 'POST', body },
+      );
+      // a call shorter than the company's minimum does not enter: it is only counted
+      if ('leftOut' in saved) {
+        await run(async () => saved, t('conversations.leftOutNotice', { seconds: saved.minCallSeconds }), load);
+        setDraft(null);
+        return;
+      }
       await run(async () => saved, draft.id ? t('conversations.saved') : t('conversations.added'), load);
       setDraft(null);
       setOpen(saved);
@@ -729,5 +736,62 @@ export function TranscriptDaysCard({ company }: { company: CompanyRef }) {
       </label>
       <Notice message={message} />
     </div>
+  );
+}
+
+/** Admin › System settings: "calls shorter than [ ] seconds don't enter", with the count of calls left out. */
+export function MinCallCard({ company }: { company: CompanyRef }) {
+  const { t } = useTranslation();
+  const [state, setState] = useState<{ minCallSeconds: number | null; callsLeftOut: number } | null>(null);
+  const [text, setText] = useState('');
+  const { message, run, fail } = useAction();
+  const load = useCallback(() => {
+    api<{ minCallSeconds: number | null; callsLeftOut: number }>('/intake', company.id).then((d) => {
+      setState(d);
+      setText(d.minCallSeconds === null ? '' : String(d.minCallSeconds));
+    }, fail);
+  }, [company.id, fail]);
+  useEffect(load, [load]);
+  if (!state) return null;
+  return (
+    <form
+      className={`${card} grid gap-3`}
+      onSubmit={(e) => {
+        e.preventDefault();
+        void run(
+          () =>
+            api('/intake', company.id, {
+              method: 'PUT',
+              body: { minCallSeconds: text.trim() === '' ? null : Number(text) },
+            }),
+          t('conversations.minCallSaved'),
+          load,
+        );
+      }}
+    >
+      <h2 className="font-semibold">{t('conversations.minCallTitle')}</h2>
+      <p className="text-sm text-mu">{t('conversations.minCallHelp')}</p>
+      <label className="grid max-w-xs gap-1 text-sm font-medium">
+        {t('conversations.minCallLabel')}
+        <input
+          type="number"
+          min={1}
+          max={86400}
+          step={1}
+          className={field}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+      </label>
+      <p className="text-sm" role="status">
+        {t('conversations.minCallLeftOut', { count: state.callsLeftOut })}
+      </p>
+      <div>
+        <button type="submit" className={primaryButton}>
+          {t('common.save')}
+        </button>
+      </div>
+      <Notice message={message} />
+    </form>
   );
 }

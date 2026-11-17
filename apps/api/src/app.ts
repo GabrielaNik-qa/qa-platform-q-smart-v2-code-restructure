@@ -23,7 +23,12 @@ import {
   ScorecardsController,
 } from './quality.controller.js';
 import { CalibrationsController } from './calibrations.controller.js';
-import { ConversationsController, FieldsController, TranscriptDaysController } from './conversations.controller.js';
+import {
+  ConversationsController,
+  FieldsController,
+  IntakeController,
+  TranscriptDaysController,
+} from './conversations.controller.js';
 import { DashboardsController } from './dashboards.controller.js';
 import { DisputesController } from './disputes.controller.js';
 import { FlagsController } from './flags.controller.js';
@@ -102,6 +107,7 @@ export class AppModule {
         FieldsController,
         ConversationsController,
         TranscriptDaysController,
+        IntakeController,
         AutoqaController,
         SpeechController,
         TasksController,

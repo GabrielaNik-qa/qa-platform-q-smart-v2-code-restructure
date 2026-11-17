@@ -8,6 +8,7 @@ export * from './company.js';
 export * from './conversations.js';
 export * from './disputes.js';
 export * from './flags.js';
+export * from './intake.js';
 export * from './local-postgres.js';
 export * from './log.js';
 export * from './migrate.js';

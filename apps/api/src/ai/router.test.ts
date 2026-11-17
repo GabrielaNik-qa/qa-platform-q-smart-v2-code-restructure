@@ -145,9 +145,9 @@ describe('choosing the model', () => {
 });
 
 describe('the catalogue', () => {
-  it('holds only AI companies whose terms forbid training, each checked with its sources', () => {
+  it('lists every AI company with its honest terms and its sources (only no-train-dpa ones are ever used)', () => {
     for (const p of Object.values(PROVIDERS)) {
-      expect(p.terms).toBe('no-train-dpa');
+      expect(['no-train-dpa', 'may-train']).toContain(p.terms);
       expect(p.sources.length).toBeGreaterThan(0);
     }
     const seen = new Set<string>();

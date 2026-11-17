@@ -81,7 +81,7 @@ function Bar({ value }: { value: number | null }) {
   );
 }
 
-function AutoQAOverview({ company }: { company: CompanyRef }) {
+export function AutoQAOverview({ company }: { company: CompanyRef }) {
   const { t } = useTranslation();
   const lang = currentLanguage();
   const admin = can(company.role, 'ai.manage');

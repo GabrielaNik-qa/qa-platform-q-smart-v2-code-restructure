@@ -1,6 +1,7 @@
 // The AI engine's choice of model (V2_PLAN §17 "AI engine"): from a job's ranked candidates, only those that pass
 // every rule, cheapest first. The rules, in order:
-// - the data terms: only `no-train-dpa` AI companies, for `test` and `client` jobs alike (5 November, evening);
+// - the data terms: only `no-train-dpa` AI companies, for `test` and `client` jobs alike (5 November, evening); a
+//   paid-only AI company is never used on a free account (17 November);
 // - the company has an account with that AI company (a paid one only when the company allows paid AI);
 // - `client` jobs also follow the company's own rules: the allowed AI companies, and EU only;
 // - the model can do the job: JSON answers, the size, the language (when the AI company states its languages), and
@@ -29,6 +30,8 @@ export type Skip =
   /** switched off by Q-smart's owner for every client company */
   | 'notOffered'
   | 'terms'
+  /** a paid-only AI company (or one whose free plan has worse terms) is never used on a free account */
+  | 'paidOnly'
   | 'noAccount'
   | 'paid'
   | 'notAllowed'
@@ -80,6 +83,7 @@ export function route(input: RouteInput): Routing {
       if (input.offered && !input.offered(model.id)) return 'notOffered';
       if (provider.terms !== 'no-train-dpa') return 'terms';
       if (!account) return 'noAccount';
+      if (account.plan === 'free' && !provider.freePlan) return 'paidOnly';
       if (account.plan === 'paid' && !rules.allowPaid) return 'paid';
       if (input.dataClass === 'client') {
         if (rules.allowedProviders.length && !rules.allowedProviders.includes(model.provider)) return 'notAllowed';

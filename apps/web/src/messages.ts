@@ -62,12 +62,35 @@ const en = {
   },
   platform: {
     ai: {
+      details: {
+        title: 'AI details and test set (demo company)',
+        intro:
+          'The detailed AI views and the test set where AI models are measured, on Q-smart’s own demo company (made-up data). A client company’s data is never opened from here.',
+        noDemo: 'There is no demo company in this database.',
+      },
       title: 'AI offered to client companies',
       intro:
         'Switch an AI model off and no company can use it; it disappears from their choices. The star marks your recommended one. Clients never see AI companies or models: Q-smart uses its own AI accounts for them.',
       noTrain: 'its terms forbid training on what we send, with a data agreement',
       termsOpen: 'its data terms are not confirmed yet: not used for any data until they are',
       kind: { text: 'text AI', speech: 'speech to text', voice: 'voice' },
+      terms: {
+        groq: 'Free and paid plans: its services agreement forbids training on what we send, and its data agreement is part of it.',
+        cloudflare:
+          'Free and paid plans: it never trains on customer content, and its data agreement is part of its standard terms.',
+        anthropic:
+          'The paid API (free credits count as a paid account): no training on what we send, and its data agreement, with the EU transfer clauses, is part of the terms. It has no free plan.',
+        mistral:
+          'Paid plans: no training by default, and its data agreement is part of the commercial terms; it keeps requests for 30 days for abuse checks unless zero retention is asked for. Its free plan (Experiment) is never used: it may train on what is sent, and no data agreement is confirmed for it.',
+        azure:
+          'Free (F0) and paid plans: Microsoft does not use customer data to improve its Speech models and its data protection terms apply; with no custom model, nothing is stored. Used in the EU region chosen when the account was created.',
+        elevenlabs:
+          'Not used for now: zero retention and a data agreement exist only on its Enterprise plan, and the terms of its other plans are not confirmed. Its free plan is not for commercial use.',
+      },
+      status: { used: 'Its terms allow its use', notUsed: 'Not used: its terms are not confirmed' },
+      eu: { yes: 'runs in the EU', no: 'runs outside the EU' },
+      termsChecked: 'Terms read on {{date}}',
+      termsSources: 'Sources',
       level: { light: 'Light', standard: 'Standard', thorough: 'Thorough' },
       levels: {
         title: 'Effort levels',
@@ -104,6 +127,8 @@ const en = {
         key: 'Key',
         keyKeep: 'Leave empty to keep the stored key',
         accountId: 'Cloudflare account ID',
+        region: 'Region of the Speech resource (for example westeurope)',
+        paidOnly: 'No free plan with these terms: only a paid account is ever used',
         plan: 'Plan',
         free: 'free',
         paid: 'paid',
@@ -348,6 +373,7 @@ const en = {
       conversationChanged: 'Changed a conversation of {{target}}',
       conversationDeleted: 'Deleted a conversation of {{target}}',
       transcriptDaysChanged: 'Changed how long transcripts are kept ({{days}} days; 0: until deleted by hand)',
+      minCallChanged: 'Changed the minimum call length ({{seconds}} seconds; -: every call enters)',
       aiReviewAdded: 'AutoQA reviewed a conversation of {{target}} ({{model}})',
       aiReviewAgain: 'AutoQA reviewed a conversation of {{target}} again ({{model}})',
       aiReviewHeld: 'A conversation of {{target}} was held for a person: it may contain instructions to the AI',
@@ -2781,6 +2807,41 @@ const en = {
     note: 'A file is made again with today’s data, and only with what you may still see.',
   },
   ai: {
+    admin: {
+      intro:
+        'How AI is doing in your company. Q-smart takes care of the AI behind it: you don’t connect or choose anything.',
+      tabs: {
+        overview: 'Overview',
+        usage: 'Usage & limits',
+        rules: 'Rules',
+        quality: 'Quality',
+      },
+      state: {
+        ok: 'AI is working normally',
+        off: 'AI is switched off',
+        problems: 'AI is having problems today',
+      },
+      stateHelp: {
+        ok: 'AI features answer as expected.',
+        off: 'Every AI feature says so, and everything else keeps working. Switch it on again under Rules.',
+        problems:
+          'More than half of today’s AI requests had no usable answer. Everything else keeps working; Q-smart is told.',
+      },
+      todayTitle: 'Today, per AI task',
+      problem: {
+        error: 'The AI could not answer',
+        invalid: 'The answer was not usable',
+        timeout: 'The AI took too long',
+        rateLimit: 'The AI was busy',
+        off: 'AI was switched off',
+        limit: 'A monthly limit was reached',
+        noModel: 'No AI was available',
+        unavailable: 'The AI was not available',
+      },
+      euTitle: 'Where your data may be processed',
+      euHelp:
+        'With this on, your data goes only to AI that runs in the EU. If none is available, the AI feature says so.',
+    },
     free: {
       title: 'Free allowance',
       intro:
@@ -2976,8 +3037,8 @@ const en = {
       'Switch the AI off for the whole company. Every AI feature then says so, and everything else keeps working.',
     isOn: 'The AI is on',
     isOff: 'The AI is off',
-    onHelp: 'AI features can be used, within the rules and limits of AI provider and AI usage limits.',
-    offHelp: 'No AI company gets anything from this company until the AI is switched on again.',
+    onHelp: 'AI features can be used, within the rules below and the limits under Usage & limits.',
+    offHelp: 'No AI gets anything from this company until the AI is switched on again.',
     switchOff: 'Switch the AI off',
     switchOn: 'Switch the AI on',
     switchedOff: 'The AI is switched off.',
@@ -3149,6 +3210,13 @@ const en = {
       'After these days, only the text of a conversation is deleted, every 12 hours: the conversation, its details, its reviews and their scores stay. Recordings are never stored.',
     daysLabel: 'Keep transcripts for',
     daysSaved: 'Saved.',
+    minCallTitle: 'Minimum call length',
+    minCallHelp:
+      'Calls shorter than this never enter the app: they are not stored, not scored and not counted in averages. Chats and e-mails always enter. Leave it empty to let every call in.',
+    minCallLabel: 'Calls shorter than this many seconds don’t enter',
+    minCallSaved: 'Saved.',
+    minCallLeftOut: 'Calls left out so far: {{count}}',
+    leftOutNotice: 'This call is shorter than {{seconds}} seconds, so it did not enter (it was only counted).',
     keepForEver: 'Until deleted by hand',
     oneYear: '1 year',
     days_one: '{{count}} day',
@@ -3342,7 +3410,7 @@ const en = {
       review: 'A first review',
       attendance: 'Attendance counted from a start date',
       crm: 'The CRM link, so lead IDs open the CRM',
-      ai: 'The AI connected, for AutoQA',
+      ai: 'AI reviews announced to the agents, for AutoQA',
     },
     done: 'Done',
     todo: 'Still to do',
@@ -3453,12 +3521,35 @@ const bg: Messages = {
   },
   platform: {
     ai: {
+      details: {
+        title: 'Подробности за ИИ и тестов набор (демо компания)',
+        intro:
+          'Подробните изгледи за ИИ и тестовият набор, където се измерват моделите на ИИ, върху собствената демо компания на Q-smart (измислени данни). Данните на клиентска компания никога не се отварят оттук.',
+        noDemo: 'В тази база няма демо компания.',
+      },
       title: 'ИИ, предлаган на клиентските компании',
       intro:
         'Изключете модел на ИИ и никоя компания не може да го използва; той изчезва от избора ѝ. Звездата отбелязва препоръчания от вас. Клиентите никога не виждат компаниите за ИИ и моделите: Q-smart използва за тях собствените си акаунти за ИИ.',
       noTrain: 'условията му забраняват обучение с изпратеното, със споразумение за данните',
       termsOpen: 'условията му за данните още не са потвърдени: не се използва за никакви данни, докато не бъдат',
       kind: { text: 'текстов ИИ', speech: 'реч в текст', voice: 'глас' },
+      terms: {
+        groq: 'Безплатен и платен план: споразумението му за услугите забранява обучение с изпратеното от нас, а споразумението за данните е част от него.',
+        cloudflare:
+          'Безплатен и платен план: никога не обучава върху съдържанието на клиентите, а споразумението за данните е част от стандартните му условия.',
+        anthropic:
+          'Платеното API (безплатните кредити се броят за платен акаунт): без обучение с изпратеното от нас, а споразумението за данните, с клаузите за пренос към ЕС, е част от условията. Няма безплатен план.',
+        mistral:
+          'Платени планове: по подразбиране без обучение, а споразумението за данните е част от търговските условия; пази заявките 30 дни за проверки за злоупотреба, освен ако не се поиска нулево съхранение. Безплатният му план (Experiment) никога не се използва: може да обучава върху изпратеното и за него няма потвърдено споразумение за данните.',
+        azure:
+          'Безплатен (F0) и платен план: Microsoft не използва данните на клиентите за подобряване на моделите си за реч и важат условията му за защита на данните; без собствен модел нищо не се съхранява. Използва се в избрания при създаването на акаунта регион в ЕС.',
+        elevenlabs:
+          'Засега не се използва: нулево съхранение и споразумение за данните има само в плана му Enterprise, а условията на другите му планове не са потвърдени. Безплатният му план не е за търговска употреба.',
+      },
+      status: { used: 'Условията му позволяват използване', notUsed: 'Не се използва: условията му не са потвърдени' },
+      eu: { yes: 'работи в ЕС', no: 'работи извън ЕС' },
+      termsChecked: 'Условията са прочетени на {{date}}',
+      termsSources: 'Източници',
       level: { light: 'Лек', standard: 'Стандартен', thorough: 'Задълбочен' },
       levels: {
         title: 'Нива на усилие',
@@ -3495,6 +3586,8 @@ const bg: Messages = {
         key: 'Ключ',
         keyKeep: 'Оставете празно, за да запазите пазения ключ',
         accountId: 'ID на акаунта в Cloudflare',
+        region: 'Регион на ресурса за реч (например westeurope)',
+        paidOnly: 'Няма безплатен план с тези условия: използва се само платен акаунт',
         plan: 'План',
         free: 'безплатен',
         paid: 'платен',
@@ -3742,6 +3835,8 @@ const bg: Messages = {
       conversationDeleted: 'Изтри разговор на {{target}}',
       transcriptDaysChanged:
         'Промени колко дълго се пазят транскрипциите ({{days}} дни; 0: докато не бъдат изтрити ръчно)',
+      minCallChanged:
+        'Промени минималната продължителност на обаждане ({{seconds}} секунди; -: влизат всички обаждания)',
       aiReviewAdded: 'AutoQA оцени разговор на {{target}} ({{model}})',
       aiReviewAgain: 'AutoQA оцени отново разговор на {{target}} ({{model}})',
       aiReviewHeld: 'Разговор на {{target}} е задържан за човек: може да съдържа указания към ИИ',
@@ -6199,6 +6294,41 @@ const bg: Messages = {
     note: 'Файлът се създава отново с днешните данни и само с това, което още можете да виждате.',
   },
   ai: {
+    admin: {
+      intro:
+        'Как се справя ИИ във вашата компания. Q-smart се грижи за ИИ зад кулисите: нищо не свързвате и не избирате.',
+      tabs: {
+        overview: 'Общ преглед',
+        usage: 'Използване и лимити',
+        rules: 'Правила',
+        quality: 'Качество',
+      },
+      state: {
+        ok: 'ИИ работи нормално',
+        off: 'ИИ е изключен',
+        problems: 'ИИ има проблеми днес',
+      },
+      stateHelp: {
+        ok: 'Функциите с ИИ отговарят както се очаква.',
+        off: 'Всяка функция с ИИ го казва, а всичко останало работи. Включете го отново от Правила.',
+        problems:
+          'Над половината от днешните заявки към ИИ нямат използваем отговор. Всичко останало работи; Q-smart е уведомен.',
+      },
+      todayTitle: 'Днес, по задачи на ИИ',
+      problem: {
+        error: 'ИИ не успя да отговори',
+        invalid: 'Отговорът не беше използваем',
+        timeout: 'ИИ отне твърде дълго',
+        rateLimit: 'ИИ беше зает',
+        off: 'ИИ беше изключен',
+        limit: 'Достигнат е месечен лимит',
+        noModel: 'Нямаше наличен ИИ',
+        unavailable: 'ИИ не беше наличен',
+      },
+      euTitle: 'Къде могат да се обработват данните ви',
+      euHelp:
+        'При включване данните ви отиват само към ИИ, който работи в ЕС. Ако няма такъв, функцията с ИИ го казва.',
+    },
     free: {
       title: 'Безплатен лимит',
       intro:
@@ -6394,9 +6524,8 @@ const bg: Messages = {
       'Изключете ИИ за цялата компания. Тогава всяка функция с ИИ казва това, а всичко останало продължава да работи.',
     isOn: 'ИИ е включен',
     isOff: 'ИИ е изключен',
-    onHelp:
-      'Функциите с ИИ могат да се ползват, в рамките на правилата и лимитите в Доставчик на AI и Ограничения за AI.',
-    offHelp: 'Никоя ИИ компания не получава нищо от тази компания, докато ИИ не бъде включен отново.',
+    onHelp: 'Функциите с ИИ могат да се ползват, в рамките на правилата по-долу и лимитите в Използване и лимити.',
+    offHelp: 'Никой ИИ не получава нищо от тази компания, докато ИИ не бъде включен отново.',
     switchOff: 'Изключи ИИ',
     switchOn: 'Включи ИИ',
     switchedOff: 'ИИ е изключен.',
@@ -6570,6 +6699,13 @@ const bg: Messages = {
       'След тези дни се изтрива само текстът на разговора, на всеки 12 часа: разговорът, подробностите му, оценките и резултатите остават. Записи никога не се съхраняват.',
     daysLabel: 'Пази транскрипциите',
     daysSaved: 'Запазено.',
+    minCallTitle: 'Минимална продължителност на обаждане',
+    minCallHelp:
+      'Обаждания, по-кратки от това, никога не влизат в приложението: не се съхраняват, не се оценяват и не се броят в средните стойности. Чатовете и имейлите винаги влизат. Оставете празно, за да влизат всички обаждания.',
+    minCallLabel: 'Обаждания, по-кратки от толкова секунди, не влизат',
+    minCallSaved: 'Запазено.',
+    minCallLeftOut: 'Оставени извън приложението досега: {{count}}',
+    leftOutNotice: 'Това обаждане е по-кратко от {{seconds}} секунди, затова не влезе (само беше преброено).',
     keepForEver: 'Докато не бъдат изтрити ръчно',
     oneYear: '1 година',
     days_one: '{{count}} ден',
@@ -6763,7 +6899,7 @@ const bg: Messages = {
       review: 'Първа оценка',
       attendance: 'Присъствието, броено от начална дата',
       crm: 'Връзката с CRM, за да отварят ID на лийдовете CRM',
-      ai: 'Свързан ИИ за AutoQA',
+      ai: 'ИИ оценките са обявени на агентите, за AutoQA',
     },
     done: 'Готово',
     todo: 'Остава',
@@ -6925,6 +7061,7 @@ const bg: Messages = {
     fieldNotHidden:
       'Първо скрийте полето. Скритото поле пази стойностите си и може да се върне; едва тогава може да се изтрие завинаги.',
     transcriptDaysInvalid: 'Изберете от списъка колко дълго се пазят транскрипциите.',
+    minCallInvalid: 'Въведете цяло число секунди между 1 и 86400 или оставете празно.',
     aiReviewNoTranscript: 'Този разговор няма транскрипция за оценяване.',
     aiReviewsNotAnnounced:
       'ИИ оценките започват едва след като агентите бъдат уведомени. Администратор потвърждава това в Администрация › AI › Включване и изключване на AI.',
@@ -7027,6 +7164,12 @@ const fr: Messages = {
   },
   platform: {
     ai: {
+      details: {
+        title: 'Détails de l’IA et jeu de test (entreprise de démonstration)',
+        intro:
+          'Les vues détaillées de l’IA et le jeu de test où les modèles d’IA sont mesurés, sur l’entreprise de démonstration de Q-smart (données fictives). Les données d’une entreprise cliente ne sont jamais ouvertes d’ici.',
+        noDemo: 'Il n’y a pas d’entreprise de démonstration dans cette base.',
+      },
       title: 'IA proposée aux entreprises clientes',
       intro:
         'Désactivez un modèle d’IA et aucune entreprise ne peut l’utiliser ; il disparaît de leurs choix. L’étoile marque celui que vous recommandez. Les clients ne voient jamais les entreprises d’IA ni les modèles : Q-smart utilise pour eux ses propres comptes d’IA.',
@@ -7034,6 +7177,26 @@ const fr: Messages = {
       termsOpen:
         'ses conditions sur les données ne sont pas encore confirmées : non utilisé pour aucune donnée d’ici là',
       kind: { text: 'IA texte', speech: 'parole en texte', voice: 'voix' },
+      terms: {
+        groq: 'Offres gratuite et payante : son contrat de services interdit l’entraînement sur ce que nous envoyons, et son accord sur les données en fait partie.',
+        cloudflare:
+          'Offres gratuite et payante : il n’entraîne jamais sur le contenu des clients, et son accord sur les données fait partie de ses conditions standard.',
+        anthropic:
+          'L’API payante (les crédits gratuits comptent comme un compte payant) : pas d’entraînement sur ce que nous envoyons, et son accord sur les données, avec les clauses de transfert vers l’UE, fait partie des conditions. Pas d’offre gratuite.',
+        mistral:
+          'Offres payantes : pas d’entraînement par défaut, et son accord sur les données fait partie des conditions commerciales ; il garde les requêtes 30 jours pour détecter les abus, sauf conservation nulle demandée. Son offre gratuite (Experiment) n’est jamais utilisée : elle peut entraîner sur ce qui est envoyé, et aucun accord sur les données n’est confirmé pour elle.',
+        azure:
+          'Offres gratuite (F0) et payante : Microsoft n’utilise pas les données des clients pour améliorer ses modèles de parole et ses conditions de protection des données s’appliquent ; sans modèle personnalisé, rien n’est stocké. Utilisé dans la région de l’UE choisie à la création du compte.',
+        elevenlabs:
+          'Non utilisé pour le moment : la conservation nulle et un accord sur les données n’existent que dans son offre Enterprise, et les conditions de ses autres offres ne sont pas confirmées. Son offre gratuite n’est pas destinée à un usage commercial.',
+      },
+      status: {
+        used: 'Ses conditions permettent de l’utiliser',
+        notUsed: 'Non utilisé : ses conditions ne sont pas confirmées',
+      },
+      eu: { yes: 'fonctionne dans l’UE', no: 'fonctionne hors de l’UE' },
+      termsChecked: 'Conditions lues le {{date}}',
+      termsSources: 'Sources',
       level: { light: 'Léger', standard: 'Standard', thorough: 'Approfondi' },
       levels: {
         title: 'Niveaux d’effort',
@@ -7070,6 +7233,8 @@ const fr: Messages = {
         key: 'Clé',
         keyKeep: 'Laissez vide pour garder la clé enregistrée',
         accountId: 'ID du compte Cloudflare',
+        region: 'Région de la ressource Speech (par exemple westeurope)',
+        paidOnly: 'Pas d’offre gratuite avec ces conditions : seul un compte payant est utilisé',
         plan: 'Offre',
         free: 'gratuite',
         paid: 'payante',
@@ -7321,6 +7486,7 @@ const fr: Messages = {
       conversationDeleted: 'A supprimé une conversation de {{target}}',
       transcriptDaysChanged:
         'A modifié la durée de conservation des transcriptions ({{days}} jours ; 0 : jusqu’à suppression manuelle)',
+      minCallChanged: 'A modifié la durée minimale d’un appel ({{seconds}} secondes ; - : tous les appels entrent)',
       aiReviewAdded: 'AutoQA a évalué une conversation de {{target}} ({{model}})',
       aiReviewAgain: 'AutoQA a réévalué une conversation de {{target}} ({{model}})',
       aiReviewHeld:
@@ -9795,6 +9961,41 @@ const fr: Messages = {
     note: 'Le fichier est recréé avec les données d’aujourd’hui, et seulement avec ce que vous pouvez encore voir.',
   },
   ai: {
+    admin: {
+      intro:
+        'Comment l’IA se porte dans votre entreprise. Q-smart s’occupe de l’IA en coulisses : vous ne connectez ni ne choisissez rien.',
+      tabs: {
+        overview: 'Aperçu',
+        usage: 'Utilisation et limites',
+        rules: 'Règles',
+        quality: 'Qualité',
+      },
+      state: {
+        ok: 'L’IA fonctionne normalement',
+        off: 'L’IA est désactivée',
+        problems: 'L’IA a des problèmes aujourd’hui',
+      },
+      stateHelp: {
+        ok: 'Les fonctions d’IA répondent comme prévu.',
+        off: 'Chaque fonction d’IA le dit, et tout le reste continue de fonctionner. Réactivez-la dans Règles.',
+        problems:
+          'Plus de la moitié des demandes d’IA d’aujourd’hui n’ont pas eu de réponse utilisable. Tout le reste fonctionne ; Q-smart est prévenu.',
+      },
+      todayTitle: 'Aujourd’hui, par tâche d’IA',
+      problem: {
+        error: 'L’IA n’a pas pu répondre',
+        invalid: 'La réponse n’était pas utilisable',
+        timeout: 'L’IA a mis trop de temps',
+        rateLimit: 'L’IA était occupée',
+        off: 'L’IA était désactivée',
+        limit: 'Une limite mensuelle a été atteinte',
+        noModel: 'Aucune IA n’était disponible',
+        unavailable: 'L’IA n’était pas disponible',
+      },
+      euTitle: 'Où vos données peuvent être traitées',
+      euHelp:
+        'Activé, vos données ne vont qu’à une IA qui fonctionne dans l’UE. Si aucune n’est disponible, la fonction d’IA le dit.',
+    },
     free: {
       title: 'Allocation gratuite',
       intro:
@@ -9993,8 +10194,8 @@ const fr: Messages = {
     isOn: 'L’IA est activée',
     isOff: 'L’IA est désactivée',
     onHelp:
-      'Les fonctions d’IA peuvent être utilisées, dans les règles et limites de Fournisseur d’IA et Limites d’utilisation de l’IA.',
-    offHelp: 'Aucune entreprise d’IA ne reçoit rien de cette entreprise tant que l’IA n’est pas réactivée.',
+      'Les fonctions d’IA peuvent être utilisées, dans les règles ci-dessous et les limites de Utilisation et limites.',
+    offHelp: 'Aucune IA ne reçoit rien de cette entreprise tant que l’IA n’est pas réactivée.',
     switchOff: 'Désactiver l’IA',
     switchOn: 'Activer l’IA',
     switchedOff: 'L’IA est désactivée.',
@@ -10170,6 +10371,13 @@ const fr: Messages = {
       'Après ces jours, seul le texte d’une conversation est supprimé, toutes les 12 heures : la conversation, ses détails, ses évaluations et leurs scores restent. Les enregistrements ne sont jamais stockés.',
     daysLabel: 'Garder les transcriptions',
     daysSaved: 'Enregistré.',
+    minCallTitle: 'Durée minimale d’un appel',
+    minCallHelp:
+      'Les appels plus courts n’entrent jamais dans l’application : ils ne sont ni stockés, ni notés, ni comptés dans les moyennes. Les chats et les e-mails entrent toujours. Laissez vide pour laisser entrer tous les appels.',
+    minCallLabel: 'Les appels de moins de ce nombre de secondes n’entrent pas',
+    minCallSaved: 'Enregistré.',
+    minCallLeftOut: 'Appels écartés jusqu’ici : {{count}}',
+    leftOutNotice: 'Cet appel dure moins de {{seconds}} secondes : il n’est pas entré (il a seulement été compté).',
     keepForEver: 'Jusqu’à suppression manuelle',
     oneYear: '1 an',
     days_one: '{{count}} jour',
@@ -10370,7 +10578,7 @@ const fr: Messages = {
       review: 'Une première évaluation',
       attendance: 'La présence comptée à partir d’une date de début',
       crm: 'Le lien CRM, pour que les ID de lead ouvrent le CRM',
-      ai: 'L’IA connectée, pour AutoQA',
+      ai: 'Évaluations par l’IA annoncées aux agents, pour AutoQA',
     },
     done: 'Fait',
     todo: 'Reste à faire',
@@ -10538,6 +10746,7 @@ const fr: Messages = {
     fieldNotHidden:
       'Masquez d’abord le champ. Un champ masqué garde ses valeurs et peut revenir ; ce n’est qu’ensuite qu’il peut être supprimé définitivement.',
     transcriptDaysInvalid: 'Choisissez dans la liste combien de temps les transcriptions sont gardées.',
+    minCallInvalid: 'Saisissez un nombre entier de secondes entre 1 et 86400, ou laissez vide.',
     aiReviewNoTranscript: 'Cette conversation n’a pas de transcription à évaluer.',
     aiReviewsNotAnnounced:
       'Les évaluations par IA ne commencent qu’une fois les agents prévenus. Un administrateur le confirme dans Admin › IA › IA activée ou désactivée.',
