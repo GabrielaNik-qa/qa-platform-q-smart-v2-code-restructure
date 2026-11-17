@@ -2,7 +2,9 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
-## Phase 5 (Learning & Tools): in progress on branch `v2-phase-5`
+## 17 November 2026: Phase 5 (AI setup), finished (tag `v2-phase-5`)
+
+The plan's "Learning & Tools" moves to a later phase. Moved to Phase 6: the new AI companies (Anthropic, Mistral, Microsoft, ElevenLabs), a simpler Admin › AI for clients, and the minimum call length.
 
 - **AI choices, step 3: Q-smart's own AI accounts** (your decision of 17 November: clients never connect keys or pay AI companies):
   - **Owner area › Q-smart's AI accounts:** one key per AI company (with the plan, free or paid, an "In use" switch and, for Cloudflare, the account ID). The key is stored encrypted and only its last 4 characters are ever shown; leave the field empty to keep the stored key.
