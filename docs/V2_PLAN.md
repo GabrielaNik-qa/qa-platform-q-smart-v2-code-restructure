@@ -224,6 +224,14 @@ The rule for clients costs little: a small paid model costs well under one cent 
 | **Cloudflare Workers AI** | It never trains on customer content, and its data agreement is part of the standard terms, with no exception for the free plan (confirmed 11 November 2026; no EU-only option, so not for companies that choose "EU only") | - |
 | **ElevenLabs** (voices) | Q Trainer's customer voice: it only reads lines the AI made up, so no client data is involved and any plan is fine | Agents' real voices or clients' recordings, unless on its business plan with training off and a data agreement (voices can count as sensitive "biometric" data) |
 
+**Anthropic's paid API: the main AI for AutoQA, AI evaluations and the AI agents (your decision, 17 November).**
+- **Why:** its terms forbid training on what we send, its data agreement (with the EU transfer clauses) is part of the terms with nothing to sign, and it explicitly allows powering a product for our own customers (checked on its commercial terms and DPA on 17 November 2026). It only forbids reselling the API itself or building a competing AI.
+- **Its models and prices** (per million tokens sent / received, read on 17 November 2026): Claude Haiku 5.5 $0.10 / $0.50, Sonnet 5.5 $2 / $10, Opus 5.5 $4 / $20, Fable 5.2 $8 / $40. Half price with Batch (work that can wait, such as yesterday's calls overnight); long instructions that repeat, such as the scorecard, cost 5% or less once cached.
+- **What a review would cost** (about 4,000 tokens sent, 2,000 received): about $0.0014 on Haiku 5.5, $0.03 on Sonnet 5.5, $0.06 on Opus 5.5, $0.11 on Fable 5.2; half of that with Batch.
+- **How it is chosen:** the same rule as every model: each task uses the cheapest Claude model that passes its test set (AutoQA's: your scores), and stronger models only where the cheaper ones fall short. The free Groq and Cloudflare models stay as fallbacks and for tasks they pass.
+- **When:** it is paid, so it starts at the first paying client (section 14), or earlier only with your OK and a set budget, for example to run Claude on the test set (new accounts get some free credits to try it).
+- **EU:** Claude's own API runs outside the EU (keeping data in the US costs 10% more); for clients who choose "EU only", Claude through Google Cloud in Belgium, as planned.
+
 **The AI companies at the start:**
 - Anthropic (Claude), directly or through Google Cloud in the EU
 - Google (Gemini)
@@ -233,7 +241,7 @@ The rule for clients costs little: a small paid model costs well under one cent 
 - any service that uses the common "OpenAI format", including, later, a model on our own server (the "Python door")
 
 **Voices and speech work the same way:**
-- **Q Trainer's customer voice:** always a natural voice: ElevenLabs first, another voice service only if it sounds as good in our listening test. The browser's own voice is only a back-up while building, never shown to clients (5 Nov, evening; section 9).
+- **Q Trainer's customer voice:** always a natural voice (17 November: you want an alternative to ElevenLabs, whose data agreement is only on its Enterprise plan and whose free plan forbids commercial use; the candidates are being compared, starting with Microsoft Azure Speech, which has Bulgarian, French and English voices). Another voice service only if it sounds as good in our listening test. The browser's own voice is only a back-up while building, never shown to clients (5 Nov, evening; section 9).
 - **The agent speaking in Q Trainer:** a speech-to-text service that has a data agreement and doesn't train, for the demo and for clients alike. The browser's own recognition isn't used, because in Chrome it sends the voice to Google under Chrome's own terms (5 Nov, evening).
 - **Transcribing calls** (later, with the integrations): the phone system's own transcript first, when there is one (section 10); otherwise several speech-to-text providers, compared with the same quality check.
 
@@ -432,7 +440,7 @@ Zendesk's tickets, chats and e-mails are text already.
 |---|---|
 | **Building (phases 0-9)** | **€0, no card.** The demo's AI runs on free plans that don't train on our data, and its natural voice on ElevenLabs' free plan. Paid models (Claude, GPT…) only if you want to compare them, per use. GitHub is free too: the repository is public, so its automatic tests have no minutes limit. |
 | **Online demo (phase 10)** | **€0 a month** within Google's free allowances: a card on file, at most one server, an alert at €1, and **an automatic stop** (6 Nov): if spending ever reaches about €5, Google's billing is switched off by itself (Google's documented method). The demo then goes offline until you switch it back on (soon: Google may delete stopped resources after a while; the database is at Neon and isn't affected), but a bug or an attack can't run up a bill. Stripe stays in free test mode. If you show Q Trainer to clients: ElevenLabs Starter, $6 a month (your decision). |
-| **First clients** | Stripe's share of each payment, the AI used for their data (free where the AI company's terms allow it, otherwise the cheapest paid model that passes), a paid database plan once the free one is too small, a paid e-mail plan if needed. All of this grows with your clients and is covered by their subscriptions. |
+| **First clients** | Anthropic's paid API for AutoQA, AI evaluations and the AI agents (17 Nov; per use, about $1.40 per 1,000 reviews on Claude Haiku 5.5 if it passes the test set), Stripe's share of each payment, the AI used for their data (free where the AI company's terms allow it, otherwise the cheapest paid model that passes), a paid database plan once the free one is too small, a paid e-mail plan if needed. All of this grows with your clients and is covered by their subscriptions. |
 | **Always** | AI, voices and speech-to-text for clients: they cost us per use, and clients pay for them as add-ons with monthly allowances that stop at the limit (section 6) |
 
 No domain is needed to build or to demo. At the first paying client, a domain (about €10 a year) helps Q-smart's own e-mails reach inboxes instead of spam: your decision then (6 Nov).
