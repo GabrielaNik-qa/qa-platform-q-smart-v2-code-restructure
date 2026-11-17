@@ -232,16 +232,35 @@ The rule for clients costs little: a small paid model costs well under one cent 
 - **When:** it is paid, so it starts at the first paying client (section 14), or earlier only with your OK and a set budget, for example to run Claude on the test set (new accounts get some free credits to try it).
 - **EU:** Claude's own API runs outside the EU (keeping data in the US costs 10% more); for clients who choose "EU only", Claude through Google Cloud in Belgium, as planned.
 
-**The AI companies at the start:**
-- Anthropic (Claude), directly or through Google Cloud in the EU
-- Google (Gemini)
-- OpenAI (GPT)
-- Mistral
-- Groq (fast open models such as Llama)
-- any service that uses the common "OpenAI format", including, later, a model on our own server (the "Python door")
+**The AI companies Q-smart offers, each for every task it can do (your decision, 17 November: "all for everywhere"):**
+
+| AI company | Text AI (AutoQA, AI evaluations, AI agents, coaching, analytics, Quinn) | Speech to text (calls, Q Trainer's agent) | Voice (Q Trainer's customer) | Plan and price (read 13 and 17 November 2026) |
+|---|---|---|---|---|
+| **Anthropic** (Claude Haiku 5.5, Sonnet 5.5, Opus 5.5, Fable 5.2) | ✓ the main one for AutoQA, AI evaluations and AI agents | - | - | paid per use; free credits to try |
+| **Groq** (gpt-oss 120b and 20b; Whisper large v3 and turbo) | ✓ | ✓ | only English and Arabic voices, so not for now | free plan: 1,000 requests and 200,000 tokens a day per model, 8 hours of audio a day; then paid per use |
+| **Cloudflare Workers AI** (gpt-oss 120b, Mistral Small, Llama 3.3; Whisper; Deepgram) | ✓ | ✓ | no Bulgarian voice, so not for now | free: 10,000 Neurons a day (about 3.5 hours of Whisper); then paid per use |
+| **Mistral** (its text models; Voxtral transcribe; Voxtral TTS) | ✓ | ✓ with speaker separation | ✓ if its listening test passes in Bulgarian | text: free plan with training switched off; speech and voice: paid per use (about $0.21-0.24 an hour of audio, $13 per million characters) |
+| **Microsoft Azure Speech** | - | ✓ Bulgarian, French, English; EU servers | ✓ Bulgarian (Kalina, Borislav), French and English voices | free each month: 5 hours of speech to text and 0.5 million characters of voice; then paid per use |
+| **ElevenLabs** | - | ✓ (Scribe) | ✓ | free plan not for commercial use; Starter $6 a month and up for commercial use; its data agreement only on Enterprise |
+| Later, if wanted: Google (Gemini on Google Cloud), OpenAI (GPT), any service in the common "OpenAI format", and a model on our own server (the "Python door") | | | | |
+
+"All for everywhere" means: each AI company is offered for every task it can technically do. The data rules above still apply per task: a plan that may not receive clients' data (for example ElevenLabs below Enterprise for agents' real voices, or a free plan with training on) is shown greyed out for those tasks, with the reason.
+
+**Who chooses which AI is used (17 November):**
+- **You, as Q-smart's owner** (the owner area): which AI companies and models are offered to client companies at all, switched on or off one by one, with a "recommended" mark. When one option becomes your clear favourite, you can switch the others off one day: the companies that used them move to their next choice and are told.
+- **Each company's admin**, in Admin › AI › Tasks: **a drop-down per task** (AutoQA, AI evaluations, the AI agents, coaching, analytics, Quinn, speech to text, Q Trainer's voice): "Automatic (recommended): the cheapest that passes the test set", or one chosen AI company and model, plus the order of the fallbacks. Only the options you allow, and that the company has connected, are listed. A company may connect its own key with an AI company, or use Q-smart's account as part of its AI add-on (section 6).
+- The pages never need rewriting when a model changes: the choices live in the AI engine's catalogue and in each company's settings.
+
+**Admin › AI, better organised (17 November):** one AI area with tabs:
+- **Overview:** each AI company's status light (available, approaching a limit, limit reached, unavailable), today's use and the latest problems;
+- **AI companies:** connect (the key, stored encrypted), plan, test, and a short summary of each company's data terms with their sources;
+- **Tasks:** the drop-downs above;
+- **Usage & limits:** this month's use and cost, per task, team and AI company; the monthly limits; the free plans' allowances;
+- **Rules:** AI on or off, "EU only", paid plans allowed or not, the AI reviews' rules;
+- **Quality:** each model's accuracy per task (the test sets: AutoQA's first) and its reply time and failures.
 
 **Voices and speech work the same way:**
-- **Q Trainer's customer voice:** always a natural voice (17 November: you want an alternative to ElevenLabs, whose data agreement is only on its Enterprise plan and whose free plan forbids commercial use; the candidates are being compared, starting with Microsoft Azure Speech, which has Bulgarian, French and English voices). Another voice service only if it sounds as good in our listening test. The browser's own voice is only a back-up while building, never shown to clients (5 Nov, evening; section 9).
+- **Q Trainer's customer voice:** always a natural voice, chosen per company from the voices of ElevenLabs, Microsoft Azure Speech and Mistral (17 November; the table above), after a listening test in English, Bulgarian and French. ElevenLabs' free plan forbids commercial use and its data agreement is only on Enterprise; Microsoft has Bulgarian voices and a free monthly allowance. The browser's own voice is only a back-up while building, never shown to clients (5 Nov, evening; section 9).
 - **The agent speaking in Q Trainer:** a speech-to-text service that has a data agreement and doesn't train, for the demo and for clients alike. The browser's own recognition isn't used, because in Chrome it sends the voice to Google under Chrome's own terms (5 Nov, evening).
 - **Transcribing calls** (later, with the integrations): the phone system's own transcript first, when there is one (section 10); otherwise several speech-to-text providers, compared with the same quality check.
 
@@ -317,7 +336,7 @@ Built as decided on 4 November, and as you asked in your notes: **it works only 
 - **AI only:** an AI model plays the customer in every conversation. The engine picks the model that passed the role-play test set (section 7). There's no scripted "fake" mode.
 - **Text or voice:**
   - Text practice uses only the AI model.
-  - Voice practice: the agent speaks into the microphone, their words are turned into text, the AI answers as the customer, and a natural **ElevenLabs** voice speaks the answer. One good voice quality for everyone, so it always sounds like a finished product (5 Nov, evening).
+  - Voice practice: the agent speaks into the microphone, their words are turned into text, the AI answers as the customer, and a natural voice (**ElevenLabs, Microsoft Azure Speech or Mistral**, as each company chooses; 17 Nov) speaks the answer. One good voice quality for everyone, so it always sounds like a finished product (5 Nov, evening).
   - **Also tried: "direct line" voice AIs (11 Nov).** Some AI companies hear the agent and answer out loud in one step (OpenAI's realtime voice, Google's Gemini Live and others): replies in about 1.5 seconds, and the agent can interrupt as on a real call. They join the comparison with the same listening test, the cost per minute and the rotation (section 7), and the best for the price wins. Each needs the same terms check as every AI company (no training, a data agreement): the agent's voice is sent to it, and voices can count as sensitive data. The key stays on our server; the browser gets only a short pass for one call.
   - **It sounds like a phone call (11 Nov):** a phone-line filter, light background noise (heard only by the agent, never sent to the AI), a ring before the customer answers, the customer can interrupt and be interrupted, and can hang up by itself.
   - **Calls in any language the company needs**, separate from the app's three languages.
@@ -465,8 +484,8 @@ Sign-in is set up the same way: one free Firebase project for the demo and one f
 | **Phase 0** | ✓ The repository `qa-platform-q-smart-v2-code-restructure` exists, public by your choice · create a free Firebase project with your Google account (no card; I'll guide you click by click) · create a free Neon account (no card) |
 | **Every phase** | Try what was built and tell me what to change |
 | **Phase 3b** | Free accounts with Groq and Cloudflare (no card). Their keys go into Q-smart's AI settings (never into the chat or a file). · Score the 30-50 sample conversations for the AutoQA test set (I prepare them). |
-| **Phase 8** | A free Mistral account (it asks for a phone number, not a card; switch training off under Admin Console › Privacy); its key goes into Q-smart's AI settings. Optional: your Claude and OpenAI keys, to compare paid models. |
-| **Phase 9** | A free ElevenLabs account (no card); its key goes into Q-smart's AI settings. Before showing Q Trainer to clients: decide on ElevenLabs Starter ($6 a month, commercial licence) |
+| **Phase 8** | A free Mistral account (it asks for a phone number, not a card; switch training off under Admin Console › Privacy); its key goes into Q-smart's AI settings. An Anthropic account for Claude (17 Nov: the main AI for AutoQA, AI evaluations and the AI agents; its free credits first, then paid only with your OK and a budget). |
+| **Phase 9** | A free ElevenLabs account (no card) and a Microsoft Azure account with its free Speech allowance (Microsoft may ask for a card; nothing is charged within the free allowance); their keys go into Q-smart's AI settings. Before showing Q Trainer to clients: choose the voice after the listening test (ElevenLabs Starter is $6 a month for commercial use) |
 | **Phase 10** | A card on the Google Cloud account (an alert at €1 and the automatic stop at about €5; I'll guide you) · a Stripe account (test mode) · a free Microsoft app registration for Microsoft sign-in (I'll guide you) · before the first client: a lawyer checks the AI companies list, the DPA and the AI Act paperwork |
 | **Integrations** | Access to the platforms, and permission to use their data |
 
