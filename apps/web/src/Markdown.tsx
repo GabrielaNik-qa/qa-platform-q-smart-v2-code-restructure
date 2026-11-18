@@ -1,13 +1,13 @@
 // A small, safe Markdown reader for the Knowledge Base (today's md.js): headings (#, ##, ###), paragraphs, bulleted and
 // numbered lists, quotes, rules, **bold**, *italic*, `code` and [links](https://…). It builds React elements, never HTML
-// text, so nothing in an article can run as a script; only http and https links become links.
+// text, so nothing in an article can run as a script; only http and https links become links. The reading of the blocks
+// is shared with the server (the ZIP export writes the same HTML).
+import { MD_TOKEN, markdownBlocks } from '@qsmart/shared';
 import type { ReactNode } from 'react';
-
-const TOKEN = /(\*\*[^*\n]+\*\*|\*[^*\n]+\*|`[^`\n]+`|\[[^\]\n]+\]\(https?:\/\/[^)\s]+\))/g;
 
 /** The words inside a line: bold, italic, code and links. */
 export function inline(text: string): ReactNode[] {
-  return text.split(TOKEN).map((part, i) => {
+  return text.split(MD_TOKEN).map((part, i) => {
     if (/^\*\*[^*]+\*\*$/.test(part)) return <strong key={i}>{part.slice(2, -2)}</strong>;
     if (/^\*[^*]+\*$/.test(part)) return <em key={i}>{part.slice(1, -1)}</em>;
     if (/^`[^`]+`$/.test(part))
@@ -27,56 +27,12 @@ export function inline(text: string): ReactNode[] {
   });
 }
 
-type Block =
-  | { kind: 'h'; level: 1 | 2 | 3; text: string }
-  | { kind: 'p'; text: string }
-  | { kind: 'quote'; text: string }
-  | { kind: 'ul'; items: string[] }
-  | { kind: 'ol'; items: string[] }
-  | { kind: 'hr' };
-
-/** The blocks of a text, line by line. */
-export function blocks(source: string): Block[] {
-  const out: Block[] = [];
-  const lines = source.replace(/\r\n?/g, '\n').split('\n');
-  let paragraph: string[] = [];
-  const flush = () => {
-    if (paragraph.length) out.push({ kind: 'p', text: paragraph.join(' ') });
-    paragraph = [];
-  };
-  for (const line of lines) {
-    const heading = /^(#{1,3})\s+(.*\S)\s*$/.exec(line);
-    const quote = /^>\s?(.*)$/.exec(line);
-    const bullet = /^\s*[-*]\s+(.*\S)\s*$/.exec(line);
-    const numbered = /^\s*\d+[.)]\s+(.*\S)\s*$/.exec(line);
-    const last = out.at(-1);
-    if (!line.trim()) flush();
-    else if (/^\s*(-{3,}|\*{3,})\s*$/.test(line)) {
-      flush();
-      out.push({ kind: 'hr' });
-    } else if (heading) {
-      flush();
-      out.push({ kind: 'h', level: heading[1]?.length as 1 | 2 | 3, text: heading[2] ?? '' });
-    } else if (quote) {
-      flush();
-      if (last?.kind === 'quote') last.text += ` ${quote[1] ?? ''}`;
-      else out.push({ kind: 'quote', text: quote[1] ?? '' });
-    } else if (bullet || numbered) {
-      flush();
-      const kind = bullet ? 'ul' : 'ol';
-      const text = (bullet ?? numbered)?.[1] ?? '';
-      if (last?.kind === kind) last.items.push(text);
-      else out.push(kind === 'ul' ? { kind: 'ul', items: [text] } : { kind: 'ol', items: [text] });
-    } else paragraph.push(line.trim());
-  }
-  flush();
-  return out;
-}
+export const blocks = markdownBlocks;
 
 export function Markdown({ source }: { source: string }) {
   return (
     <div className="grid gap-3 text-[15px] leading-relaxed">
-      {blocks(source).map((b, i) => {
+      {markdownBlocks(source).map((b, i) => {
         if (b.kind === 'h') {
           const size = b.level === 1 ? 'text-2xl' : b.level === 2 ? 'text-xl' : 'text-lg';
           return (

@@ -2,12 +2,13 @@
 // Markdown, topics, search, "mark as read" for an article or a whole folder, stars, reactions and comments, required
 // reading, and an optional test at the end of a lesson. Staff write; everyone reads what is open to their team (the
 // server decides what each person receives).
-import { articleRequired, can, folderChain, folderTree, KB_REACTIONS } from '@qsmart/shared';
+import { articleRequired, can, fileSlug, folderChain, folderTree, KB_REACTIONS } from '@qsmart/shared';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { when } from './Activity';
-import { api } from './api';
+import { api, apiFile } from './api';
+import { KnowledgeImport } from './KnowledgeImport';
 import { Empty } from './bits';
 import { currentLanguage } from './i18n';
 import { Markdown } from './Markdown';
@@ -135,6 +136,7 @@ export function KnowledgeBase({ company }: { company: CompanyRef }) {
   const [test, setTest] = useState<TestState | null>(null);
   const [deleting, setDeleting] = useState<Folder | null>(null);
   const [writing, setWriting] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [mode, setMode] = useState<'move' | 'cascade'>('move');
   const writes = can(company.role, 'learning.write');
   const open = search.article ?? null;
@@ -275,6 +277,19 @@ ${d.body}`,
       fail(e);
     }
     setWriting(false);
+  }
+  /** Downloads a ZIP of one article, or of a folder with its sub-folders (what this person may see). */
+  async function download(url: string, name: string) {
+    try {
+      const blob = await apiFile(url, company.id, {});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${fileSlug(name)}.zip`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (e) {
+      fail(e);
+    }
   }
   async function removeArticle(a: Article) {
     if (!window.confirm(t('kb.confirmDelete', { name: a.title }))) return;
@@ -471,6 +486,13 @@ ${d.body}`,
                   </button>
                 </>
               )}
+              <button
+                type="button"
+                className={smallButton}
+                onClick={() => void download(`/kb/articles/${a.id}/export`, a.title)}
+              >
+                ⬇ {t('kbio.exportZip')}
+              </button>
               {writes && (
                 <>
                   <button type="button" className={smallButton} onClick={() => editArticle(a)}>
@@ -901,6 +923,24 @@ ${d.body}`,
   const folderArticles = folder ? below(folder.id) : articles;
   const folderRead = folderArticles.filter(isRead).length;
   const main = (() => {
+    if (importing)
+      return (
+        <KnowledgeImport
+          company={company}
+          folders={folders.map((f) => ({
+            id: f.id,
+            path: path(f.id)
+              .map((x) => x.name)
+              .join('/'),
+          }))}
+          currentFolderId={folderId}
+          onCancel={() => setImporting(false)}
+          onDone={() => {
+            setImporting(false);
+            load();
+          }}
+        />
+      );
     if (editor) return editorForm(editor);
     if (folderDraft) return folderForm(folderDraft);
     if (test) return testView(test);
@@ -963,6 +1003,13 @@ ${d.body}`,
                 {folder.description && <p className="text-sm text-mu">{folder.description}</p>}
               </div>
               <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className={smallButton}
+                  onClick={() => void download(`/kb/folders/${folder.id}/export`, folder.name)}
+                >
+                  ⬇ {t('kbio.exportZip')}
+                </button>
                 {data.me.id && folderArticles.length > 0 && (
                   <button
                     type="button"
@@ -983,6 +1030,9 @@ ${d.body}`,
                     </button>
                     <button type="button" className={smallButton} onClick={() => setEditor(blankArticle(folder.id))}>
                       + {t('kb.newArticle')}
+                    </button>
+                    <button type="button" className={smallButton} onClick={() => setImporting(true)}>
+                      ⇪ {t('kbio.import')}
                     </button>
                     <button
                       type="button"
@@ -1070,8 +1120,11 @@ ${d.body}`,
           <h1 className="lane font-display text-3xl font-bold uppercase tracking-wide">{t('menu.pages.kb')}</h1>
           <p className="text-sm text-mu">{t('kb.intro')}</p>
         </div>
-        {writes && !editor && !folderDraft && (
+        {writes && !editor && !folderDraft && !importing && (
           <div className="flex gap-2">
+            <button type="button" className={smallButton} onClick={() => setImporting(true)}>
+              ⇪ {t('kbio.import')}
+            </button>
             <button type="button" className={smallButton} onClick={() => setFolderDraft(blankFolder(folderId))}>
               + {t('kb.newFolder')}
             </button>

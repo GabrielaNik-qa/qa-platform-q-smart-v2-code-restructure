@@ -15,6 +15,8 @@ import { PermissionGuard } from './auth/permission.guard.js';
 import { PlatformGuard } from './auth/platform.guard.js';
 import { HealthController, MeController, MySkillsController, PlatformController } from './controllers.js';
 import { KnowledgeController } from './knowledge.controller.js';
+import { KnowledgeIoController } from './knowledge-io.controller.js';
+import { NewslettersController } from './newsletters.controller.js';
 import { LearningController, QuizzesController } from './quizzes.controller.js';
 import { PlatformAiController } from './platform-ai.controller.js';
 import { PeopleController } from './people.controller.js';
@@ -111,6 +113,8 @@ export class AppModule {
         TranscriptDaysController,
         IntakeController,
         KnowledgeController,
+        KnowledgeIoController,
+        NewslettersController,
         QuizzesController,
         LearningController,
         AutoqaController,

@@ -60,6 +60,7 @@ export const BUILT = new Set([
   'learning/knowledge-base',
   'learning/quizzes',
   'learning/my-learning',
+  'learning/newsletter',
   'admin/fields',
   'quality/conversations',
   'quality/autoqa',

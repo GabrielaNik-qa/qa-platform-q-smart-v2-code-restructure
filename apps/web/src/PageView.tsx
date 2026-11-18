@@ -9,6 +9,7 @@ import { AutoQA } from './AutoQA';
 import { AiAdmin } from './AiSettings';
 import { KnowledgeBase } from './KnowledgeBase';
 import { MyLearning } from './MyLearning';
+import { Newsletter } from './Newsletter';
 import { Quizzes } from './Quizzes';
 import { findPage, isBuilt, menuOf } from './menu';
 import { Calendar } from './Calendar';
@@ -93,6 +94,7 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'learning/knowledge-base': (company) => <KnowledgeBase company={company} />,
   'learning/quizzes': (company) => <Quizzes company={company} />,
   'learning/my-learning': (company) => <MyLearning company={company} />,
+  'learning/newsletter': (company) => <Newsletter company={company} />,
   'admin/fields': (company) => <Fields company={company} />,
   'quality/conversations': (company) => <Conversations company={company} />,
   'quality/autoqa': (company) => <AutoQA company={company} />,

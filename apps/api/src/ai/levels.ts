@@ -19,6 +19,7 @@ export const AI_TASKS: AiTask[] = [
   { feature: 'speech.transcribe', kind: 'speech', level: 'standard', live: true },
   { feature: 'speech.speakers', kind: 'text', level: 'light', live: true },
   { feature: 'learning.quiz', kind: 'text', level: 'standard', live: true },
+  { feature: 'learning.import', kind: 'text', level: 'standard', live: true },
   // coming with their phases: listed so the owner can plan their levels
   { feature: 'autoqa.scorable', kind: 'text', level: 'light', live: false },
   { feature: 'transcript.translate', kind: 'text', level: 'light', live: false },

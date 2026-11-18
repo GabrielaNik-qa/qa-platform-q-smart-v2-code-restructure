@@ -2217,3 +2217,63 @@ export const quizAttempts = pgTable(
     }).onDelete('cascade'),
   ],
 );
+
+/** One item of a newsletter: a headline, a few words, and optionally a link to a Knowledge Base article. */
+export interface NewsletterItem {
+  title: string;
+  text: string;
+  articleId: string | null;
+}
+
+/**
+ * Learning › Newsletter (Phase 6, piece 3): a short monthly update with links to the articles that changed. A draft is
+ * seen by staff only; publishing tells everybody once.
+ */
+export const newsletters = pgTable(
+  'newsletters',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    /** yyyy-mm */
+    month: text('month').notNull(),
+    title: text('title').notNull(),
+    intro: text('intro').notNull().default(''),
+    published: boolean('published').notNull().default(false),
+    items: jsonb('items').$type<NewsletterItem[]>().notNull().default([]),
+    byName: text('by_name').notNull().default(''),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('newsletters_id_company').on(t.id, t.companyId),
+    index('newsletters_company_month').on(t.companyId, t.month),
+  ],
+);
+
+/** Who has read which newsletter. */
+export const newsletterReads = pgTable(
+  'newsletter_reads',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    membershipId: uuid('membership_id').notNull(),
+    newsletterId: uuid('newsletter_id').notNull(),
+    readAt: timestamp('read_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.companyId, t.membershipId, t.newsletterId] }),
+    foreignKey({
+      name: 'newsletter_reads_member_same_company',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'newsletter_reads_newsletter_same_company',
+      columns: [t.newsletterId, t.companyId],
+      foreignColumns: [newsletters.id, newsletters.companyId],
+    }).onDelete('cascade'),
+  ],
+);

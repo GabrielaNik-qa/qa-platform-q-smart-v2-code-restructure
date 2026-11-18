@@ -128,6 +128,13 @@ export const ERROR_MESSAGES = {
   quizNoTriesLeft: 'You have used all your tries for this quiz. Ask your trainer.',
   quizAiNoMaterial: 'Choose the articles, or paste the text, the questions should be based on.',
   quizAiUnusable: 'The AI did not return usable questions. Try again.',
+  newsletterInvalid: 'Check the newsletter: a title and a month are needed, and nothing is too long.',
+  newsletterNotFound: 'This newsletter is not there any more.',
+  importEmpty: 'There is nothing to import. Paste some text or choose a file.',
+  importTooBig: 'This file is too large to import (up to 5 MB).',
+  importDamaged: 'This file is damaged or empty.',
+  importUnsupported: 'Only text (.txt), Markdown (.md), HTML and Word (.docx) files can be imported.',
+  importAiUnusable: 'The AI did not return any article. Try again, or import without the AI.',
   minCallInvalid: 'Enter a whole number of seconds between 1 and 86400, or leave it empty.',
   aiReviewNoTranscript: 'This conversation has no transcript to review.',
   aiReviewsNotAnnounced:

@@ -460,7 +460,7 @@ export const MENU: MenuApp[] = [
             id: 'newsletter',
             key: 'news',
             roles: null,
-            phase: '5',
+            phase: '6',
           },
         ],
       },

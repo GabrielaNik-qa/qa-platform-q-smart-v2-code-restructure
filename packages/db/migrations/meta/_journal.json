@@ -540,6 +540,20 @@
       "when": 1794986902761,
       "tag": "0076_quizzes",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1794991084136,
+      "tag": "0077_newsletters_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1794991085136,
+      "tag": "0078_newsletters",
+      "breakpoints": true
     }
   ]
 }

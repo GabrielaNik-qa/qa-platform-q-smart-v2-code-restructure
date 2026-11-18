@@ -2,6 +2,21 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
+## 18 November 2026: Phase 6, step 3, piece 3 of 4 (Learning › Newsletter, and Knowledge Base import and export)
+
+Built on branch `v2-phase-6`. Today's newsletter, import and ZIP export are the checklist.
+
+- **Newsletter** (Learning › Newsletter): a short update for a month, with an introduction and items (a headline, a sentence or two and, optionally, a link to a Knowledge Base article). Staff (admins, reviewers, team leads, trainers) write it; **a draft is seen by staff only; publishing tells everybody once** in the bell (not the one who published it, and saving again doesn't tell them twice). Everyone reads it and can mark it as read. "Add this month's new and changed articles" fills the items from the articles added or changed in that month.
+- **Links only to articles a person may open:** an agent never gets a link to an article of a folder closed to their team (the server takes it out; the item's own words stay).
+- **Import** (Knowledge Base › Import, staff): paste a text or choose files (**.txt, .md, .html, .docx**, up to 5 MB each). Each becomes **draft articles** that you check, edit and untick before saving; the folders they name are created when missing (matched by name, ignoring case; at most 4 levels). Two ways: split at the headings (# and ##), or **organise with the AI** (new AI task "Article import", standard level, in the owner area's list): focused articles, topics and a suggested folder, in the language of the text; the text is material, never instructions; only plans that don't train on our data; counted in the AI allowance and log. The AI's drafts are never saved by themselves.
+- **Safe with files:** a Word file is a ZIP, and its table of contents is read first: one that would unpack to more than 50 MB or 2,000 parts (a "zip bomb") is refused before anything is unpacked (tested). Scripts and styles in HTML are dropped, and a crafted file with thousands of unclosed tags takes less than a second to read (tested).
+- **Not imported:** PDF files (today's app read them only through the AI; v2 has no safe PDF reader yet). Word, text, Markdown and HTML work.
+- **Export** (every person, for what they may see): an article, or a folder with its sub-folders, as a **ZIP of Markdown and HTML files**. The HTML is escaped (a script in an article stays text) and the folders keep their names. Articles of folders closed to the person's team are never in the ZIP.
+- **Shared Markdown reader:** the reading of Markdown now lives in the shared rules, so the pages and the ZIP export show the same blocks.
+- **Database:** two new tables (newsletters and their reads), behind the company wall, limits in the database.
+- **Checked in the browser** as admin (a newsletter filled from this month's articles and published; a pasted text imported both split at its headings and organised by a real AI call into "Refund Policy" and "Escalation Procedure", saved, exported as a ZIP, then deleted with the test newsletter) and as an agent (no import or write buttons; the newsletter page); no console errors. Reviewer, lead and trainer share the admin's writing right (tested) and were not opened one by one.
+- 447 automatic tests pass (new: the import helpers, and 12 server tests: who writes, drafts and the bell, links only to articles a person may open, reading, files of every kind, the zip bomb, the AI import, saving with folders, the ZIP export of what a person may see, the company wall).
+
 ## 18 November 2026: Phase 6, step 3, piece 2 of 4 (Learning › Quizzes and My Learning)
 
 Built on branch `v2-phase-6`. Today's quizzes, My Learning and progress report are the checklist.
