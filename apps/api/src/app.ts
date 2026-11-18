@@ -14,6 +14,7 @@ import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { PermissionGuard } from './auth/permission.guard.js';
 import { PlatformGuard } from './auth/platform.guard.js';
 import { HealthController, MeController, MySkillsController, PlatformController } from './controllers.js';
+import { HelpController, ToolsController } from './help.controller.js';
 import { KnowledgeController } from './knowledge.controller.js';
 import { KnowledgeIoController } from './knowledge-io.controller.js';
 import { NewslettersController } from './newsletters.controller.js';
@@ -112,6 +113,8 @@ export class AppModule {
         ConversationsController,
         TranscriptDaysController,
         IntakeController,
+        HelpController,
+        ToolsController,
         KnowledgeController,
         KnowledgeIoController,
         NewslettersController,

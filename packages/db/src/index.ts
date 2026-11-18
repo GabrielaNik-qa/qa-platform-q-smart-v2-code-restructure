@@ -12,6 +12,7 @@ export * from './intake.js';
 export * from './knowledge.js';
 export * from './local-postgres.js';
 export * from './log.js';
+export * from './help.js';
 export * from './newsletters.js';
 export * from './migrate.js';
 export * from './people.js';

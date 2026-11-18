@@ -2,6 +2,22 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
+## 18 November 2026: Phase 6, step 3, piece 4 of 4 (help inside the app, and Tools)
+
+Built on branch `v2-phase-6`. Today's Help Center pages and Learning › Tools are the checklist. This is the last piece of Learning & Tools.
+
+- **Help inside the app** (Home › Help: **FAQ, Video tutorials, Guided tours, Glossary**): staff (admins, reviewers, team leads, trainers) write them, everybody reads them, with a search box. An FAQ answer can point to a page of the app; a video link must be a secure one (https), otherwise it is refused by the page, the server and the database; a glossary word has its meaning.
+- **Guided tours** open the real pages one after the other, with a bar at the bottom (Back, Next, Finish, close). A tour can be for everybody or for one role: an agent only sees the tours for agents and for everybody; staff see all of them to write them.
+- **Start from Q-smart's own list:** a company with no glossary or no tours can add Q-smart's own (12 words, and two tours: first day as an agent, first day as a reviewer), **in the language of the person who adds them** (English, Bulgarian or French), and then change them.
+- **Script builder** (Learning › Script builder): call scripts and ready answers, step by step, written by staff and read by everybody.
+- **Redaction** (Learning › Redaction): takes card numbers (only those that pass the card check), bank accounts (IBAN), e-mails, phone numbers and other long numbers out of a text. **It happens in the browser: nothing is sent or saved.** Names are not found automatically (the page says so).
+- **Translator** (Learning › Translator, for everybody): a transcript or a comment into English, Bulgarian, French, German, Spanish, Italian, Dutch, Portuguese, Romanian, Greek, Turkish or Polish, **through the AI engine** (task "Translating a transcript", light effort level, now live in the owner area): only plans that don't train on our data, counted in the company's AI allowance and in the AI log. The text is only sent once and is not kept; it is treated as text to translate, never as instructions; speaker labels and placeholders like [CARD] are kept. The page tells people to redact first and to check names and numbers.
+- **Sample calculator** (admins, reviewers, team leads, trainers): how many reviews make a fair score (95% sure and within 10 points by default), and for each agent this month's reviews against what is needed (only the agents the person reaches).
+- **Score simulator** (everybody): answer the questions of a scorecard Yes, No or N/A and watch the score move, with the same rules as QA Entry (critical items, critical categories, N/A). Nothing is saved.
+- **Database:** one new table for all the help lists, behind the company wall, limits in the database; the kind of an item can never be changed.
+- **Checked in the browser** as admin (the glossary and tours added from Q-smart's list, a tour walked through four pages, a FAQ pointing to a page, a video with a link refused without https, a script, the sample calculator; then all the test items deleted) and as an agent (only the agent tour, no add or change buttons; redaction took out a card, an IBAN, an e-mail and a phone number; a real AI call translated a call into Bulgarian keeping the speaker labels and [CARD]; the score simulator went from 100% to 94% and back); no console errors. Reviewer, lead and trainer share the writing right of the admin, which the automatic tests cover.
+- 460 automatic tests pass (new: redaction and the sample size, and 8 server tests: who writes, what each kind needs, scripts, tours for one role, the starter lists in three languages, the company wall, the translator, its limits).
+
 ## 18 November 2026: Phase 6, step 3, piece 3 of 4 (Learning › Newsletter, and Knowledge Base import and export)
 
 Built on branch `v2-phase-6`. Today's newsletter, import and ZIP export are the checklist.

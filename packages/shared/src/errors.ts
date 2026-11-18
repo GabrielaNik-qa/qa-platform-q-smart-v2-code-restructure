@@ -130,6 +130,10 @@ export const ERROR_MESSAGES = {
   quizAiUnusable: 'The AI did not return usable questions. Try again.',
   newsletterInvalid: 'Check the newsletter: a title and a month are needed, and nothing is too long.',
   newsletterNotFound: 'This newsletter is not there any more.',
+  helpInvalid:
+    'Check what you wrote: a FAQ and a word need a text, a video needs a secure link (https), a tour needs at least one step with a page.',
+  helpNotFound: 'This is not there any more.',
+  translateInvalid: 'Paste a text of up to 12000 characters and choose the language to translate into.',
   importEmpty: 'There is nothing to import. Paste some text or choose a file.',
   importTooBig: 'This file is too large to import (up to 5 MB).',
   importDamaged: 'This file is damaged or empty.',

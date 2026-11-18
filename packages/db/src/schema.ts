@@ -2277,3 +2277,44 @@ export const newsletterReads = pgTable(
     }).onDelete('cascade'),
   ],
 );
+
+/** A step of a tour (a page to open) or of a call script (what to say). */
+export interface HelpStepRow {
+  title: string;
+  text: string;
+  page: string;
+}
+
+/**
+ * Help inside the app and the script builder (Phase 6, piece 4): FAQ, glossary, video tutorials, guided tours and call
+ * scripts in one table, told apart by `kind`. Staff write them, everybody reads them.
+ */
+export const helpItems = pgTable(
+  'help_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    /** faq, glossary, video, tour or script */
+    kind: text('kind').notNull(),
+    /** the question, the word, the video or tour name, the script name */
+    title: text('title').notNull(),
+    /** the answer, the meaning, what a video shows, when to use a script */
+    body: text('body').notNull().default(''),
+    topic: text('topic').notNull().default(''),
+    /** a video's link (https only) */
+    link: text('link').notNull().default(''),
+    /** a video's length in minutes */
+    minutes: integer('minutes'),
+    /** a tour's role: all, admin, reviewer, lead, trainer or agent */
+    role: text('role').notNull().default('all'),
+    /** an FAQ answer's page to open, such as quality/reviews */
+    page: text('page').notNull().default(''),
+    steps: jsonb('steps').$type<HelpStepRow[]>().notNull().default([]),
+    byName: text('by_name').notNull().default(''),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('help_items_company_kind').on(t.companyId, t.kind)],
+);

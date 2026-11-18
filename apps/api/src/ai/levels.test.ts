@@ -19,6 +19,7 @@ describe('effort levels', () => {
       'speech.speakers',
       'learning.quiz',
       'learning.import',
+      'transcript.translate',
     ]);
   });
 

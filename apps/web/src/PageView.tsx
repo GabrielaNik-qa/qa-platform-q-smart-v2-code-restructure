@@ -7,6 +7,7 @@ import { Activity } from './Activity';
 import { Agents } from './Agents';
 import { AutoQA } from './AutoQA';
 import { AiAdmin } from './AiSettings';
+import { HelpPage } from './Help';
 import { KnowledgeBase } from './KnowledgeBase';
 import { MyLearning } from './MyLearning';
 import { Newsletter } from './Newsletter';
@@ -46,6 +47,7 @@ import { Tasks } from './Tasks';
 import { TeamReview } from './TeamReview';
 import { TopicDashboards } from './TopicDashboards';
 import { Teams } from './Teams';
+import { Redaction, SampleCalculator, ScoreSimulator, Translator } from './Tools';
 import type { CompanyRef } from './ui';
 import { Workload } from './Workload';
 import { Workspaces } from './Workspaces';
@@ -95,6 +97,15 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'learning/quizzes': (company) => <Quizzes company={company} />,
   'learning/my-learning': (company) => <MyLearning company={company} />,
   'learning/newsletter': (company) => <Newsletter company={company} />,
+  'quality/faq': (company) => <HelpPage kind="faq" company={company} />,
+  'quality/video-tutorials': (company) => <HelpPage kind="video" company={company} />,
+  'quality/guided-tours': (company) => <HelpPage kind="tour" company={company} />,
+  'quality/glossary': (company) => <HelpPage kind="glossary" company={company} />,
+  'learning/script-builder': (company) => <HelpPage kind="script" company={company} />,
+  'learning/redaction': () => <Redaction />,
+  'learning/translator': (company) => <Translator company={company} />,
+  'learning/sample-calculator': (company) => <SampleCalculator company={company} />,
+  'learning/score-simulator': (company) => <ScoreSimulator company={company} />,
   'admin/fields': (company) => <Fields company={company} />,
   'quality/conversations': (company) => <Conversations company={company} />,
   'quality/autoqa': (company) => <AutoQA company={company} />,
