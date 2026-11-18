@@ -14,6 +14,11 @@ import { CompanyMemberGuard } from './company/company-member.guard.js';
 import { PermissionGuard } from './auth/permission.guard.js';
 import { PlatformGuard } from './auth/platform.guard.js';
 import { HealthController, MeController, MySkillsController, PlatformController } from './controllers.js';
+import { HelpController, ToolsController } from './help.controller.js';
+import { KnowledgeController } from './knowledge.controller.js';
+import { KnowledgeIoController } from './knowledge-io.controller.js';
+import { NewslettersController } from './newsletters.controller.js';
+import { LearningController, QuizzesController } from './quizzes.controller.js';
 import { PlatformAiController } from './platform-ai.controller.js';
 import { PeopleController } from './people.controller.js';
 import {
@@ -23,7 +28,12 @@ import {
   ScorecardsController,
 } from './quality.controller.js';
 import { CalibrationsController } from './calibrations.controller.js';
-import { ConversationsController, FieldsController, TranscriptDaysController } from './conversations.controller.js';
+import {
+  ConversationsController,
+  FieldsController,
+  IntakeController,
+  TranscriptDaysController,
+} from './conversations.controller.js';
 import { DashboardsController } from './dashboards.controller.js';
 import { DisputesController } from './disputes.controller.js';
 import { FlagsController } from './flags.controller.js';
@@ -102,6 +112,14 @@ export class AppModule {
         FieldsController,
         ConversationsController,
         TranscriptDaysController,
+        IntakeController,
+        HelpController,
+        ToolsController,
+        KnowledgeController,
+        KnowledgeIoController,
+        NewslettersController,
+        QuizzesController,
+        LearningController,
         AutoqaController,
         SpeechController,
         TasksController,

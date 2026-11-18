@@ -30,6 +30,9 @@ import {
   type Tx,
   updateConversation,
   withCompany,
+  countCallLeftOut,
+  getIntake,
+  setMinCallSeconds,
 } from '@qsmart/db';
 import {
   checkValues,
@@ -293,6 +296,19 @@ export class ConversationsController {
     if (!input.success) throw badRequest('conversationInvalid');
     return withCompany(this.db, membership.companyId, async (tx) => {
       const ready = await this.prepare(tx, membership, scope, input.data, {});
+      // a call shorter than the company's minimum never becomes a conversation: it is only counted (chats and
+      // e-mails always enter, and so does a call whose length isn't given)
+      const { minCallSeconds } = await getIntake(tx);
+      const length = ready.row.values['duration'];
+      if (
+        ready.row.channel === 'call' &&
+        minCallSeconds !== null &&
+        typeof length === 'number' &&
+        length < minCallSeconds
+      ) {
+        await countCallLeftOut(tx);
+        return { leftOut: true as const, minCallSeconds };
+      }
       const me = await membershipOfUser(tx, membership.userId);
       const id = await addConversation(
         tx,
@@ -422,6 +438,39 @@ export class TranscriptDaysController {
         details: { days: String(input.data.days) },
       });
       return { days: input.data.days, choices: TRANSCRIPT_DAYS };
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------------------------- minimum call length
+
+/** "Calls shorter than [ ] seconds don't enter" (empty: all calls enter), with the count of calls left out. */
+@Controller('intake')
+@UseGuards(SignedInGuard, CompanyMemberGuard, PermissionGuard)
+export class IntakeController {
+  constructor(@Inject(DB) private readonly db: Db) {}
+
+  @Get()
+  @Allow('conversations.read')
+  get(@CurrentMembership() membership: Membership) {
+    return withCompany(this.db, membership.companyId, (tx) => getIntake(tx));
+  }
+
+  @Put()
+  @Allow('settings.write')
+  async set(@CurrentMembership() membership: Membership, @Body() body: unknown) {
+    const input = z
+      .object({ minCallSeconds: z.number().int().min(1).max(86_400).nullable() })
+      .strict()
+      .safeParse(body);
+    if (!input.success) throw badRequest('minCallInvalid');
+    return withCompany(this.db, membership.companyId, async (tx) => {
+      await setMinCallSeconds(tx, input.data.minCallSeconds);
+      await logActivity(tx, actorOf(membership), {
+        action: 'minCallChanged',
+        details: { seconds: input.data.minCallSeconds === null ? '-' : String(input.data.minCallSeconds) },
+      });
+      return getIntake(tx);
     });
   }
 }

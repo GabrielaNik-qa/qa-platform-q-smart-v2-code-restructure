@@ -1091,6 +1091,21 @@ export const aiSettings = pgTable('ai_settings', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * Which calls enter the app (Phase 6): a company sets "calls shorter than [ ] seconds don't enter" (empty: all calls
+ * enter), and Q-smart counts the calls it left out. Chats and e-mails always enter. One row per company.
+ */
+export const companyIntake = pgTable('company_intake', {
+  companyId: uuid('company_id')
+    .primaryKey()
+    .references(() => companies.id, { onDelete: 'cascade' }),
+  /** a call shorter than this many seconds never becomes a conversation (null: none is left out) */
+  minCallSeconds: integer('min_call_seconds'),
+  /** how many calls were left out for being too short, since the setting was first used */
+  callsLeftOut: integer('calls_left_out').notNull().default(0),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export interface AiLimit {
   /** millionths of a US dollar (AI companies price in dollars) */
   microUsd?: number;
@@ -1949,4 +1964,357 @@ export const coachingSessions = pgTable(
       foreignColumns: [memberships.id, memberships.companyId],
     }),
   ],
+);
+
+// ---------------------------------------------------------------------------------------------- Learning: Knowledge Base
+
+/** A lesson test's question: the options, the index of the right one and why (shown after the test). */
+export interface KbQuestion {
+  q: string;
+  opts: string[];
+  a: number;
+  why: string;
+}
+/** The test at the end of a lesson: the pass mark (%) and the questions. */
+export interface KbQuiz {
+  pass: number;
+  questions: KbQuestion[];
+}
+export interface KbComment {
+  id: string;
+  /** the membership that wrote it (null once that person is gone) */
+  byId: string | null;
+  name: string;
+  text: string;
+  at: string;
+}
+
+/**
+ * Learning › Knowledge Base, folders (Confluence-like, any depth). A folder can be open to some teams only (agents of
+ * other teams never see it, its sub-folders or its articles; staff see everything) and can be required reading.
+ */
+export const kbFolders = pgTable(
+  'kb_folders',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    parentId: uuid('parent_id'),
+    name: text('name').notNull(),
+    colour: text('colour').notNull().default('#2563eb'),
+    icon: text('icon').notNull().default('📁'),
+    description: text('description').notNull().default(''),
+    /** required reading: agents (of the teams below, or all) have to read everything in it */
+    reqOn: boolean('req_on').notNull().default(false),
+    reqTeams: uuid('req_teams').array().notNull().default([]),
+    /** open to these teams only (empty: everybody) */
+    teams: uuid('teams').array().notNull().default([]),
+    byName: text('by_name').notNull().default(''),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('kb_folders_id_company').on(t.id, t.companyId),
+    index('kb_folders_parent').on(t.companyId, t.parentId),
+    foreignKey({
+      name: 'kb_folders_parent_same_company',
+      columns: [t.parentId, t.companyId],
+      foreignColumns: [t.id, t.companyId],
+    }),
+  ],
+);
+
+/** Learning › Knowledge Base, articles (Markdown text and links; pictures and files come with online storage). */
+export const kbArticles = pgTable(
+  'kb_articles',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    folderId: uuid('folder_id'),
+    title: text('title').notNull(),
+    emoji: text('emoji').notNull().default(''),
+    topics: jsonb('topics').$type<string[]>().notNull().default([]),
+    body: text('body').notNull().default(''),
+    reqOn: boolean('req_on').notNull().default(false),
+    reqTeams: uuid('req_teams').array().notNull().default([]),
+    /** the test at the end of the lesson */
+    quiz: jsonb('quiz').$type<KbQuiz | null>(),
+    /** emoji → the memberships that reacted */
+    reactions: jsonb('reactions').$type<Record<string, string[]>>().notNull().default({}),
+    comments: jsonb('comments').$type<KbComment[]>().notNull().default([]),
+    authorId: uuid('author_membership_id'),
+    authorName: text('author_name').notNull().default(''),
+    editorName: text('editor_name').notNull().default(''),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('kb_articles_id_company').on(t.id, t.companyId),
+    index('kb_articles_folder').on(t.companyId, t.folderId),
+    foreignKey({
+      name: 'kb_articles_folder_same_company',
+      columns: [t.folderId, t.companyId],
+      foreignColumns: [kbFolders.id, kbFolders.companyId],
+    }),
+    foreignKey({
+      name: 'kb_articles_author_same_company',
+      columns: [t.authorId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }),
+  ],
+);
+
+/** Who has read which article (and when). */
+export const kbReads = pgTable(
+  'kb_reads',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    membershipId: uuid('membership_id').notNull(),
+    articleId: uuid('article_id').notNull(),
+    readAt: timestamp('read_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.companyId, t.membershipId, t.articleId] }),
+    foreignKey({
+      name: 'kb_reads_member_same_company',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'kb_reads_article_same_company',
+      columns: [t.articleId, t.companyId],
+      foreignColumns: [kbArticles.id, kbArticles.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+/** A person's starred articles. */
+export const kbStars = pgTable(
+  'kb_stars',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    membershipId: uuid('membership_id').notNull(),
+    articleId: uuid('article_id').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.companyId, t.membershipId, t.articleId] }),
+    foreignKey({
+      name: 'kb_stars_member_same_company',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'kb_stars_article_same_company',
+      columns: [t.articleId, t.companyId],
+      foreignColumns: [kbArticles.id, kbArticles.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+/** Every try at a lesson test (the log only grows). Passing also marks the article as read. */
+export const kbAttempts = pgTable(
+  'kb_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    membershipId: uuid('membership_id').notNull(),
+    articleId: uuid('article_id').notNull(),
+    score: integer('score').notNull(),
+    passed: boolean('passed').notNull(),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('kb_attempts_person').on(t.companyId, t.membershipId, t.articleId),
+    foreignKey({
+      name: 'kb_attempts_member_same_company',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'kb_attempts_article_same_company',
+      columns: [t.articleId, t.companyId],
+      foreignColumns: [kbArticles.id, kbArticles.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+/**
+ * Learning › Quizzes (Phase 6, piece 2): weekly, monthly, category and custom quizzes given to all agents, to some teams or
+ * to chosen people, with a deadline, a pass mark and a number of tries. A draft is seen by staff only; publishing tells the
+ * agents it is given to.
+ */
+export const quizzes = pgTable(
+  'quizzes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description').notNull().default(''),
+    /** weekly, monthly, category or custom */
+    kind: text('kind').notNull().default('custom'),
+    topics: jsonb('topics').$type<string[]>().notNull().default([]),
+    /** the articles it is based on (for the question writer) */
+    articleIds: uuid('article_ids').array().notNull().default([]),
+    pass: integer('pass').notNull().default(80),
+    dueOn: date('due_on'),
+    assignAll: boolean('assign_all').notNull().default(true),
+    assignTeams: uuid('assign_teams').array().notNull().default([]),
+    /** memberships (agents) it is given to by name */
+    assignPeople: uuid('assign_people').array().notNull().default([]),
+    /** draft or published */
+    status: text('status').notNull().default('draft'),
+    /** how many tries an agent has (until they pass) */
+    tries: integer('tries').notNull().default(3),
+    questions: jsonb('questions').$type<KbQuestion[]>().notNull().default([]),
+    byName: text('by_name').notNull().default(''),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('quizzes_id_company').on(t.id, t.companyId),
+    index('quizzes_company_status').on(t.companyId, t.status),
+  ],
+);
+
+/** Every try at a quiz (the log only grows). Staff trying a quiz out are not recorded. */
+export const quizAttempts = pgTable(
+  'quiz_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    quizId: uuid('quiz_id').notNull(),
+    membershipId: uuid('membership_id').notNull(),
+    score: integer('score').notNull(),
+    passed: boolean('passed').notNull(),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('quiz_attempts_quiz').on(t.companyId, t.quizId),
+    index('quiz_attempts_person').on(t.companyId, t.membershipId),
+    foreignKey({
+      name: 'quiz_attempts_quiz_same_company',
+      columns: [t.quizId, t.companyId],
+      foreignColumns: [quizzes.id, quizzes.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'quiz_attempts_member_same_company',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+/** One item of a newsletter: a headline, a few words, and optionally a link to a Knowledge Base article. */
+export interface NewsletterItem {
+  title: string;
+  text: string;
+  articleId: string | null;
+}
+
+/**
+ * Learning › Newsletter (Phase 6, piece 3): a short monthly update with links to the articles that changed. A draft is
+ * seen by staff only; publishing tells everybody once.
+ */
+export const newsletters = pgTable(
+  'newsletters',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    /** yyyy-mm */
+    month: text('month').notNull(),
+    title: text('title').notNull(),
+    intro: text('intro').notNull().default(''),
+    published: boolean('published').notNull().default(false),
+    items: jsonb('items').$type<NewsletterItem[]>().notNull().default([]),
+    byName: text('by_name').notNull().default(''),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('newsletters_id_company').on(t.id, t.companyId),
+    index('newsletters_company_month').on(t.companyId, t.month),
+  ],
+);
+
+/** Who has read which newsletter. */
+export const newsletterReads = pgTable(
+  'newsletter_reads',
+  {
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    membershipId: uuid('membership_id').notNull(),
+    newsletterId: uuid('newsletter_id').notNull(),
+    readAt: timestamp('read_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.companyId, t.membershipId, t.newsletterId] }),
+    foreignKey({
+      name: 'newsletter_reads_member_same_company',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'newsletter_reads_newsletter_same_company',
+      columns: [t.newsletterId, t.companyId],
+      foreignColumns: [newsletters.id, newsletters.companyId],
+    }).onDelete('cascade'),
+  ],
+);
+
+/** A step of a tour (a page to open) or of a call script (what to say). */
+export interface HelpStepRow {
+  title: string;
+  text: string;
+  page: string;
+}
+
+/**
+ * Help inside the app and the script builder (Phase 6, piece 4): FAQ, glossary, video tutorials, guided tours and call
+ * scripts in one table, told apart by `kind`. Staff write them, everybody reads them.
+ */
+export const helpItems = pgTable(
+  'help_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    /** faq, glossary, video, tour or script */
+    kind: text('kind').notNull(),
+    /** the question, the word, the video or tour name, the script name */
+    title: text('title').notNull(),
+    /** the answer, the meaning, what a video shows, when to use a script */
+    body: text('body').notNull().default(''),
+    topic: text('topic').notNull().default(''),
+    /** a video's link (https only) */
+    link: text('link').notNull().default(''),
+    /** a video's length in minutes */
+    minutes: integer('minutes'),
+    /** a tour's role: all, admin, reviewer, lead, trainer or agent */
+    role: text('role').notNull().default('all'),
+    /** an FAQ answer's page to open, such as quality/reviews */
+    page: text('page').notNull().default(''),
+    steps: jsonb('steps').$type<HelpStepRow[]>().notNull().default([]),
+    byName: text('by_name').notNull().default(''),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('help_items_company_kind').on(t.companyId, t.kind)],
 );

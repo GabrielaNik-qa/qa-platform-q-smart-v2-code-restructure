@@ -113,8 +113,16 @@ describe('Admin › AI', () => {
     const first = await overview();
     expect(first.accounts).toEqual([]);
     expect(first.canStoreKeys).toBe(true);
-    expect(first.providers.map((p) => p.id)).toEqual(['groq', 'cloudflare']);
-    expect(first.providers.every((p) => p.terms === 'no-train-dpa')).toBe(true);
+    expect(first.providers.map((p) => p.id)).toEqual([
+      'groq',
+      'cloudflare',
+      'anthropic',
+      'mistral',
+      'azure',
+      'elevenlabs',
+    ]);
+    // ElevenLabs is listed with its honest terms, and never used (its terms are not confirmed)
+    expect(first.providers.filter((p) => p.terms !== 'no-train-dpa').map((p) => p.id)).toEqual(['elevenlabs']);
   });
 
   it('stores a key encrypted, never sends it back, and shows only its last 4 characters', async () => {

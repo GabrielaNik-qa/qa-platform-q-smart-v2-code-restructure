@@ -1,24 +1,15 @@
-// Admin › AI (admins only; today's app has these pages as "coming soon", its one AI key is in Integrations):
-// - AI provider: the AI companies Q-smart may use, each with its data terms and sources, the company's key (stored
-//   encrypted, never shown again: only its last 4 characters), a Test button, and which AI may see clients' data;
-// - AI usage limits: this month's use (per task, AI company and team), the monthly limits, and the latest AI calls;
-// - AI on or off: the company's switch.
+// Admin › AI (admins only), simple: no AI company or model names and no place to connect keys, because Q-smart is
+// the mediator (17 November). Four tabs: Overview, Usage & limits, Rules and Quality. The detailed AI views (the free
+// allowance per model, every call with its model, the AI companies allowed) and the test set live in the owner area
+// (AiOwnerDetails), on the demo company.
 import type { Language } from '@qsmart/shared';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from './api';
+import { AutoQAOverview } from './AutoQA';
 import { currentLanguage } from './i18n';
-import {
-  CheckList,
-  card,
-  type CompanyRef,
-  dangerButton,
-  field,
-  Notice,
-  primaryButton,
-  smallButton,
-  useAction,
-} from './ui';
+import { TestSet } from './TestSet';
+import { CheckList, card, type CompanyRef, dangerButton, field, Notice, primaryButton, useAction } from './ui';
 
 interface AiLimit {
   microUsd?: number;
@@ -169,297 +160,6 @@ function useNames() {
   };
 }
 
-// ---------------------------------------------------------------------------------------------- AI provider
-
-export function AiProviders({ company }: { company: CompanyRef }) {
-  const { t } = useTranslation();
-  const { data, load, message, run } = useOverview(company);
-  if (!data)
-    return (
-      <section className="grid gap-4 max-w-3xl">
-        {header(t('menu.pages.cs_aiprov'), t('ai.providerIntro'))}
-        <p className="text-mu">{t('common.loading')}</p>
-        <Notice message={message} />
-      </section>
-    );
-  return (
-    <section className="grid gap-4 max-w-3xl">
-      {header(t('menu.pages.cs_aiprov'), t('ai.providerIntro'))}
-      {!data.canStoreKeys && (
-        <p role="alert" className={`${card} text-sm text-bad`}>
-          {t('errors.aiNoMasterKey')}
-        </p>
-      )}
-      {data.providers.map((p) => (
-        <ProviderCard
-          key={p.id}
-          company={company}
-          provider={p}
-          account={data.accounts.find((a) => a.provider === p.id) ?? null}
-          models={data.models.filter((m) => m.provider === p.id)}
-          onChange={load}
-        />
-      ))}
-      <RulesCard company={company} data={data} run={run} reload={load} />
-      <Notice message={message} />
-    </section>
-  );
-}
-
-const STEPS: Record<string, number> = { groq: 3, cloudflare: 4 };
-const SIGN_UP: Record<string, string> = {
-  groq: 'https://console.groq.com',
-  cloudflare: 'https://dash.cloudflare.com/sign-up',
-};
-
-function ProviderCard({
-  company,
-  provider,
-  account,
-  models,
-  onChange,
-}: {
-  company: CompanyRef;
-  provider: Provider;
-  account: Account | null;
-  models: Model[];
-  onChange: () => void;
-}) {
-  const { t } = useTranslation();
-  const lang = currentLanguage();
-  const [apiKey, setApiKey] = useState('');
-  const [accountId, setAccountId] = useState(account?.accountId ?? '');
-  const [plan, setPlan] = useState<'free' | 'paid'>(account?.plan ?? 'free');
-  const [enabled, setEnabled] = useState(account?.enabled ?? true);
-  const [testing, setTesting] = useState(false);
-  const { message, run } = useAction();
-  const [tested, setTested] = useState<{ ok: boolean; text: string } | null>(null);
-  const needsId = provider.id === 'cloudflare';
-  const base = `ai.providers.${provider.id}`;
-
-  async function save(event: FormEvent) {
-    event.preventDefault();
-    setTested(null);
-    const body = {
-      plan,
-      enabled,
-      ...(apiKey.trim() ? { apiKey: apiKey.trim() } : {}),
-      ...(needsId ? { accountId: accountId.trim() || null } : {}),
-    };
-    const ok = await run(
-      () => api(`/ai/accounts/${provider.id}`, company.id, { method: 'PUT', body }),
-      t('ai.saved', { name: provider.name }),
-      onChange,
-    );
-    if (ok) setApiKey('');
-  }
-
-  async function test() {
-    setTesting(true);
-    setTested(null);
-    try {
-      const r = await api<{ ok: boolean; model?: string; code?: string; detail?: string | null }>(
-        `/ai/accounts/${provider.id}/test`,
-        company.id,
-        { method: 'POST', body: {} },
-      );
-      setTested(
-        r.ok
-          ? { ok: true, text: t('ai.testOk', { name: provider.name, model: r.model ?? '' }) }
-          : {
-              ok: false,
-              // the AI company's own reason when there is one (the key refused …), otherwise the general one
-              text: r.detail
-                ? t(`ai.problems.${r.detail}`, {
-                    name: provider.name,
-                    defaultValue: `${t(`errors.${r.code ?? 'aiUnavailable'}`)} ${t('ai.trouble.other', { code: r.detail })}`,
-                  })
-                : t(`errors.${r.code ?? 'aiUnavailable'}`),
-            },
-      );
-    } catch (e) {
-      setTested({ ok: false, text: e instanceof Error ? e.message : String(e) });
-    } finally {
-      setTesting(false);
-      onChange();
-    }
-  }
-
-  async function remove() {
-    if (!window.confirm(t('ai.confirmRemove', { name: provider.name }))) return;
-    setTested(null);
-    await run(
-      () => api(`/ai/accounts/${provider.id}`, company.id, { method: 'DELETE' }),
-      t('ai.removed', { name: provider.name }),
-      onChange,
-    );
-  }
-
-  const status = !account ? 'notConnected' : account.enabled ? 'connected' : 'off';
-  return (
-    <form onSubmit={save} className={`${card} grid gap-3`} aria-labelledby={`ai-${provider.id}`}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id={`ai-${provider.id}`} className="text-lg font-semibold">
-          {provider.name}
-        </h2>
-        <span
-          className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
-            status === 'connected' ? 'border-ok text-ok' : 'border-bd text-mu'
-          }`}
-        >
-          {status === 'connected' ? '✓ ' : '○ '}
-          {t(`ai.state.${status}`)}
-          {account ? ` · •••• ${account.keyHint}` : ''}
-        </span>
-      </div>
-
-      <ul className="grid gap-1 text-sm">
-        <li>
-          <b className="text-ok" aria-hidden="true">
-            ✓
-          </b>{' '}
-          {t('ai.terms.noTrain')}
-        </li>
-        <li>
-          <b className="text-ok" aria-hidden="true">
-            ✓
-          </b>{' '}
-          {t('ai.terms.dpa')}
-        </li>
-        <li>
-          <b className={provider.euProcessing ? 'text-ok' : 'text-mu'} aria-hidden="true">
-            {provider.euProcessing ? '✓' : '!'}
-          </b>{' '}
-          {provider.euProcessing ? t('ai.terms.eu') : t('ai.terms.notEu')}
-        </li>
-        <li className="text-mu">
-          {t('ai.terms.checked', { date: provider.checked })}{' '}
-          {provider.sources.map((url, i) => (
-            <span key={url}>
-              {i > 0 && ' · '}
-              <a href={url} target="_blank" rel="noreferrer" className="underline">
-                {t('ai.terms.source', { n: i + 1 })}
-              </a>
-            </span>
-          ))}
-        </li>
-      </ul>
-
-      <details className="rounded-s border border-bd p-3 text-sm" open={!account}>
-        <summary className="cursor-pointer font-semibold">{t('ai.howTo', { name: provider.name })}</summary>
-        <ol className="mt-2 grid list-decimal gap-1 pl-5">
-          {Array.from({ length: STEPS[provider.id] ?? 0 }, (_, i) => (
-            <li key={i}>{t(`${base}.step${i + 1}`)}</li>
-          ))}
-        </ol>
-        <p className="mt-2">
-          <a href={SIGN_UP[provider.id]} target="_blank" rel="noreferrer" className="underline">
-            {t('ai.openSite', { name: provider.name })} ↗
-          </a>
-        </p>
-        <p className="mt-2 text-mu">{t('ai.keySafety')}</p>
-      </details>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="grid gap-1 text-sm font-medium">
-          {t('ai.key')}
-          <input
-            type="password"
-            className={field}
-            autoComplete="off"
-            spellCheck={false}
-            value={apiKey}
-            placeholder={account ? t('ai.keepKey', { hint: account.keyHint }) : t('ai.pasteKey')}
-            onChange={(e) => setApiKey(e.target.value)}
-          />
-        </label>
-        {needsId && (
-          <label className="grid gap-1 text-sm font-medium">
-            {t('ai.accountId')}
-            <input
-              className={field}
-              autoComplete="off"
-              spellCheck={false}
-              value={accountId}
-              onChange={(e) => setAccountId(e.target.value)}
-            />
-          </label>
-        )}
-        <label className="grid gap-1 text-sm font-medium">
-          {t('ai.plan')}
-          <select className={field} value={plan} onChange={(e) => setPlan(e.target.value === 'paid' ? 'paid' : 'free')}>
-            <option value="free">{t('ai.planFree')}</option>
-            <option value="paid">{t('ai.planPaid')}</option>
-          </select>
-        </label>
-        <label className="inline-flex items-center gap-2 self-end text-sm">
-          <input
-            type="checkbox"
-            className="accent-[var(--brand)]"
-            checked={enabled}
-            onChange={(e) => setEnabled(e.target.checked)}
-          />
-          {t('ai.useIt')}
-        </label>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <button type="submit" className={primaryButton}>
-          {account ? t('common.save') : t('ai.connect')}
-        </button>
-        {account && (
-          <>
-            <button type="button" className={smallButton} disabled={testing} onClick={() => void test()}>
-              {testing ? t('ai.testing') : t('ai.test')}
-            </button>
-            <button type="button" className={dangerButton} onClick={() => void remove()}>
-              {t('ai.remove')}
-            </button>
-          </>
-        )}
-      </div>
-      <Notice message={message} />
-      <Notice message={tested} />
-      {account && (
-        <p className="text-xs text-mu">
-          {t('ai.lastChange', { name: account.byName, when: when(account.updatedAt, lang) })}
-        </p>
-      )}
-
-      <details className="text-sm">
-        <summary className="cursor-pointer text-mu">{t('ai.models', { count: models.length })}</summary>
-        <div className="overflow-x-auto">
-          <table className="mt-2 w-full text-sm">
-            <thead className="text-left text-mu">
-              <tr>
-                <th className={th}>{t('ai.model')}</th>
-                <th className={th}>{t('ai.price')}</th>
-                <th className={th}>{t('ai.size')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {models.map((m) => (
-                <tr key={m.id} className="border-t border-bd">
-                  <td className={`${td} font-mono text-xs`}>{m.model}</td>
-                  <td className={td}>
-                    {plan === 'free'
-                      ? t('ai.freeOnPlan')
-                      : t('ai.perMillion', {
-                          in: dollars(m.priceIn * 1_000_000, lang),
-                          out: dollars(m.priceOut * 1_000_000, lang),
-                        })}
-                  </td>
-                  <td className={td}>{t('ai.tokens', { n: number(m.context, lang) })}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </details>
-    </form>
-  );
-}
-
 function RulesCard({
   company,
   data,
@@ -536,7 +236,7 @@ const asLimit = (calls: string, usd: string): AiLimit => ({
   ...(usd.trim() !== '' ? { microUsd: Math.round(Number(usd) * 1_000_000) } : {}),
 });
 
-export function AiUsage({ company }: { company: CompanyRef }) {
+export function AiUsage({ company, view = 'owner' }: { company: CompanyRef; view?: 'owner' | 'client' }) {
   const { t } = useTranslation();
   const lang = currentLanguage();
   const names = useNames();
@@ -624,7 +324,7 @@ export function AiUsage({ company }: { company: CompanyRef }) {
   if (!data)
     return (
       <section className="grid gap-4 max-w-4xl">
-        {header(t('menu.pages.cs_ailimit'), t('ai.usageIntro'))}
+        {view === 'owner' && header(t('menu.pages.cs_ailimit'), t('ai.usageIntro'))}
         <p className="text-mu">{t('common.loading')}</p>
         <Notice message={message} />
       </section>
@@ -639,9 +339,10 @@ export function AiUsage({ company }: { company: CompanyRef }) {
     { title: t('ai.byCompany'), rows: groupBy((u) => u.provider ?? ''), label: (k) => providerName(k || null) },
     { title: t('ai.byTeam'), rows: groupBy((u) => u.teamId ?? ''), label: (k) => teamName(k || null) },
   ];
+  const shown = view === 'owner' ? tables : tables.filter((x) => x.title !== t('ai.byCompany'));
   return (
     <section className="grid gap-4 max-w-4xl">
-      {header(t('menu.pages.cs_ailimit'), t('ai.usageIntro'))}
+      {view === 'owner' && header(t('menu.pages.cs_ailimit'), t('ai.usageIntro'))}
       <div className={`${card} grid gap-3`}>
         <h2 className="text-lg font-semibold">{t('ai.thisMonth')}</h2>
         <div className="flex flex-wrap gap-6">
@@ -658,8 +359,8 @@ export function AiUsage({ company }: { company: CompanyRef }) {
         {data.use.length === 0 ? (
           <p className="text-sm text-mu">{t('ai.noUse')}</p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-3">
-            {tables.map((x) => (
+          <div className={`grid gap-4 ${view === 'owner' ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+            {shown.map((x) => (
               <div key={x.title} className="overflow-x-auto">
                 <h3 className="text-sm font-semibold">{x.title}</h3>
                 <table className="w-full text-sm">
@@ -679,90 +380,94 @@ export function AiUsage({ company }: { company: CompanyRef }) {
         )}
       </div>
 
-      <div className={`${card} grid gap-3`}>
-        <h2 className="text-lg font-semibold">{t('ai.today.title')}</h2>
-        <p className="text-sm text-mu">{t('ai.today.intro')}</p>
-        {data.tasksToday.length === 0 ? (
-          <p className="text-sm text-mu">{t('ai.noUse')}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-mu">
-                <tr>
-                  <th className={th}>{t('ai.task')}</th>
-                  <th className={`${th} text-right`}>{t('ai.today.calls')}</th>
-                  <th className={`${th} text-right`}>{t('ai.today.failed')}</th>
-                  <th className={`${th} text-right`}>{t('ai.today.cached')}</th>
-                  <th className={`${th} text-right`}>{t('ai.today.input')}</th>
-                  <th className={`${th} text-right`}>{t('ai.today.output')}</th>
-                  <th className={`${th} text-right`}>{t('ai.cost')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.tasksToday.map((x) => (
-                  <tr key={x.feature} className="border-t border-bd">
-                    <td className={td}>{names.feature(x.feature)}</td>
-                    <td className={`${td} text-right`}>{number(x.calls, lang)}</td>
-                    <td className={`${td} text-right ${x.failed ? 'text-bad' : ''}`}>{number(x.failed, lang)}</td>
-                    <td className={`${td} text-right`}>{number(x.cached, lang)}</td>
-                    <td className={`${td} text-right`}>
-                      {x.audioSeconds
-                        ? t('ai.audio', { n: number(x.audioSeconds, lang) })
-                        : number(x.inputTokens, lang)}
-                    </td>
-                    <td className={`${td} text-right`}>{number(x.outputTokens, lang)}</td>
-                    <td className={`${td} text-right`}>{dollars(x.microUsd, lang)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {view === 'owner' && (
+        <>
+          <div className={`${card} grid gap-3`}>
+            <h2 className="text-lg font-semibold">{t('ai.today.title')}</h2>
+            <p className="text-sm text-mu">{t('ai.today.intro')}</p>
+            {data.tasksToday.length === 0 ? (
+              <p className="text-sm text-mu">{t('ai.noUse')}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-left text-mu">
+                    <tr>
+                      <th className={th}>{t('ai.task')}</th>
+                      <th className={`${th} text-right`}>{t('ai.today.calls')}</th>
+                      <th className={`${th} text-right`}>{t('ai.today.failed')}</th>
+                      <th className={`${th} text-right`}>{t('ai.today.cached')}</th>
+                      <th className={`${th} text-right`}>{t('ai.today.input')}</th>
+                      <th className={`${th} text-right`}>{t('ai.today.output')}</th>
+                      <th className={`${th} text-right`}>{t('ai.cost')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.tasksToday.map((x) => (
+                      <tr key={x.feature} className="border-t border-bd">
+                        <td className={td}>{names.feature(x.feature)}</td>
+                        <td className={`${td} text-right`}>{number(x.calls, lang)}</td>
+                        <td className={`${td} text-right ${x.failed ? 'text-bad' : ''}`}>{number(x.failed, lang)}</td>
+                        <td className={`${td} text-right`}>{number(x.cached, lang)}</td>
+                        <td className={`${td} text-right`}>
+                          {x.audioSeconds
+                            ? t('ai.audio', { n: number(x.audioSeconds, lang) })
+                            : number(x.inputTokens, lang)}
+                        </td>
+                        <td className={`${td} text-right`}>{number(x.outputTokens, lang)}</td>
+                        <td className={`${td} text-right`}>{dollars(x.microUsd, lang)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      <FreeAllowance data={data} />
+          <FreeAllowance data={data} />
 
-      <div className={`${card} grid gap-3`}>
-        <h2 className="text-lg font-semibold">{t('ai.trouble.title')}</h2>
-        <p className="text-sm text-mu">{t('ai.trouble.intro')}</p>
-        {data.errors.length === 0 ? (
-          <p className="text-sm text-ok">✓ {t('ai.trouble.none')}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-mu">
-                <tr>
-                  <th className={th}>{t('ai.when')}</th>
-                  <th className={th}>{t('ai.task')}</th>
-                  <th className={th}>{t('ai.model')}</th>
-                  <th className={th}>{t('ai.result')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.errors.map((c) => (
-                  <tr key={c.id} className="border-t border-bd align-top">
-                    <td className={`${td} whitespace-nowrap font-mono text-xs`}>{when(c.createdAt, lang)}</td>
-                    <td className={td}>{names.feature(c.feature)}</td>
-                    <td className={td}>
-                      {c.provider ? (
-                        <>
-                          {providerName(c.provider)} <span className="font-mono text-xs text-mu">{c.model}</span>
-                        </>
-                      ) : (
-                        '-'
-                      )}
-                    </td>
-                    <td className={td}>
-                      {names.status(c.status)}
-                      {c.error && <span className="block font-mono text-xs text-mu">{c.error}</span>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className={`${card} grid gap-3`}>
+            <h2 className="text-lg font-semibold">{t('ai.trouble.title')}</h2>
+            <p className="text-sm text-mu">{t('ai.trouble.intro')}</p>
+            {data.errors.length === 0 ? (
+              <p className="text-sm text-ok">✓ {t('ai.trouble.none')}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="text-left text-mu">
+                    <tr>
+                      <th className={th}>{t('ai.when')}</th>
+                      <th className={th}>{t('ai.task')}</th>
+                      <th className={th}>{t('ai.model')}</th>
+                      <th className={th}>{t('ai.result')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.errors.map((c) => (
+                      <tr key={c.id} className="border-t border-bd align-top">
+                        <td className={`${td} whitespace-nowrap font-mono text-xs`}>{when(c.createdAt, lang)}</td>
+                        <td className={td}>{names.feature(c.feature)}</td>
+                        <td className={td}>
+                          {c.provider ? (
+                            <>
+                              {providerName(c.provider)} <span className="font-mono text-xs text-mu">{c.model}</span>
+                            </>
+                          ) : (
+                            '-'
+                          )}
+                        </td>
+                        <td className={td}>
+                          {names.status(c.status)}
+                          {c.error && <span className="block font-mono text-xs text-mu">{c.error}</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
 
       <form onSubmit={save} className={`${card} grid gap-3`}>
         <h2 className="text-lg font-semibold">{t('ai.limitsTitle')}</h2>
@@ -790,73 +495,75 @@ export function AiUsage({ company }: { company: CompanyRef }) {
         <Notice message={message} />
       </form>
 
-      <div className={`${card} grid gap-3`}>
-        <h2 className="text-lg font-semibold">{t('ai.recentTitle')}</h2>
-        <p className="text-sm text-mu">{t('ai.recentIntro')}</p>
-        {data.recent.length === 0 ? (
-          <p className="text-sm text-mu">{t('ai.noUse')}</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-mu">
-                <tr>
-                  <th className={th}>{t('ai.when')}</th>
-                  <th className={th}>{t('ai.task')}</th>
-                  <th className={th}>{t('ai.model')}</th>
-                  <th className={th}>{t('ai.result')}</th>
-                  <th className={`${th} text-right`}>{t('ai.tokensCol')}</th>
-                  <th className={`${th} text-right`}>{t('ai.wait')}</th>
-                  <th className={`${th} text-right`}>{t('ai.cost')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.recent.map((c) => (
-                  <tr key={c.id} className="border-t border-bd align-top">
-                    <td className={`${td} whitespace-nowrap font-mono text-xs`}>{when(c.createdAt, lang)}</td>
-                    <td className={td}>{names.feature(c.feature)}</td>
-                    <td className={td}>
-                      {c.provider ? (
-                        <>
-                          {providerName(c.provider)} <span className="font-mono text-xs text-mu">{c.model}</span>
-                        </>
-                      ) : (
-                        '-'
-                      )}
-                      {c.attempt > 1 && (
-                        <span className="block text-xs text-mu">{t('ai.fallback', { n: c.attempt })}</span>
-                      )}
-                    </td>
-                    <td className={c.status === 'ok' ? `${td} text-ok` : td}>
-                      {names.status(c.status)}
-                      {c.error && <span className="block font-mono text-xs text-mu">{c.error}</span>}
-                    </td>
-                    <td className={`${td} text-right`}>
-                      {c.audioSeconds
-                        ? t('ai.audio', { n: number(c.audioSeconds, lang) })
-                        : number(c.inputTokens + c.outputTokens, lang)}
-                    </td>
-                    <td className={`${td} text-right`}>{t('ai.seconds', { n: (c.waitMs / 1000).toFixed(1) })}</td>
-                    <td className={`${td} text-right`}>{dollars(c.costMicroUsd, lang)}</td>
+      {view === 'owner' && (
+        <div className={`${card} grid gap-3`}>
+          <h2 className="text-lg font-semibold">{t('ai.recentTitle')}</h2>
+          <p className="text-sm text-mu">{t('ai.recentIntro')}</p>
+          {data.recent.length === 0 ? (
+            <p className="text-sm text-mu">{t('ai.noUse')}</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-left text-mu">
+                  <tr>
+                    <th className={th}>{t('ai.when')}</th>
+                    <th className={th}>{t('ai.task')}</th>
+                    <th className={th}>{t('ai.model')}</th>
+                    <th className={th}>{t('ai.result')}</th>
+                    <th className={`${th} text-right`}>{t('ai.tokensCol')}</th>
+                    <th className={`${th} text-right`}>{t('ai.wait')}</th>
+                    <th className={`${th} text-right`}>{t('ai.cost')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                </thead>
+                <tbody>
+                  {data.recent.map((c) => (
+                    <tr key={c.id} className="border-t border-bd align-top">
+                      <td className={`${td} whitespace-nowrap font-mono text-xs`}>{when(c.createdAt, lang)}</td>
+                      <td className={td}>{names.feature(c.feature)}</td>
+                      <td className={td}>
+                        {c.provider ? (
+                          <>
+                            {providerName(c.provider)} <span className="font-mono text-xs text-mu">{c.model}</span>
+                          </>
+                        ) : (
+                          '-'
+                        )}
+                        {c.attempt > 1 && (
+                          <span className="block text-xs text-mu">{t('ai.fallback', { n: c.attempt })}</span>
+                        )}
+                      </td>
+                      <td className={c.status === 'ok' ? `${td} text-ok` : td}>
+                        {names.status(c.status)}
+                        {c.error && <span className="block font-mono text-xs text-mu">{c.error}</span>}
+                      </td>
+                      <td className={`${td} text-right`}>
+                        {c.audioSeconds
+                          ? t('ai.audio', { n: number(c.audioSeconds, lang) })
+                          : number(c.inputTokens + c.outputTokens, lang)}
+                      </td>
+                      <td className={`${td} text-right`}>{t('ai.seconds', { n: (c.waitMs / 1000).toFixed(1) })}</td>
+                      <td className={`${td} text-right`}>{dollars(c.costMicroUsd, lang)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }
 
 // ---------------------------------------------------------------------------------------------- AI on or off
 
-export function AiSwitch({ company }: { company: CompanyRef }) {
+export function AiSwitch({ company, embedded = false }: { company: CompanyRef; embedded?: boolean }) {
   const { t } = useTranslation();
   const { data, load, message, run } = useOverview(company);
   const on = data?.rules.enabled ?? false;
   return (
     <section className="grid gap-4 max-w-2xl">
-      {header(t('menu.pages.cs_aionoff'), t('ai.switchIntro'))}
+      {!embedded && header(t('menu.pages.cs_aionoff'), t('ai.switchIntro'))}
       {!data ? (
         <p className="text-mu">{t('common.loading')}</p>
       ) : (
@@ -883,6 +590,7 @@ export function AiSwitch({ company }: { company: CompanyRef }) {
           <p className="text-xs text-mu">{t('ai.switchLater')}</p>
         </div>
       )}
+      {data && <EuOnlyCard company={company} data={data} run={run} reload={load} />}
       {data && <AiReviewRules company={company} rules={data.rules.reviews} reload={load} />}
       <Notice message={message} />
     </section>
@@ -1083,5 +791,181 @@ function FreeAllowance({ data }: { data: Overview }) {
         </div>
       )}
     </section>
+  );
+}
+
+/** "EU only": clients' data only to AI that runs in the EU (the company's rule; no AI company is named). */
+function EuOnlyCard({
+  company,
+  data,
+  run,
+  reload,
+}: {
+  company: CompanyRef;
+  data: Overview;
+  run: ReturnType<typeof useAction>['run'];
+  reload: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className={`${card} grid gap-3`}>
+      <h2 className="text-lg font-semibold">{t('ai.admin.euTitle')}</h2>
+      <label className="inline-flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="accent-[var(--brand)]"
+          checked={data.rules.euOnly}
+          onChange={(e) =>
+            void run(
+              () => api('/ai/rules', company.id, { method: 'PUT', body: { euOnly: e.target.checked } }),
+              t('ai.rulesSaved'),
+              reload,
+            )
+          }
+        />
+        {t('ai.euOnly')}
+      </label>
+      <p className="text-xs text-mu">{t('ai.admin.euHelp')}</p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------- Admin › AI (simple)
+
+type AdminTab = 'overview' | 'usage' | 'rules' | 'quality';
+
+/** Whether AI works normally today, today's use per AI task, and the latest problems in plain words. */
+function AiOverviewTab({ company }: { company: CompanyRef }) {
+  const { t } = useTranslation();
+  const lang = currentLanguage();
+  const names = useNames();
+  const { data, message } = useOverview(company);
+  if (!data)
+    return (
+      <>
+        <p className="text-mu">{t('common.loading')}</p>
+        <Notice message={message} />
+      </>
+    );
+  const calls = data.tasksToday.reduce((n, x) => n + x.calls, 0);
+  const failed = data.tasksToday.reduce((n, x) => n + x.failed, 0);
+  const state = !data.rules.enabled ? 'off' : calls > 0 && failed / calls > 0.5 ? 'problems' : 'ok';
+  return (
+    <div className="grid gap-4">
+      <div className={`${card} grid gap-1`} role="status">
+        <p className="text-lg font-semibold">
+          <span className={state === 'ok' ? 'text-ok' : state === 'off' ? 'text-mu' : 'text-bad'}>
+            {state === 'ok' ? '●' : state === 'off' ? '○' : '▲'}
+          </span>{' '}
+          {t(`ai.admin.state.${state}`)}
+        </p>
+        <p className="text-sm text-mu">{t(`ai.admin.stateHelp.${state}`)}</p>
+      </div>
+      <div className={`${card} grid gap-3`}>
+        <h2 className="text-lg font-semibold">{t('ai.admin.todayTitle')}</h2>
+        {data.tasksToday.length === 0 ? (
+          <p className="text-sm text-mu">{t('ai.noUse')}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-left text-mu">
+                <tr>
+                  <th className={th}>{t('ai.task')}</th>
+                  <th className={`${th} text-right`}>{t('ai.today.calls')}</th>
+                  <th className={`${th} text-right`}>{t('ai.today.failed')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.tasksToday.map((x) => (
+                  <tr key={x.feature} className="border-t border-bd">
+                    <td className={td}>{names.feature(x.feature)}</td>
+                    <td className={`${td} text-right`}>{number(x.calls, lang)}</td>
+                    <td className={`${td} text-right ${x.failed ? 'text-bad' : ''}`}>{number(x.failed, lang)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <div className={`${card} grid gap-3`}>
+        <h2 className="text-lg font-semibold">{t('ai.trouble.title')}</h2>
+        {data.errors.length === 0 ? (
+          <p className="text-sm text-ok">✓ {t('ai.trouble.none')}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-left text-mu">
+                <tr>
+                  <th className={th}>{t('ai.when')}</th>
+                  <th className={th}>{t('ai.task')}</th>
+                  <th className={th}>{t('ai.result')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.errors.map((c) => (
+                  <tr key={c.id} className="border-t border-bd align-top">
+                    <td className={`${td} whitespace-nowrap font-mono text-xs`}>{when(c.createdAt, lang)}</td>
+                    <td className={td}>{names.feature(c.feature)}</td>
+                    <td className={td}>
+                      {t(`ai.admin.problem.${c.status}`, { defaultValue: t('ai.admin.problem.error') })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Admin › AI for a client company: Overview, Usage & limits, Rules and Quality (no AI company or model is named). */
+export function AiAdmin({ company }: { company: CompanyRef }) {
+  const { t } = useTranslation();
+  const [tab, setTab] = useState<AdminTab>('overview');
+  const tabs: AdminTab[] = ['overview', 'usage', 'rules', 'quality'];
+  return (
+    <section className="grid gap-4 max-w-4xl">
+      {header(t('menu.pages.cs_ai'), t('ai.admin.intro'))}
+      <div role="tablist" aria-label={t('menu.pages.cs_ai')} className="flex flex-wrap gap-1">
+        {tabs.map((k) => (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            id={`ai-tab-${k}`}
+            aria-selected={tab === k}
+            aria-controls="ai-tabpanel"
+            className={`rounded-s border px-3 py-1.5 text-sm font-semibold ${tab === k ? 'border-brand text-brand' : 'border-bd'}`}
+            onClick={() => setTab(k)}
+          >
+            {t(`ai.admin.tabs.${k}`)}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" id="ai-tabpanel" aria-labelledby={`ai-tab-${tab}`} className="grid gap-4">
+        {tab === 'overview' && <AiOverviewTab company={company} />}
+        {tab === 'usage' && <AiUsage company={company} view="client" />}
+        {tab === 'rules' && <AiSwitch company={company} embedded />}
+        {tab === 'quality' && <AutoQAOverview company={company} />}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The owner area's detailed AI views, on Q-smart's own demo company (made-up data): the AI companies allowed and
+ * the rules, the free plans' allowance, every call with its model, and the test set where models are measured.
+ */
+export function AiOwnerDetails({ company }: { company: CompanyRef }) {
+  const { data, load, run } = useOverview(company);
+  return (
+    <div className="grid gap-4">
+      {data && <RulesCard company={company} data={data} run={run} reload={load} />}
+      <AiUsage company={company} view="owner" />
+      <TestSet company={company} />
+    </div>
   );
 }

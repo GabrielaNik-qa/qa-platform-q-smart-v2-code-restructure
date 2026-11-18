@@ -29,14 +29,16 @@ export function GettingStarted({ company }: { company: CompanyRef }) {
       api<TeamRow[]>('/teams', company.id).catch(() => []),
       api<PersonRow[]>('/people', company.id).catch(() => []),
       api<ReviewRow[]>('/reviews', company.id).catch(() => []),
-      api<{ accounts: { enabled: boolean }[] }>('/ai', company.id).catch(() => ({ accounts: [] })),
+      api<{ rules: { reviews: { announcedAt?: string } } }>('/ai', company.id).catch(() => ({
+        rules: { reviews: {} as { announcedAt?: string } },
+      })),
     ]).then(([cards, teams, people, reviews, ai]) =>
       setSteps([
         { id: 'scorecard', done: cards.length > 0, app: 'admin', page: 'scorecards' },
         { id: 'teams', done: teams.some((x) => !x.isAdministration), app: 'admin', page: 'teams' },
         { id: 'agents', done: people.some((p) => p.role === 'agent' && p.teamId), app: 'admin', page: 'users' },
         { id: 'review', done: reviews.length > 0, app: 'quality', page: 'qa-entry' },
-        { id: 'ai', done: ai.accounts.some((a) => a.enabled), app: 'admin', page: 'ai-provider' },
+        { id: 'ai', done: Boolean(ai.rules.reviews.announcedAt), app: 'admin', page: 'ai' },
       ]),
     );
   }, [company.id]);

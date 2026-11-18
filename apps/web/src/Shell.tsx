@@ -23,6 +23,7 @@ import { Icon } from './icon';
 import { type IconName, MENU_TEXTS } from './menu-data';
 
 import { signOutAndClear, useSession } from './session';
+import { TourBar } from './tour';
 import './shell.css';
 
 const FOLD_KEY = 'qsmart.menu.folded'; // folded sections: a setting kept in the browser (plan, section 13)
@@ -357,6 +358,7 @@ export function Shell() {
         )}
         <Outlet />
       </main>
+      <TourBar />
     </div>
   );
 }

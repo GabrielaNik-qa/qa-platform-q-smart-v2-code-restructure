@@ -1,6 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, errorText } from './api';
+import { AiOwnerDetails } from './AiSettings';
 
 interface PlatformCompany {
   id: string;
@@ -16,6 +17,7 @@ export function Platform() {
     <div className="grid gap-4">
       <Companies />
       <AiOffers />
+      <OwnerAiDetails />
     </div>
   );
 }
@@ -31,7 +33,16 @@ interface OfferedModel {
 type Level = 'light' | 'standard' | 'thorough';
 const LEVELS: Level[] = ['light', 'standard', 'thorough'];
 interface OfferList {
-  providers: { id: string; name: string; terms: string; freePlan: boolean; checked: string }[];
+  providers: {
+    id: string;
+    name: string;
+    terms: string;
+    freePlan: boolean;
+    euProcessing: boolean;
+    extra?: 'accountId' | 'region';
+    checked: string;
+    sources: string[];
+  }[];
   models: OfferedModel[];
   levels: { level: Level; models: string[]; own: boolean }[];
   tasks: { feature: string; kind: 'text' | 'speech' | 'voice'; level: Level; live: boolean; models: string[] }[];
@@ -88,10 +99,23 @@ function AiOffers() {
         <div key={p.id} className="grid gap-1">
           <h3 className="font-semibold">
             {p.name}{' '}
-            <small className="font-normal text-mu">
-              {p.terms === 'no-train-dpa' ? t('platform.ai.noTrain') : t('platform.ai.termsOpen')}
+            <small className={`font-normal ${p.terms === 'no-train-dpa' ? 'text-ok' : 'text-wn'}`}>
+              {p.terms === 'no-train-dpa' ? t('platform.ai.status.used') : t('platform.ai.status.notUsed')}
             </small>
           </h3>
+          <p className="text-sm">{t(`platform.ai.terms.${p.id}`)}</p>
+          <p className="text-xs text-mu">
+            {p.euProcessing ? t('platform.ai.eu.yes') : t('platform.ai.eu.no')} ·{' '}
+            {t('platform.ai.termsChecked', { date: p.checked })} · {t('platform.ai.termsSources')}:{' '}
+            {p.sources.map((url, i) => (
+              <span key={url}>
+                {i > 0 && ', '}
+                <a href={url} target="_blank" rel="noreferrer" className="underline">
+                  {new URL(url).hostname}
+                </a>
+              </span>
+            ))}
+          </p>
           <ul className="grid gap-1">
             {data.models
               .filter((m) => m.provider === p.id)
@@ -215,14 +239,15 @@ function AccountRow({
   const { t } = useTranslation();
   const [apiKey, setApiKey] = useState('');
   const [accountId, setAccountId] = useState(account?.accountId ?? '');
-  const [plan, setPlan] = useState<'free' | 'paid'>(account?.plan ?? 'free');
+  // an AI company without a free plan with its terms has only a paid account (it is never used on a free one)
+  const [plan, setPlan] = useState<'free' | 'paid'>(account?.plan ?? (provider.freePlan ? 'free' : 'paid'));
   const [enabled, setEnabled] = useState(account?.enabled ?? true);
   useEffect(() => {
     setAccountId(account?.accountId ?? '');
-    setPlan(account?.plan ?? 'free');
+    setPlan(account?.plan ?? (provider.freePlan ? 'free' : 'paid'));
     setEnabled(account?.enabled ?? true);
-  }, [account]);
-  const needsId = provider.id === 'cloudflare';
+  }, [account, provider.freePlan]);
+  const needsId = Boolean(provider.extra);
   async function send(method: 'PUT' | 'DELETE', body?: object) {
     onMessage(null);
     try {
@@ -270,7 +295,9 @@ function AccountRow({
         </label>
         {needsId && (
           <label className="grid gap-1" htmlFor={`${idBase}-id`}>
-            <span className="text-xs text-mu">{t('platform.ai.accounts.accountId')}</span>
+            <span className="text-xs text-mu">
+              {t(provider.extra === 'region' ? 'platform.ai.accounts.region' : 'platform.ai.accounts.accountId')}
+            </span>
             <input
               id={`${idBase}-id`}
               className="rounded-s border border-bd bg-bg px-2 py-1 font-mono text-xs"
@@ -289,9 +316,10 @@ function AccountRow({
             disabled={disabled}
             onChange={(e) => setPlan(e.target.value === 'paid' ? 'paid' : 'free')}
           >
-            <option value="free">{t('platform.ai.accounts.free')}</option>
+            {provider.freePlan && <option value="free">{t('platform.ai.accounts.free')}</option>}
             <option value="paid">{t('platform.ai.accounts.paid')}</option>
           </select>
+          {!provider.freePlan && <small className="text-mu">{t('platform.ai.accounts.paidOnly')}</small>}
         </label>
         <label className="inline-flex items-center gap-2 pb-1.5">
           <input
@@ -582,6 +610,34 @@ function Companies() {
           </p>
         )}
       </form>
+    </section>
+  );
+}
+
+/**
+ * The detailed AI views and the test set (they left the client's Admin › AI, 17 November): on Q-smart's own demo
+ * company, whose data is made up. A client company's data is never opened from here.
+ */
+function OwnerAiDetails() {
+  const { t } = useTranslation();
+  const [demo, setDemo] = useState<{ id: string; name: string } | null | undefined>(undefined);
+  useEffect(() => {
+    api<{ id: string; name: string } | null>('/platform/companies/demo').then(setDemo, () => setDemo(null));
+  }, []);
+  if (demo === undefined) return null;
+  return (
+    <section className="bg-pn border border-bd rounded-m p-5 grid gap-4" aria-labelledby="platform-ai-details-title">
+      <div>
+        <h2 id="platform-ai-details-title" className="font-display text-xl font-bold">
+          {t('platform.ai.details.title')}
+        </h2>
+        <p className="text-sm text-mu">{t('platform.ai.details.intro')}</p>
+      </div>
+      {demo ? (
+        <AiOwnerDetails company={{ id: demo.id, name: demo.name, role: 'admin' }} />
+      ) : (
+        <p className="text-sm text-mu">{t('platform.ai.details.noDemo')}</p>
+      )}
     </section>
   );
 }

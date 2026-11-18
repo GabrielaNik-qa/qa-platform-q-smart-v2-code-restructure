@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, Inject, Patch, Post, Put, Req, UseGuar
 import {
   claimInvitation,
   type Db,
+  DEMO_COMPANY,
   isPlatformAdmin,
   logActivity,
   type Membership,
@@ -146,6 +147,13 @@ export class PlatformController {
   @Get()
   list(@Person() person: VerifiedPerson) {
     return platformCompanies(this.db, person.uid);
+  }
+
+  /** Q-smart's own demo company (made-up data): the one company whose AI details the owner may open. */
+  @Get('demo')
+  async demo(@Person() person: VerifiedPerson) {
+    const found = (await platformCompanies(this.db, person.uid)).find((c) => c.name === DEMO_COMPANY);
+    return found ? { id: found.id, name: found.name } : null;
   }
 
   @Post()

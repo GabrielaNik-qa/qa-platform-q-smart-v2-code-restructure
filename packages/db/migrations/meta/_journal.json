@@ -498,6 +498,76 @@
       "when": 1794914545737,
       "tag": "0070_platform_ai_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1794920903318,
+      "tag": "0071_company_intake_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1794920904318,
+      "tag": "0072_company_intake",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1794927416986,
+      "tag": "0073_knowledge_base_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1794927417986,
+      "tag": "0074_knowledge_base",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1794986901761,
+      "tag": "0075_quizzes_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1794986902761,
+      "tag": "0076_quizzes",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1794991084136,
+      "tag": "0077_newsletters_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1794991085136,
+      "tag": "0078_newsletters",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1794996613572,
+      "tag": "0079_help_items_table",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1794996617154,
+      "tag": "0080_help_items",
+      "breakpoints": true
     }
   ]
 }

@@ -6,7 +6,12 @@ import { Account } from './Account';
 import { Activity } from './Activity';
 import { Agents } from './Agents';
 import { AutoQA } from './AutoQA';
-import { AiProviders, AiSwitch, AiUsage } from './AiSettings';
+import { AiAdmin } from './AiSettings';
+import { HelpPage } from './Help';
+import { KnowledgeBase } from './KnowledgeBase';
+import { MyLearning } from './MyLearning';
+import { Newsletter } from './Newsletter';
+import { Quizzes } from './Quizzes';
 import { findPage, isBuilt, menuOf } from './menu';
 import { Calendar } from './Calendar';
 import { Conversations } from './Conversations';
@@ -42,6 +47,7 @@ import { Tasks } from './Tasks';
 import { TeamReview } from './TeamReview';
 import { TopicDashboards } from './TopicDashboards';
 import { Teams } from './Teams';
+import { Redaction, SampleCalculator, ScoreSimulator, Translator } from './Tools';
 import type { CompanyRef } from './ui';
 import { Workload } from './Workload';
 import { Workspaces } from './Workspaces';
@@ -86,12 +92,23 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'admin/categories': (company) => <Library company={company} />,
   'admin/root-causes': (company) => <RootCauses company={company} />,
   'admin/system-settings': (company) => <SystemSettings company={company} />,
-  'admin/ai-provider': (company) => <AiProviders company={company} />,
+  'admin/ai': (company) => <AiAdmin company={company} />,
+  'learning/knowledge-base': (company) => <KnowledgeBase company={company} />,
+  'learning/quizzes': (company) => <Quizzes company={company} />,
+  'learning/my-learning': (company) => <MyLearning company={company} />,
+  'learning/newsletter': (company) => <Newsletter company={company} />,
+  'quality/faq': (company) => <HelpPage kind="faq" company={company} />,
+  'quality/video-tutorials': (company) => <HelpPage kind="video" company={company} />,
+  'quality/guided-tours': (company) => <HelpPage kind="tour" company={company} />,
+  'quality/glossary': (company) => <HelpPage kind="glossary" company={company} />,
+  'learning/script-builder': (company) => <HelpPage kind="script" company={company} />,
+  'learning/redaction': () => <Redaction />,
+  'learning/translator': (company) => <Translator company={company} />,
+  'learning/sample-calculator': (company) => <SampleCalculator company={company} />,
+  'learning/score-simulator': (company) => <ScoreSimulator company={company} />,
   'admin/fields': (company) => <Fields company={company} />,
   'quality/conversations': (company) => <Conversations company={company} />,
   'quality/autoqa': (company) => <AutoQA company={company} />,
-  'admin/ai-usage-limits': (company) => <AiUsage company={company} />,
-  'admin/ai-on-or-off': (company) => <AiSwitch company={company} />,
   'admin/all-roles': (company) => <Roles company={company} />,
   'admin/agent': (company) => <Roles company={company} role="agent" />,
   'admin/trainer': (company) => <Roles company={company} role="trainer" />,

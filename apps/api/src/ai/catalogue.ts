@@ -4,7 +4,7 @@
 // and for clients alike (Gabriela's decision, 5 November, evening). Terms change: re-check before switching a model on.
 import type { Language } from '@qsmart/shared';
 
-export type ProviderId = 'groq' | 'cloudflare';
+export type ProviderId = 'groq' | 'cloudflare' | 'anthropic' | 'mistral' | 'azure' | 'elevenlabs';
 /** may-train: the AI company may use what is sent for itself. no-train-dpa: it may not, and a DPA applies. */
 export type DataTerms = 'may-train' | 'no-train-dpa';
 
@@ -14,8 +14,13 @@ export interface ProviderInfo {
   terms: DataTerms;
   /** the AI company processes data only in the EU */
   euProcessing: boolean;
-  /** a free plan that keeps the same data terms */
+  /**
+   * A free plan that keeps the same data terms. False: the AI company has no free plan, or its free plan's terms are
+   * worse (it may train, or no data agreement covers it), so it is never used on a free account (17 November).
+   */
   freePlan: boolean;
+  /** what the owner must give besides the key: Cloudflare's account ID, Azure's region (in the account's id field) */
+  extra?: 'accountId' | 'region';
   /** when the terms were checked, and where */
   checked: string;
   sources: string[];
@@ -50,6 +55,72 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
       'https://developers.cloudflare.com/workers-ai/platform/data-usage/',
       'https://www.cloudflare.com/terms/',
       'https://www.cloudflare.com/cloudflare-customer-dpa/',
+    ],
+  },
+  // Anthropic's commercial terms: no training on API inputs and outputs; its data processing addendum, with the EU
+  // transfer clauses, is part of them (nothing to sign). No free plan: free credits are a paid account's. Runs in the
+  // USA. Read on 17 November 2026 (V2_PLAN section 7).
+  anthropic: {
+    id: 'anthropic',
+    name: 'Anthropic',
+    terms: 'no-train-dpa',
+    euProcessing: false,
+    freePlan: false,
+    checked: '2026-11-17',
+    sources: [
+      'https://www.anthropic.com/legal/commercial-terms',
+      'https://www.anthropic.com/legal/data-processing-addendum',
+    ],
+  },
+  // Mistral (France): the commercial terms say it does not train on customer data by default, and its data processing
+  // addendum is part of them. The free Experiment plan is not covered: it may train unless the owner opts out, and no
+  // agreement is confirmed for it. Its API input and output are kept 30 days for abuse checks unless zero retention is
+  // activated (paid accounts, on request). Read on 17 November 2026.
+  mistral: {
+    id: 'mistral',
+    name: 'Mistral',
+    terms: 'no-train-dpa',
+    euProcessing: true,
+    freePlan: false,
+    checked: '2026-11-17',
+    sources: [
+      'https://legal.mistral.ai/terms/commercial-terms-of-service/',
+      'https://legal.mistral.ai/terms/data-processing-addendum/',
+      'https://docs.mistral.ai/admin/monitor-comply/zero-data-retention',
+      'https://help.mistral.ai/en/articles/455206-how-can-i-try-the-api-for-free-with-the-experiment-plan',
+    ],
+  },
+  // Microsoft Azure Speech: Microsoft does not use customer data to improve the Speech models; the data protection
+  // addendum is part of the Product Terms; with no endpoint logging and no custom model, nothing is stored. The free
+  // F0 tier has the same terms. We choose a European region (West Europe) when creating the resource. Read 17 Nov 2026.
+  azure: {
+    id: 'azure',
+    name: 'Microsoft Azure Speech',
+    terms: 'no-train-dpa',
+    euProcessing: true,
+    freePlan: true,
+    extra: 'region',
+    checked: '2026-11-17',
+    sources: [
+      'https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-encryption-of-data-at-rest',
+      'https://learn.microsoft.com/en-us/azure/ai-foundry/responsible-ai/speech-service/voice-live/data-privacy-security',
+      'https://azure.microsoft.com/en-in/pricing/details/speech',
+    ],
+  },
+  // ElevenLabs: zero retention and a custom data agreement exist only on its Enterprise plan; below it the data terms
+  // are not confirmed, so Q-smart does not send it clients' data. Listed with its terms, never used until they are
+  // (a business plan with a data agreement). Read on 17 November 2026.
+  elevenlabs: {
+    id: 'elevenlabs',
+    name: 'ElevenLabs',
+    terms: 'may-train',
+    euProcessing: false,
+    freePlan: false,
+    checked: '2026-11-17',
+    sources: [
+      'https://elevenlabs.io/docs/eleven-api/resources/zero-retention-mode',
+      'https://elevenlabs.io/pricing/api',
+      'https://elevenlabs.io/enterprise',
     ],
   },
 };
@@ -232,6 +303,98 @@ export const MODELS: ModelInfo[] = [
     kind: 'speech',
     pricePerHour: 0.0308,
     neuronsPerMinute: 46.63,
+  },
+  // Anthropic, read on 17 November 2026 (prices per million tokens; Haiku 5.5's are for prompts up to 100K tokens). Its
+  // models follow a JSON schema, take 1M tokens, and take no temperature setting (it is never sent).
+  ...(
+    [
+      ['claude-haiku-5-5', 0.1, 0.5],
+      ['claude-sonnet-5-5', 2, 10],
+      ['claude-opus-5-5', 4, 20],
+    ] as const
+  ).map(([model, priceIn, priceOut]): ModelInfo => ({
+    id: `anthropic/${model}`,
+    provider: 'anthropic',
+    model,
+    priceIn,
+    priceOut,
+    context: 1_000_000,
+    structured: 'strict',
+    languages: null,
+    checked: '2026-11-17',
+    source: 'https://platform.claude.com/docs/en/about-claude/models/overview',
+  })),
+  // Mistral, read on 17 November 2026: Small 4 ($0.15 / $0.6, 256k, structured outputs) and Large ($0.5 / $1.5, a
+  // cautious 128k until its card is read). Voxtral turns a recording into text with its parts timed (about $0.003 a
+  // minute); it can't be given the language and the timings together, so the language is left for it to hear.
+  {
+    id: 'mistral/mistral-small-2603',
+    provider: 'mistral',
+    model: 'mistral-small-2603',
+    priceIn: 0.15,
+    priceOut: 0.6,
+    context: 256_000,
+    structured: 'strict',
+    languages: null,
+    checked: '2026-11-17',
+    source: 'https://docs.mistral.ai/models/mistral-small-4-0-26-03',
+  },
+  {
+    id: 'mistral/mistral-large-latest',
+    provider: 'mistral',
+    model: 'mistral-large-latest',
+    priceIn: 0.5,
+    priceOut: 1.5,
+    context: 128_000,
+    structured: 'strict',
+    languages: null,
+    checked: '2026-11-17',
+    source: 'https://mistral.ai/pricing',
+  },
+  {
+    id: 'mistral/voxtral-mini-latest',
+    provider: 'mistral',
+    model: 'voxtral-mini-latest',
+    priceIn: 0,
+    priceOut: 0,
+    context: 0,
+    structured: 'none',
+    languages: null,
+    checked: '2026-11-17',
+    source: 'https://docs.mistral.ai/studio/audio/speech_to_text/offline_transcription',
+    kind: 'speech',
+    pricePerHour: 0.18,
+  },
+  // Microsoft Azure Speech, "fast transcription" (about $1 an hour on a paid plan; the free F0 tier gives 5 hours a
+  // month), read on 17 November 2026. The account's "region" (for example westeurope) says where it runs.
+  {
+    id: 'azure/fast-transcription',
+    provider: 'azure',
+    model: 'fast-transcription',
+    priceIn: 0,
+    priceOut: 0,
+    context: 0,
+    structured: 'none',
+    languages: null,
+    checked: '2026-11-17',
+    source: 'https://learn.microsoft.com/en-us/azure/ai-services/speech-service/fast-transcription-create',
+    kind: 'speech',
+    pricePerHour: 1,
+  },
+  // ElevenLabs Scribe v2 ($0.22 an hour through the API), read on 17 November 2026.
+  {
+    id: 'elevenlabs/scribe_v2',
+    provider: 'elevenlabs',
+    model: 'scribe_v2',
+    priceIn: 0,
+    priceOut: 0,
+    context: 0,
+    structured: 'none',
+    languages: null,
+    checked: '2026-11-17',
+    source: 'https://elevenlabs.io/pricing/api',
+    kind: 'speech',
+    pricePerHour: 0.22,
   },
 ];
 
