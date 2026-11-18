@@ -122,6 +122,12 @@ export const ERROR_MESSAGES = {
   kbLoop: 'A folder cannot be moved inside itself.',
   kbNoTest: 'This article has no test.',
   kbCommentEmpty: 'Write a comment first.',
+  quizInvalid: 'Check the quiz: a title is needed, and nothing is too long.',
+  quizNotFound: 'This quiz is not there any more, or it is not given to you.',
+  quizNoQuestions: 'Add at least one question with a text, two answers and the right one marked.',
+  quizNoTriesLeft: 'You have used all your tries for this quiz. Ask your trainer.',
+  quizAiNoMaterial: 'Choose the articles, or paste the text, the questions should be based on.',
+  quizAiUnusable: 'The AI did not return usable questions. Try again.',
   minCallInvalid: 'Enter a whole number of seconds between 1 and 86400, or leave it empty.',
   aiReviewNoTranscript: 'This conversation has no transcript to review.',
   aiReviewsNotAnnounced:

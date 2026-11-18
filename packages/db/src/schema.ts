@@ -2147,3 +2147,73 @@ export const kbAttempts = pgTable(
     }).onDelete('cascade'),
   ],
 );
+
+/**
+ * Learning › Quizzes (Phase 6, piece 2): weekly, monthly, category and custom quizzes given to all agents, to some teams or
+ * to chosen people, with a deadline, a pass mark and a number of tries. A draft is seen by staff only; publishing tells the
+ * agents it is given to.
+ */
+export const quizzes = pgTable(
+  'quizzes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description').notNull().default(''),
+    /** weekly, monthly, category or custom */
+    kind: text('kind').notNull().default('custom'),
+    topics: jsonb('topics').$type<string[]>().notNull().default([]),
+    /** the articles it is based on (for the question writer) */
+    articleIds: uuid('article_ids').array().notNull().default([]),
+    pass: integer('pass').notNull().default(80),
+    dueOn: date('due_on'),
+    assignAll: boolean('assign_all').notNull().default(true),
+    assignTeams: uuid('assign_teams').array().notNull().default([]),
+    /** memberships (agents) it is given to by name */
+    assignPeople: uuid('assign_people').array().notNull().default([]),
+    /** draft or published */
+    status: text('status').notNull().default('draft'),
+    /** how many tries an agent has (until they pass) */
+    tries: integer('tries').notNull().default(3),
+    questions: jsonb('questions').$type<KbQuestion[]>().notNull().default([]),
+    byName: text('by_name').notNull().default(''),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('quizzes_id_company').on(t.id, t.companyId),
+    index('quizzes_company_status').on(t.companyId, t.status),
+  ],
+);
+
+/** Every try at a quiz (the log only grows). Staff trying a quiz out are not recorded. */
+export const quizAttempts = pgTable(
+  'quiz_attempts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    companyId: uuid('company_id')
+      .notNull()
+      .references(() => companies.id, { onDelete: 'cascade' }),
+    quizId: uuid('quiz_id').notNull(),
+    membershipId: uuid('membership_id').notNull(),
+    score: integer('score').notNull(),
+    passed: boolean('passed').notNull(),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('quiz_attempts_quiz').on(t.companyId, t.quizId),
+    index('quiz_attempts_person').on(t.companyId, t.membershipId),
+    foreignKey({
+      name: 'quiz_attempts_quiz_same_company',
+      columns: [t.quizId, t.companyId],
+      foreignColumns: [quizzes.id, quizzes.companyId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'quiz_attempts_member_same_company',
+      columns: [t.membershipId, t.companyId],
+      foreignColumns: [memberships.id, memberships.companyId],
+    }).onDelete('cascade'),
+  ],
+);

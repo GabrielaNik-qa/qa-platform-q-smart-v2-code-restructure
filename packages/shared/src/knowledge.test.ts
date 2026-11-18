@@ -7,6 +7,9 @@ import {
   folderTree,
   gradeAnswers,
   type KbFolderFacts,
+  learningProgress,
+  type QuizFacts,
+  quizGivenTo,
 } from './knowledge.js';
 
 const f = (id: string, parentId: string | null, over: Partial<KbFolderFacts> = {}): KbFolderFacts => ({
@@ -72,5 +75,58 @@ describe('lesson tests', () => {
     expect(gradeAnswers(qs, [0, 1, 1]).score).toBe(100);
     expect(gradeAnswers(qs, []).score).toBe(0);
     expect(gradeAnswers([], []).score).toBe(0);
+  });
+});
+
+describe('quizzes and progress', () => {
+  const quiz = (over: Partial<QuizFacts> = {}): QuizFacts => ({
+    id: 'q1',
+    title: 'Quiz',
+    status: 'published',
+    dueOn: null,
+    assignAll: true,
+    assignTeams: [],
+    assignPeople: [],
+    ...over,
+  });
+  const me = { id: 'm1', teamId: 't1' };
+
+  it('gives a published quiz to all agents, to some teams or to chosen people, never a draft', () => {
+    expect(quizGivenTo(quiz(), me)).toBe(true);
+    expect(quizGivenTo(quiz({ status: 'draft' }), me)).toBe(false);
+    expect(quizGivenTo(quiz({ assignAll: false, assignTeams: ['t1'] }), me)).toBe(true);
+    expect(quizGivenTo(quiz({ assignAll: false, assignTeams: ['t2'] }), me)).toBe(false);
+    expect(quizGivenTo(quiz({ assignAll: false, assignPeople: ['m1'] }), { id: 'm1', teamId: null })).toBe(true);
+    expect(quizGivenTo(quiz({ assignAll: false }), me)).toBe(false);
+    expect(quizGivenTo(quiz(), { ...me, active: false })).toBe(false);
+  });
+
+  it("counts what is left: articles not read, tests not passed, quizzes not passed; and only what the agent's team sees", () => {
+    const set = [f('open', null, { reqOn: true }), f('closed', null, { reqOn: true, teams: ['t2'] })];
+    const art = (id: string, folderId: string, hasTest = false) => ({
+      id,
+      title: id,
+      folderId,
+      reqOn: false,
+      reqTeams: [],
+      hasTest,
+    });
+    const progress = learningProgress({
+      folders: set,
+      articles: [art('a', 'open'), art('b', 'open', true), art('c', 'open', true), art('hidden', 'closed')],
+      quizzes: [quiz(), quiz({ id: 'q2', title: 'Two', dueOn: '2026-12-01' })],
+      person: me,
+      read: new Set(['b', 'c']),
+      testsPassed: new Set(['c']),
+      quizzesPassed: new Set(['q1']),
+    });
+    expect(progress.required).toBe(3);
+    expect(progress.completed).toBe(1);
+    expect(progress.left).toEqual([
+      { id: 'a', title: 'a', why: 'notRead' },
+      { id: 'b', title: 'b', why: 'testNotPassed' },
+    ]);
+    expect(progress).toMatchObject({ quizzes: 2, quizzesPassed: 1 });
+    expect(progress.quizzesLeft).toEqual([{ id: 'q2', title: 'Two', dueOn: '2026-12-01' }]);
   });
 });

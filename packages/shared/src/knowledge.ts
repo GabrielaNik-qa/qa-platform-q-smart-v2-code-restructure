@@ -105,3 +105,79 @@ export function gradeAnswers(
 
 /** The reactions a person may leave on an article. */
 export const KB_REACTIONS = ['👍', '❤️', '🎉', '👏', '💡'] as const;
+
+// ---------------------------------------------------------------------------------------------- quizzes and progress
+
+export interface QuizFacts {
+  id: string;
+  title: string;
+  status: string;
+  dueOn: string | null;
+  assignAll: boolean;
+  assignTeams: readonly string[];
+  assignPeople: readonly string[];
+}
+/** Whether a published quiz is given to this person (draft quizzes are seen by staff only). */
+export const quizGivenTo = (
+  quiz: Pick<QuizFacts, 'status' | 'assignAll' | 'assignTeams' | 'assignPeople'>,
+  person: { id: string | null; teamId: string | null; active?: boolean },
+): boolean =>
+  quiz.status === 'published' &&
+  person.active !== false &&
+  (quiz.assignAll ||
+    (!!person.teamId && quiz.assignTeams.includes(person.teamId)) ||
+    (!!person.id && quiz.assignPeople.includes(person.id)));
+
+export interface ProgressArticle {
+  id: string;
+  title: string;
+  folderId: string | null;
+  reqOn: boolean;
+  reqTeams: readonly string[];
+  hasTest: boolean;
+}
+export interface Progress {
+  /** the articles required of this person, and how many are done (read, and the test passed when there is one) */
+  required: number;
+  completed: number;
+  left: { id: string; title: string; why: 'notRead' | 'testNotPassed' }[];
+  quizzes: number;
+  quizzesPassed: number;
+  quizzesLeft: { id: string; title: string; dueOn: string | null }[];
+}
+
+/** What one person still has to read and pass (today's "My Learning" and the trainers' progress report). */
+export function learningProgress(input: {
+  folders: readonly KbFolderFacts[];
+  articles: readonly ProgressArticle[];
+  quizzes: readonly QuizFacts[];
+  person: { id: string; teamId: string | null; active?: boolean };
+  /** article ids this person read, and article ids whose lesson test they passed */
+  read: ReadonlySet<string>;
+  testsPassed: ReadonlySet<string>;
+  /** quiz ids this person passed */
+  quizzesPassed: ReadonlySet<string>;
+}): Progress {
+  const { folders, person } = input;
+  const viewer: KbViewer = { staff: false, teamId: person.teamId };
+  const required = input.articles.filter(
+    (a) => folderSeen(folders, a.folderId, viewer) && articleRequired(folders, a, person.teamId),
+  );
+  const left: Progress['left'] = [];
+  for (const a of required) {
+    if (!input.read.has(a.id)) left.push({ id: a.id, title: a.title, why: 'notRead' });
+    else if (a.hasTest && !input.testsPassed.has(a.id)) left.push({ id: a.id, title: a.title, why: 'testNotPassed' });
+  }
+  const given = input.quizzes.filter((q) => quizGivenTo(q, person));
+  const quizzesLeft = given
+    .filter((q) => !input.quizzesPassed.has(q.id))
+    .map((q) => ({ id: q.id, title: q.title, dueOn: q.dueOn }));
+  return {
+    required: required.length,
+    completed: required.length - left.length,
+    left,
+    quizzes: given.length,
+    quizzesPassed: given.length - quizzesLeft.length,
+    quizzesLeft,
+  };
+}

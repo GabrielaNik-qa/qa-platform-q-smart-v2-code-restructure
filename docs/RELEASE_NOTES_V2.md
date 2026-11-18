@@ -2,6 +2,22 @@
 
 Newest first. Each step is tested before it's saved: automatic tests, then a check in the browser as every role.
 
+## 18 November 2026: Phase 6, step 3, piece 2 of 4 (Learning › Quizzes and My Learning)
+
+Built on branch `v2-phase-6`. Today's quizzes, My Learning and progress report are the checklist.
+
+- **Quizzes** (Learning › Quizzes): weekly, monthly, category and custom quizzes. Staff (admins, reviewers, team leads, trainers) write them: title, description, type, deadline, pass mark, number of tries (3 unless set), topics, the articles they are based on, and the questions. A quiz is given to **all agents, to some teams or to chosen people**.
+- **Draft and published:** a draft is seen by staff only. Publishing tells the agents it is given to in the bell ("{{name}} gave you a quiz"), once: saving it again doesn't tell them twice.
+- **Taking a quiz:** an agent sees the quizzes given to them, **without the right answers**. After a try they get the score and how many tries are left; **the right answers show only once they pass or when no try is left**, so they can't be copied for the next try. After the last failed try the quiz is closed ("ask your trainer"). Staff can try a quiz out; that isn't recorded.
+- **Results for staff:** for each quiz, who it is given to, how many took it, how many passed and the average.
+- **The AI question writer** (new AI task "Quiz questions", standard effort level, listed with the others in the owner area): writes 1 to 10 multiple-choice questions from the ticked articles or pasted text, in the language of the material. It goes through the AI engine: only plans that don't train on our data, counted in the company's AI allowance and in the AI log, off when the company's AI is off. The material is data, never instructions. One unusable question doesn't throw away the others; the questions are added for the author to check, they are never published by themselves. It is also in the Knowledge Base's lesson-test editor ("Write questions with the AI"). Buttons "questions from this week's / this month's articles" fill the quiz from recently changed articles.
+- **My Learning** (Learning › My Learning): the required articles done and left, the quizzes to take, the articles read, "still to do" (links to the article or quiz) and the required folders with how far you are. A lesson test not passed keeps its article open.
+- **Progress report** (staff, on My Learning, for the agents they reach: admins everyone, others their workspaces): for each agent the required reading done, the quizzes passed and exactly what is still open; filter by team.
+- **Database:** two new tables (quizzes and tries), behind the company wall, limits in the database; tries only ever grow and go with their quiz.
+- **Checked in the browser:** as admin (a real AI call wrote 5 questions from the greeting article, the quiz published, the progress report lists every agent with what is open, then the test quiz deleted), and as an agent (the quiz appears with 3 tries; a wrong try showed 0%, 2 tries left and no right answers; My Learning lists what is left); no console errors. Reviewer, lead and trainer share the admin's writing right (tested) and were not opened one by one.
+- **Fixed on the way:** a test of the repeating tasks assumed that today is not a Wednesday (it failed on 18 November, a Wednesday); it now counts only the Wednesday it asks for.
+- 428 automatic tests pass (new: the progress rules, and 12 server tests: who writes, drafts, who a quiz is given to, the bell, the tries and the answers kept back, trying out, the progress report, the question writer, the company wall).
+
 ## 17 November 2026: Phase 6, step 3, piece 1 of 4 (Learning › Knowledge Base)
 
 Built on branch `v2-phase-6`, following your answers of 17 November (four pieces; AI helpers later in this phase; text and links only for now). Today's Knowledge Base is the checklist.

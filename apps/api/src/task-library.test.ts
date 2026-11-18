@@ -159,7 +159,8 @@ describe('task templates', () => {
       .filter((p) => p.role === 'agent' && p.active && p.teamId === agent.teamId).length;
     // the daily card for Wednesday, and the weekly one for each agent of the team
     expect(added).toBe(1 + team);
-    const cards = (await cardsOf('admin')).filter((c) => c.templateId === weekly);
+    // (when today is itself that weekday, the task list also gave today's cards: only the Wednesday asked for counts)
+    const cards = (await cardsOf('admin')).filter((c) => c.templateId === weekly && c.dueOn === wednesday);
     expect(cards).toHaveLength(team);
     expect(cards.every((c) => c.dueOn === wednesday)).toBe(true);
   });

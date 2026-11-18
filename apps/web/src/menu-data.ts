@@ -442,7 +442,7 @@ export const MENU: MenuApp[] = [
             id: 'my-learning',
             key: 'acad',
             roles: null,
-            phase: '5',
+            phase: '6',
           },
           {
             id: 'knowledge-base',
@@ -454,7 +454,7 @@ export const MENU: MenuApp[] = [
             id: 'quizzes',
             key: 'quiz',
             roles: null,
-            phase: '5',
+            phase: '6',
           },
           {
             id: 'newsletter',

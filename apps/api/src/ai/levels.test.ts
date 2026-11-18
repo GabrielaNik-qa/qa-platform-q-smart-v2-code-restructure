@@ -17,6 +17,7 @@ describe('effort levels', () => {
       'autoqa.score',
       'speech.transcribe',
       'speech.speakers',
+      'learning.quiz',
     ]);
   });
 

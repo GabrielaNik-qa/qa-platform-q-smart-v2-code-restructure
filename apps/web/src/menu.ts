@@ -58,6 +58,8 @@ export const BUILT = new Set([
   'quality/exports-and-downloads',
   'admin/ai',
   'learning/knowledge-base',
+  'learning/quizzes',
+  'learning/my-learning',
   'admin/fields',
   'quality/conversations',
   'quality/autoqa',

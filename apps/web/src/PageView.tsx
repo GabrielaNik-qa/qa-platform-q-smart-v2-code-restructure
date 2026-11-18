@@ -8,6 +8,8 @@ import { Agents } from './Agents';
 import { AutoQA } from './AutoQA';
 import { AiAdmin } from './AiSettings';
 import { KnowledgeBase } from './KnowledgeBase';
+import { MyLearning } from './MyLearning';
+import { Quizzes } from './Quizzes';
 import { findPage, isBuilt, menuOf } from './menu';
 import { Calendar } from './Calendar';
 import { Conversations } from './Conversations';
@@ -89,6 +91,8 @@ const PAGES: Record<string, (company: CompanyRef, email: string | null) => React
   'admin/system-settings': (company) => <SystemSettings company={company} />,
   'admin/ai': (company) => <AiAdmin company={company} />,
   'learning/knowledge-base': (company) => <KnowledgeBase company={company} />,
+  'learning/quizzes': (company) => <Quizzes company={company} />,
+  'learning/my-learning': (company) => <MyLearning company={company} />,
   'admin/fields': (company) => <Fields company={company} />,
   'quality/conversations': (company) => <Conversations company={company} />,
   'quality/autoqa': (company) => <AutoQA company={company} />,

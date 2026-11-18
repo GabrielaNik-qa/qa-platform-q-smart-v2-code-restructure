@@ -11,6 +11,7 @@ import { api } from './api';
 import { Empty } from './bits';
 import { currentLanguage } from './i18n';
 import { Markdown } from './Markdown';
+import { blankQuestion, type Question, QuestionsEditor } from './QuestionsEditor';
 import {
   card,
   CheckList,
@@ -24,12 +25,6 @@ import {
   useAction,
 } from './ui';
 
-interface Question {
-  q: string;
-  opts: string[];
-  a: number;
-  why: string;
-}
 interface Folder {
   id: string;
   parentId: string | null;
@@ -99,7 +94,6 @@ interface TestState {
 
 const COLOURS = ['#2563eb', '#7c3aed', '#0d9488', '#e11d48', '#ea580c', '#16a34a', '#ca8a04'];
 const ICONS = ['📁', '📘', '📗', '📙', '📕', '🧭', '💡', '🎯'];
-const blankQuestion = (): Question => ({ q: '', opts: ['', '', '', ''], a: 0, why: '' });
 const blankFolder = (parentId: string): FolderDraft => ({
   parentId,
   name: '',
@@ -140,6 +134,7 @@ export function KnowledgeBase({ company }: { company: CompanyRef }) {
   const [editor, setEditor] = useState<ArticleDraft | null>(null);
   const [test, setTest] = useState<TestState | null>(null);
   const [deleting, setDeleting] = useState<Folder | null>(null);
+  const [writing, setWriting] = useState(false);
   const [mode, setMode] = useState<'move' | 'cascade'>('move');
   const writes = can(company.role, 'learning.write');
   const open = search.article ?? null;
@@ -260,6 +255,26 @@ export function KnowledgeBase({ company }: { company: CompanyRef }) {
       load,
     );
     if (ok) setEditor(null);
+  }
+  /** The AI question writer: questions from this article's text, added for the author to check. */
+  async function writeQuestions(d: ArticleDraft) {
+    setWriting(true);
+    try {
+      const out = await api<{ questions: Question[] }>('/learning/quiz-questions', company.id, {
+        method: 'POST',
+        body: {
+          text: `# ${d.title}
+${d.body}`,
+          count: 5,
+        },
+      });
+      setEditor((cur) =>
+        cur ? { ...cur, questions: [...cur.questions.filter((x) => x.q.trim()), ...out.questions] } : cur,
+      );
+    } catch (e) {
+      fail(e);
+    }
+    setWriting(false);
   }
   async function removeArticle(a: Article) {
     if (!window.confirm(t('kb.confirmDelete', { name: a.title }))) return;
@@ -725,8 +740,6 @@ export function KnowledgeBase({ company }: { company: CompanyRef }) {
 
   function editorForm(d: ArticleDraft) {
     const set = (patch: Partial<ArticleDraft>) => setEditor({ ...d, ...patch });
-    const setQuestion = (i: number, patch: Partial<Question>) =>
-      set({ questions: d.questions.map((q, k) => (k === i ? { ...q, ...patch } : q)) });
     const teamOptions = teams.map((x) => ({ id: x.id, label: x.name }));
     return (
       <form onSubmit={(e) => void saveArticle(e)} className={`${card} grid gap-4`} aria-labelledby="kb-editor-title">
@@ -846,67 +859,13 @@ export function KnowledgeBase({ company }: { company: CompanyRef }) {
                   onChange={(e) => set({ pass: Number(e.target.value) })}
                 />
               </label>
-              {d.questions.map((q, i) => (
-                <fieldset key={i} className="grid gap-2 rounded-s border border-bd p-3">
-                  <legend className="px-1 text-sm font-semibold">{t('kb.question', { n: i + 1 })}</legend>
-                  <div className="flex gap-2">
-                    <input
-                      aria-label={t('kb.question', { n: i + 1 })}
-                      className={`${field} flex-1`}
-                      maxLength={300}
-                      value={q.q}
-                      onChange={(e) => setQuestion(i, { q: e.target.value })}
-                    />
-                    <button
-                      type="button"
-                      className={dangerButton}
-                      onClick={() => set({ questions: d.questions.filter((_, k) => k !== i) })}
-                    >
-                      {t('kb.removeQuestion')}
-                    </button>
-                  </div>
-                  {q.opts.map((o, j) => (
-                    <div key={j} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name={`kb-correct-${i}`}
-                        title={t('kb.correct')}
-                        aria-label={t('kb.correct')}
-                        className="accent-[var(--brand)]"
-                        checked={q.a === j}
-                        onChange={() => setQuestion(i, { a: j })}
-                      />
-                      <input
-                        aria-label={t('kb.answer', { n: j + 1 })}
-                        placeholder={t('kb.answer', { n: j + 1 })}
-                        className={`${field} flex-1`}
-                        maxLength={200}
-                        value={o}
-                        onChange={(e) => setQuestion(i, { opts: q.opts.map((x, k) => (k === j ? e.target.value : x)) })}
-                      />
-                    </div>
-                  ))}
-                  <input
-                    aria-label={t('kb.why')}
-                    placeholder={t('kb.why')}
-                    className={field}
-                    maxLength={400}
-                    value={q.why}
-                    onChange={(e) => setQuestion(i, { why: e.target.value })}
-                  />
-                </fieldset>
-              ))}
-              {d.questions.length < 30 && (
-                <div>
-                  <button
-                    type="button"
-                    className={smallButton}
-                    onClick={() => set({ questions: [...d.questions, blankQuestion()] })}
-                  >
-                    + {t('kb.addQuestion')}
-                  </button>
-                </div>
-              )}
+              <QuestionsEditor
+                name="kb-test"
+                questions={d.questions}
+                onChange={(questions) => set({ questions })}
+                writing={writing}
+                onWrite={() => void writeQuestions(d)}
+              />
             </div>
           )}
         </div>
