@@ -167,7 +167,7 @@
         "confirm": true,
         "off": {}
       },
-      "lastIn": "2026-11-06T01:06:44.082Z"
+      "lastIn": "2026-11-12T13:57:21.939Z"
     },
     {
       "username": "g.nikolova",
@@ -171285,6 +171285,42 @@
   ],
   "notifications": [
     {
+      "id": "nca7cfcb4f1",
+      "to": "c.kemp",
+      "type": "sim",
+      "text": "Gabriela Georgieva suggests a practice call in Q Trainer: \"Inbound enquiry\", to train Persuasion & Objection Handling",
+      "at": "2026-11-12T14:08:48.283Z",
+      "read": false,
+      "sc": "inbound"
+    },
+    {
+      "id": "n3b9c78d442",
+      "to": "i.schmidt",
+      "type": "sim",
+      "text": "Gabriela Georgieva suggests a practice call in Q Trainer: \"Inbound enquiry\", to train Persuasion & Objection Handling",
+      "at": "2026-11-12T14:08:48.283Z",
+      "read": false,
+      "sc": "inbound"
+    },
+    {
+      "id": "n3f6231f798",
+      "to": "g.georrgieva",
+      "type": "support",
+      "text": "Gabriela Georgieva asked Quinn for a person: what's your name",
+      "at": "2026-11-12T13:58:32.387Z",
+      "read": true,
+      "support": "sfeab6dd699"
+    },
+    {
+      "id": "ned92a28ece",
+      "to": "g.georrgieva",
+      "type": "support",
+      "text": "Gabriela Georgieva asked Quinn for a person: A question for a person",
+      "at": "2026-11-06T15:32:21.738Z",
+      "read": true,
+      "support": "s2b2285d742"
+    },
+    {
       "id": "n2f66ac5e0e",
       "to": "g.georrgieva",
       "type": "support",
@@ -174286,6 +174322,626 @@
           "a": "created"
         }
       ]
+    },
+    {
+      "id": "kfc4f94f7ac",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-10",
+      "status": "todo",
+      "assignee": "v.petrova",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-10T08:05:00.211Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-10:v.petrova",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-10T08:05:00.211Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k03c8373172",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-10",
+      "status": "todo",
+      "assignee": "d.petrov",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-10T08:05:00.214Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-10:d.petrov",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-10T08:05:00.214Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k681e9cfda5",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-10",
+      "status": "todo",
+      "assignee": "m.todorova",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-10T08:05:00.214Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-10:m.todorova",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-10T08:05:00.214Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k54e22ea585",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-10",
+      "status": "todo",
+      "assignee": "c.kemp",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-10T08:05:00.214Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-10:c.kemp",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-10T08:05:00.214Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k42aa5eee1f",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-10",
+      "status": "todo",
+      "assignee": "k.dimova",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-10T08:05:00.214Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-10:k.dimova",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-10T08:05:00.214Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k21a7e38c63",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-10",
+      "status": "todo",
+      "assignee": "s.mensah",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-10T08:05:00.214Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-10:s.mensah",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-10T08:05:00.214Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k2c726ae985",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-10",
+      "status": "todo",
+      "assignee": "i.schmidt",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-10T08:05:00.215Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-10:i.schmidt",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-10T08:05:00.215Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k6025f43ba2",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-10",
+      "status": "todo",
+      "assignee": "s.blanc",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-10T08:05:00.215Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-10:s.blanc",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-10T08:05:00.215Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k022e46eb2c",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-10",
+      "status": "todo",
+      "assignee": "r.shishkov",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-10T08:05:00.215Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-10:r.shishkov",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-10T08:05:00.215Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k2331e34416",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-10",
+      "status": "todo",
+      "assignee": "gabriela.registration",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-10T08:05:00.215Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-10:gabriela.registration",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-10T08:05:00.215Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "ke45376349b",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-12",
+      "status": "todo",
+      "assignee": "v.petrova",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-12T13:57:22.946Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-12:v.petrova",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-12T13:57:22.946Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k9cb70a759f",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-12",
+      "status": "todo",
+      "assignee": "d.petrov",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-12T13:57:22.946Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-12:d.petrov",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-12T13:57:22.946Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k731afaf42a",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-12",
+      "status": "todo",
+      "assignee": "m.todorova",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-12T13:57:22.946Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-12:m.todorova",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-12T13:57:22.946Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "keb5d251c73",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-12",
+      "status": "todo",
+      "assignee": "c.kemp",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-12T13:57:22.946Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-12:c.kemp",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-12T13:57:22.946Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "k1486127342",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-12",
+      "status": "todo",
+      "assignee": "k.dimova",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-12T13:57:22.946Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-12:k.dimova",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-12T13:57:22.946Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "kd84f05127d",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-12",
+      "status": "todo",
+      "assignee": "s.mensah",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-12T13:57:22.946Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-12:s.mensah",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-12T13:57:22.946Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "kdc13df66e3",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-12",
+      "status": "todo",
+      "assignee": "i.schmidt",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-12T13:57:22.947Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-12:i.schmidt",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-12T13:57:22.947Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "ke08d6b9fc3",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-12",
+      "status": "todo",
+      "assignee": "s.blanc",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-12T13:57:22.947Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-12:s.blanc",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-12T13:57:22.947Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "kddaacdfa95",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-12",
+      "status": "todo",
+      "assignee": "r.shishkov",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-12T13:57:22.947Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-12:r.shishkov",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-12T13:57:22.947Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
+    },
+    {
+      "id": "kec1a02d1d6",
+      "title": "Daily mission: review yesterday's feedback",
+      "desc": "Open your latest review and write one thing you will do differently.",
+      "type": "mission",
+      "priority": "med",
+      "points": 5,
+      "rev": false,
+      "due": "2026-11-12",
+      "status": "todo",
+      "assignee": "gabriela.registration",
+      "labels": [
+        "daily"
+      ],
+      "color": "",
+      "category": "",
+      "checklist": [],
+      "created": "2026-11-12T13:57:22.947Z",
+      "by": "g.pencheva",
+      "key": "pdemo1:2026-11-12:gabriela.registration",
+      "tpl": "pdemo1",
+      "freq": "daily",
+      "completed": null,
+      "log": [
+        {
+          "at": "2026-11-12T13:57:22.947Z",
+          "by": "g.pencheva",
+          "a": "created"
+        }
+      ]
     }
   ],
   "taskTpl": [
@@ -175061,7 +175717,60 @@
       "neg": []
     }
   ],
-  "conversations": [],
+  "conversations": [
+    {
+      "id": "cv0455f29b",
+      "agent": "k.dimova",
+      "agn": "Kamelia Dimova",
+      "date": "2026-11-12",
+      "text": "00:00:02\n33644263800\n\nContact\nHello.\n00:00:03\nSandrine Blanc\n\nStandard agent\nYes, hello, I would like to speak to Madame Nathalie Broussard, sorry.\n00:00:09\n33644263800\n\nContact\nYes, it's me.\n00:00:10\nSandrine Blanc\n\nStandard agent\nIt's you, I hope I'm not disturbing you. I'm Sand lavi from the online gaming platform Wageragerager, I'm not disturbing you.\n00:00:18\n33644263800\n\nContact\nWhat is it about?\n00:00:20\nSandrine Blanc\n\nStandard agent\nActually, you, I don't know if you remember you have an account with us with Nathat Brou, Arobase Hotmail point com, online people platform.\n00:00:30\n33644263800\n\nContact\nWhat platform is this?\n00:00:33\nSandrine Blanc\n\nStandard agent\nWalter Tel, you have an account with us, Here it is, I'm sending it to you.\n00:00:37\nSandrine Blanc\n\nStandard agent\nThe link, so that it will be simpler because sometimes we are registered on several casinos. Well, it's very short. I don't want to bother you. I'm calling you following your registration.\n00:00:47\nSandrine Blanc\n\nStandard agent\nOn our site and therefore to agree to be contacted, I just inform you that the call is recorded, it's to improve our services, it was just to inform you, we have added a good bonus to your account.\n00:01:00\n33644263800\n\nContact\nYes.\n00:01:00\nSandrine Blanc\n\nStandard agent\nWith here, so I don't know if you notice or if you recently logged in to your account\n00:01:05\nSandrine Blanc\n\nStandard agent\nminimum deposit twenty-five euros. So you have the possibility to get a bonus that goes up to three hundred\n00:01:12\nSandrine Blanc\n\nStandard agent\nAnd with this deposit of twenty-five euros you are entitled to one hundred free spins. huh? Free Pine. So, for a little while to have fun with you, I won't bother you anymore. On the other hand, you need to use the T'as code, the Vip T A.\n00:01:26\nSandrine Blanc\n\nStandard agent\nthe VIP by the VIP in fact\n00:01:29\nSandrine Blanc\n\nStandard agent\nHere we go, Madame Broussard, I'm not disturbing you anymore.\n00:01:29\n33644263800\n\nContact\nOkay?\n00:01:32\nSandrine Blanc\n\nStandard agent\nAnd then, in case I wish you good luck, and then have a good afternoon at Madame Broussard, but please goodbye.\n00:01:33\n33644263800\n\nContact\nYes.\n00:01:37\n33644263800\n\nContact\nThank you goodbye, goodbye.",
+      "rid": "",
+      "auto": {
+        "scores": {
+          "ac1": {
+            "s": 100,
+            "hits": [
+              "hello",
+              "good afternoon"
+            ],
+            "bad": []
+          },
+          "ac2": {
+            "s": 30,
+            "hits": [],
+            "bad": []
+          },
+          "ac3": {
+            "s": 85,
+            "hits": [
+              "please"
+            ],
+            "bad": []
+          },
+          "ac4": {
+            "s": 30,
+            "hits": [],
+            "bad": []
+          },
+          "ac5": {
+            "s": 30,
+            "hits": [],
+            "bad": []
+          },
+          "ac6": {
+            "s": 30,
+            "hits": [],
+            "bad": []
+          }
+        },
+        "total": 51,
+        "mode": "rules",
+        "at": "2026-11-12T14:06:49.810Z"
+      },
+      "by": "Gabriela Georgieva",
+      "created": "2026-11-12T14:04:23.101Z"
+    }
+  ],
   "workspaces": [
     {
       "id": "w-main",
@@ -175097,29 +175806,47 @@
       "2026-11-04": {
         "total": 1,
         "predefined": 1
+      },
+      "2026-11-12": {
+        "total": 1,
+        "none": 1
       }
     },
     "months": {
       "2026-11": {
-        "total": 1,
+        "total": 2,
         "predefined": 1,
         "unhelpful": 1,
-        "handover": 1
+        "handover": 3,
+        "none": 1
       }
     },
     "users": {
       "2026-11": {
-        "g.georrgieva": 1
+        "g.georrgieva": 2
       }
     },
     "top": {
       "use q smart": {
         "n": 1,
         "q": "how do i use q-smart"
+      },
+      "s name": {
+        "n": 1,
+        "q": "what's your name"
       }
     }
   },
   "quinnMisses": [
+    {
+      "q": "what's your name",
+      "lang": "en",
+      "type": "none",
+      "why": "ai-off",
+      "page": "",
+      "at": "2026-11-12T13:58:22.947Z",
+      "by": "admin"
+    },
     {
       "q": "How do I use Q-smart?",
       "type": "unhelpful",
@@ -175129,6 +175856,32 @@
     }
   ],
   "support": [
+    {
+      "id": "sfeab6dd699",
+      "email": "g.georrgieva@gmail.com",
+      "subject": "Quinn: what's your name",
+      "type": "question",
+      "desc": "Me: what's your name\nQuinn: ",
+      "file": null,
+      "status": "new",
+      "by": "g.georrgieva",
+      "byName": "Gabriela Georgieva",
+      "at": "2026-11-12T13:58:32.387Z",
+      "from": "quinn"
+    },
+    {
+      "id": "s2b2285d742",
+      "email": "g.georrgieva@gmail.com",
+      "subject": "Quinn: A question for a person",
+      "type": "question",
+      "desc": "A question for a person",
+      "file": null,
+      "status": "new",
+      "by": "g.georrgieva",
+      "byName": "Gabriela Georgieva",
+      "at": "2026-11-06T15:32:21.737Z",
+      "from": "quinn"
+    },
     {
       "id": "sebea6e8c4a",
       "email": "g.georrgieva@gmail.com",
